@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -10,21 +10,23 @@ import {
   Package,
   FileText,
   Settings,
-  ChevronLeft,
+  UserCircle,
   PanelLeftClose,
   PanelLeft,
 } from 'lucide-react';
+import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
 
 const navItems = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/users', icon: Users, label: 'Users' },
-  { to: '/services', icon: Wrench, label: 'Services' },
-  { to: '/brands', icon: Car, label: 'Vehicle Brands' },
-  { to: '/models', icon: Car, label: 'Vehicle Models' },
-  { to: '/bookings', icon: CalendarCheck, label: 'Bookings' },
-  { to: '/products', icon: Package, label: 'Products' },
-  { to: '/invoices', icon: FileText, label: 'Invoices' },
-  { to: '/settings', icon: Settings, label: 'Settings' },
+  { key: 'dashboard', to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { key: 'profile', to: '/profile', icon: UserCircle, label: 'Profile' },
+  { key: 'users', to: '/users', icon: Users, label: 'Users' },
+  { key: 'services', to: '/services', icon: Wrench, label: 'Services' },
+  { key: 'brands', to: '/brands', icon: Car, label: 'Vehicle Brands' },
+  { key: 'models', to: '/models', icon: Car, label: 'Vehicle Models' },
+  { key: 'bookings', to: '/bookings', icon: CalendarCheck, label: 'Bookings' },
+  { key: 'products', to: '/products', icon: Package, label: 'Products' },
+  { key: 'invoices', to: '/invoices', icon: FileText, label: 'Invoices' },
+  { key: 'settings', to: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 function SidebarLink({ to, icon: Icon, label, active, collapsed }) {
@@ -60,6 +62,8 @@ function SidebarLink({ to, icon: Icon, label, active, collapsed }) {
 
 export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile }) {
   const location = useLocation();
+  const navVisibility = useDashboardSettingsStore((s) => s.navVisibility);
+  const visibleItems = navItems.filter((item) => navVisibility[item.key] !== false);
 
   const panel = (
     <aside
@@ -106,7 +110,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
       </div>
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">
-        {navItems.map((item) => (
+        {visibleItems.map((item) => (
           <SidebarLink
             key={item.to}
             to={item.to}

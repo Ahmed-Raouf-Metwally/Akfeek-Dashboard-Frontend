@@ -98,7 +98,7 @@ export default function Header({ title, subtitle, onMenuClick, onToggleSidebar, 
               <div className="py-1">
                 <Menu.Item>
                   {({ close }) => (
-                    <Link to="/settings" onClick={close} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100">
+                    <Link to="/profile" onClick={close} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100">
                       <User className="size-4 shrink-0 text-slate-500" /> Profile
                     </Link>
                   )}

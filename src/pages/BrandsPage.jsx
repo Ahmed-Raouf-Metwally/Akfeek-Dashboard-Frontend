@@ -1,17 +1,16 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Plus, Trash2, MoreHorizontal, Eye, Pencil } from 'lucide-react';
-import { Menu, MenuButton, MenuItem, MenuItems, Transition } from '@headlessui/react';
+import { Plus, Trash2, Eye, Pencil } from 'lucide-react';
 import { brandService } from '../services/brandService';
 import { useConfirm } from '../hooks/useConfirm';
 import { TableSkeleton } from '../components/ui/Skeleton';
-import DetailModal from '../components/ui/DetailModal';
 import Pagination from '../components/ui/Pagination';
 import Input from '../components/Input';
 import { Card } from '../components/ui/Card';
 
-function BrandRow({ brand, onView, onEdit, onDelete, openConfirm }) {
+function BrandRow({ brand, onEdit, onDelete, openConfirm }) {
   const modelCount = brand._count?.models ?? 0;
 
   const handleDelete = async () => {
@@ -23,6 +22,9 @@ function BrandRow({ brand, onView, onEdit, onDelete, openConfirm }) {
     });
     if (ok) await onDelete(brand.id);
   };
+
+  const iconBtn =
+    'inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700';
 
   return (
     <tr className="border-b border-slate-100 transition-colors hover:bg-slate-50/50">
@@ -42,71 +44,37 @@ function BrandRow({ brand, onView, onEdit, onDelete, openConfirm }) {
           {brand.isActive ? 'Active' : 'Inactive'}
         </span>
       </td>
-      <td className="w-14 px-4 py-3">
-        <Menu as="div" className="relative">
-          <MenuButton
-            className="inline-flex size-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
-            aria-label="Actions"
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-1">
+          <Link
+            to={`/brands/${brand.id}`}
+            className={iconBtn}
+            title="View full details"
+            aria-label="View full details"
           >
-            <MoreHorizontal className="size-5" />
-          </MenuButton>
-          <Transition
-            as={React.Fragment}
-            enter="transition ease-out duration-100"
-            enterFrom="opacity-0 scale-95"
-            enterTo="opacity-100 scale-100"
-            leave="transition ease-in duration-75"
-            leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-95"
+            <Eye className="size-5" />
+          </Link>
+          <button
+            type="button"
+            onClick={() => onEdit?.(brand)}
+            className={iconBtn}
+            title="Edit"
+            aria-label="Edit"
           >
-            <MenuItems className="absolute right-0 top-full z-50 mt-1 w-48 origin-top-right rounded-lg border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none">
-              <MenuItem>
-                {({ focus }) => (
-                  <button
-                    type="button"
-                    onClick={() => onView?.(brand.id)}
-                    className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${focus ? 'bg-slate-50' : ''} text-slate-700`}
-                  >
-                    <Eye className="size-4" /> View
-                  </button>
-                )}
-              </MenuItem>
-              <MenuItem>
-                {({ focus }) => (
-                  <button
-                    type="button"
-                    onClick={() => onEdit?.(brand)}
-                    className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${focus ? 'bg-slate-50' : ''} text-slate-700`}
-                  >
-                    <Pencil className="size-4" /> Edit
-                  </button>
-                )}
-              </MenuItem>
-              <MenuItem>
-                {({ focus }) => (
-                  <button
-                    type="button"
-                    onClick={handleDelete}
-                    className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${focus ? 'bg-red-50' : ''} text-red-600`}
-                  >
-                    <Trash2 className="size-4" /> Deactivate
-                  </button>
-                )}
-              </MenuItem>
-            </MenuItems>
-          </Transition>
-        </Menu>
+            <Pencil className="size-5" />
+          </button>
+          <button
+            type="button"
+            onClick={handleDelete}
+            className={`${iconBtn} hover:bg-red-50 hover:text-red-600`}
+            title="Deactivate"
+            aria-label="Deactivate"
+          >
+            <Trash2 className="size-5" />
+          </button>
+        </div>
       </td>
     </tr>
-  );
-}
-
-function DetailRow({ label, value }) {
-  return (
-    <div className="flex gap-3 border-b border-slate-100 py-3 last:border-0">
-      <span className="w-28 shrink-0 text-sm text-slate-500">{label}</span>
-      <span className="text-sm font-medium text-slate-900">{value ?? '—'}</span>
-    </div>
   );
 }
 
@@ -120,7 +88,6 @@ export default function BrandsPage() {
   const [page, setPage] = useState(1);
   const [showAdd, setShowAdd] = useState(false);
   const [addForm, setAddForm] = useState(emptyBrandForm());
-  const [viewBrandId, setViewBrandId] = useState(null);
   const [editBrand, setEditBrand] = useState(null);
   const [editForm, setEditForm] = useState(emptyBrandForm());
 
@@ -130,12 +97,6 @@ export default function BrandsPage() {
     queryKey: ['brands', activeOnly],
     queryFn: () => brandService.getBrands({ activeOnly }),
     staleTime: 60_000,
-  });
-
-  const { data: viewBrand, isLoading: viewLoading } = useQuery({
-    queryKey: ['brand', viewBrandId],
-    queryFn: () => brandService.getBrandById(viewBrandId),
-    enabled: !!viewBrandId,
   });
 
   const createMutation = useMutation({
@@ -216,24 +177,6 @@ export default function BrandsPage() {
   return (
     <div className="space-y-6">
       <ConfirmModal />
-      <DetailModal title="Brand details" open={!!viewBrandId} onClose={() => setViewBrandId(null)}>
-        {viewLoading ? (
-          <p className="text-sm text-slate-500">Loading…</p>
-        ) : viewBrand ? (
-          <>
-            <DetailRow label="Name" value={viewBrand.name} />
-            <DetailRow label="Name (Ar)" value={viewBrand.nameAr} />
-            <DetailRow label="Logo URL" value={viewBrand.logo} />
-            <DetailRow label="Status" value={viewBrand.isActive !== false ? 'Active' : 'Inactive'} />
-            {viewBrand._count != null && (
-              <DetailRow label="Models" value={String(viewBrand._count.models ?? 0)} />
-            )}
-          </>
-        ) : (
-          <p className="text-sm text-slate-500">Brand not found.</p>
-        )}
-      </DetailModal>
-
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div />
         <button
@@ -381,7 +324,7 @@ export default function BrandsPage() {
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
                       Status
                     </th>
-                    <th className="w-14 px-4 py-3" />
+                    <th className="w-32 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -396,7 +339,6 @@ export default function BrandsPage() {
                       <BrandRow
                         key={b.id}
                         brand={b}
-                        onView={setViewBrandId}
                         onEdit={openEdit}
                         onDelete={(id) => deleteMutation.mutateAsync(id)}
                         openConfirm={openConfirm}

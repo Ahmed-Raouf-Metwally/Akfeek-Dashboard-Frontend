@@ -7,6 +7,7 @@ import { LayoutProvider, useLayout } from '../contexts/LayoutContext';
 
 const ROUTE_TITLES = {
   '/dashboard': ['Dashboard', 'Overview and stats'],
+  '/profile': ['Profile', 'Your account'],
   '/users': ['Users', 'Manage platform users'],
   '/services': ['Services', 'Service catalog'],
   '/services/new': ['Create service', 'Add a new service'],

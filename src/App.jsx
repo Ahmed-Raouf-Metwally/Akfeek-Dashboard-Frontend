@@ -9,14 +9,22 @@ import AdminLayout from './components/AdminLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardHome from './pages/DashboardHome';
 import UsersPage from './pages/UsersPage';
+import UserDetailPage from './pages/UserDetailPage';
 import ServicesPage from './pages/ServicesPage';
 import CreateServicePage from './pages/CreateServicePage';
 import ServiceDetailPage from './pages/ServiceDetailPage';
 import BrandsPage from './pages/BrandsPage';
+import BrandDetailPage from './pages/BrandDetailPage';
 import VehicleModelsPage from './pages/VehicleModelsPage';
+import ModelDetailPage from './pages/ModelDetailPage';
 import BookingsPage from './pages/BookingsPage';
+import BookingDetailPage from './pages/BookingDetailPage';
 import ProductsPage from './pages/ProductsPage';
+import ProductDetailPage from './pages/ProductDetailPage';
 import InvoicesPage from './pages/InvoicesPage';
+import InvoiceDetailPage from './pages/InvoiceDetailPage';
+import SettingsPage from './pages/SettingsPage';
+import ProfilePage from './pages/ProfilePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -63,15 +71,22 @@ function App() {
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardHome />} />
             <Route path="users" element={<UsersPage />} />
+            <Route path="users/:id" element={<UserDetailPage />} />
             <Route path="services" element={<ServicesPage />} />
             <Route path="services/new" element={<CreateServicePage />} />
             <Route path="services/:id" element={<ServiceDetailPage />} />
             <Route path="brands" element={<BrandsPage />} />
+            <Route path="brands/:id" element={<BrandDetailPage />} />
             <Route path="models" element={<VehicleModelsPage />} />
+            <Route path="models/:id" element={<ModelDetailPage />} />
             <Route path="bookings" element={<BookingsPage />} />
+            <Route path="bookings/:id" element={<BookingDetailPage />} />
             <Route path="products" element={<ProductsPage />} />
+            <Route path="products/:id" element={<ProductDetailPage />} />
             <Route path="invoices" element={<InvoicesPage />} />
-            <Route path="settings" element={<div className="rounded-xl border border-slate-200 bg-white p-6"><p className="text-slate-500">Settings — coming soon.</p></div>} />
+            <Route path="invoices/:id" element={<InvoiceDetailPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="profile" element={<ProfilePage />} />
           </Route>
         </Routes>
       </Router>

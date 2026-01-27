@@ -2,12 +2,10 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Search, Plus, Pencil, Trash2, MoreHorizontal, Eye, ExternalLink } from 'lucide-react';
-import { Menu, MenuButton, MenuItem, MenuItems, Transition } from '@headlessui/react';
+import { Search, Plus, Pencil, Trash2, Eye } from 'lucide-react';
 import { serviceService } from '../services/serviceService';
 import { useConfirm } from '../hooks/useConfirm';
 import { TableSkeleton } from '../components/ui/Skeleton';
-import DetailModal from '../components/ui/DetailModal';
 import Pagination from '../components/ui/Pagination';
 import Input from '../components/Input';
 import { Card } from '../components/ui/Card';
@@ -41,7 +39,7 @@ const emptyForm = () => ({
   icon: '',
 });
 
-function ServiceRow({ service, onView, onViewFullDetails, onEdit, onDelete, openConfirm }) {
+function ServiceRow({ service, onEdit, onDelete, openConfirm }) {
   const handleDelete = async () => {
     const ok = await openConfirm({
       title: 'Delete service',
@@ -51,6 +49,9 @@ function ServiceRow({ service, onView, onViewFullDetails, onEdit, onDelete, open
     });
     if (ok) await onDelete(service.id);
   };
+
+  const iconBtn =
+    'inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700';
 
   return (
     <tr className="border-b border-slate-100 transition-colors hover:bg-slate-50/50">
@@ -71,71 +72,35 @@ function ServiceRow({ service, onView, onViewFullDetails, onEdit, onDelete, open
       <td className="px-4 py-3 text-sm text-slate-600">
         {service.estimatedDuration ? `${service.estimatedDuration} min` : '—'}
       </td>
-      <td className="w-14 px-4 py-3">
-        <Menu as="div" className="relative">
-          <MenuButton
-            className="inline-flex size-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
-            aria-label="Actions"
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-1">
+          <Link
+            to={`/services/${service.id}`}
+            className={iconBtn}
+            title="View full details"
+            aria-label="View full details"
           >
-            <MoreHorizontal className="size-5" />
-          </MenuButton>
-          <Transition
-            as={React.Fragment}
-            enter="transition ease-out duration-100"
-            enterFrom="opacity-0 scale-95"
-            enterTo="opacity-100 scale-100"
-            leave="transition ease-in duration-75"
-            leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-95"
+            <Eye className="size-5" />
+          </Link>
+          <button
+            type="button"
+            onClick={() => onEdit?.(service)}
+            className={iconBtn}
+            title="Edit"
+            aria-label="Edit"
           >
-            <MenuItems className="absolute right-0 top-full z-50 mt-1 w-48 origin-top-right rounded-lg border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none">
-              <MenuItem>
-                {({ focus }) => (
-                  <button
-                    type="button"
-                    onClick={() => onView?.(service.id)}
-                    className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${focus ? 'bg-slate-50' : ''} text-slate-700`}
-                  >
-                    <Eye className="size-4" /> View
-                  </button>
-                )}
-              </MenuItem>
-              <MenuItem>
-                {({ focus }) => (
-                  <button
-                    type="button"
-                    onClick={() => onViewFullDetails?.(service.id)}
-                    className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${focus ? 'bg-slate-50' : ''} text-slate-700`}
-                  >
-                    <ExternalLink className="size-4" /> Full details
-                  </button>
-                )}
-              </MenuItem>
-              <MenuItem>
-                {({ focus }) => (
-                  <button
-                    type="button"
-                    onClick={() => onEdit?.(service)}
-                    className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${focus ? 'bg-slate-50' : ''} text-slate-700`}
-                  >
-                    <Pencil className="size-4" /> Edit
-                  </button>
-                )}
-              </MenuItem>
-              <MenuItem>
-                {({ focus }) => (
-                  <button
-                    type="button"
-                    onClick={handleDelete}
-                    className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${focus ? 'bg-red-50' : ''} text-red-600`}
-                  >
-                    <Trash2 className="size-4" /> Delete
-                  </button>
-                )}
-              </MenuItem>
-            </MenuItems>
-          </Transition>
-        </Menu>
+            <Pencil className="size-5" />
+          </button>
+          <button
+            type="button"
+            onClick={handleDelete}
+            className={`${iconBtn} hover:bg-red-50 hover:text-red-600`}
+            title="Delete"
+            aria-label="Delete"
+          >
+            <Trash2 className="size-5" />
+          </button>
+        </div>
       </td>
     </tr>
   );
@@ -160,7 +125,6 @@ export default function ServicesPage() {
   const [page, setPage] = useState(1);
   const [showAdd, setShowAdd] = useState(false);
   const [editService, setEditService] = useState(null);
-  const [viewServiceId, setViewServiceId] = useState(null);
   const [form, setForm] = useState(emptyForm());
 
   useEffect(() => { setPage(1); }, [search, category]);
@@ -169,12 +133,6 @@ export default function ServicesPage() {
     queryKey: ['services', { search, category }],
     queryFn: () => serviceService.getServices({ search: search || undefined, category: category || undefined }),
     staleTime: 60_000,
-  });
-
-  const { data: viewService, isLoading: viewLoading } = useQuery({
-    queryKey: ['service', viewServiceId],
-    queryFn: () => serviceService.getServiceById(viewServiceId),
-    enabled: !!viewServiceId,
   });
 
   const createMutation = useMutation({
@@ -269,64 +227,6 @@ export default function ServicesPage() {
   return (
     <div className="space-y-6">
       <ConfirmModal />
-      <DetailModal title="Service details" open={!!viewServiceId} onClose={() => setViewServiceId(null)}>
-        {viewLoading ? (
-          <p className="text-sm text-slate-500">Loading…</p>
-        ) : viewService ? (
-          <>
-            <DetailRow label="Name" value={viewService.name} />
-            <DetailRow label="Name (Ar)" value={viewService.nameAr} />
-            <DetailRow label="Description" value={viewService.description} />
-            <DetailRow label="Category" value={viewService.category} />
-            <DetailRow label="Type" value={viewService.type} />
-            <DetailRow
-              label="Duration"
-              value={viewService.estimatedDuration != null ? `${viewService.estimatedDuration} min` : null}
-            />
-            {viewService.imageUrl && (
-              <DetailRow
-                label="Image"
-                value={
-                  <a
-                    href={viewService.imageUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium text-indigo-600 hover:text-indigo-700"
-                  >
-                    {viewService.imageUrl}
-                  </a>
-                }
-              />
-            )}
-            {viewService.icon && (
-              <DetailRow
-                label="Icon"
-                value={
-                  <a
-                    href={viewService.icon}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium text-indigo-600 hover:text-indigo-700"
-                  >
-                    {viewService.icon}
-                  </a>
-                }
-              />
-            )}
-            {viewService.pricing?.length > 0 && (
-              <DetailRow
-                label="Pricing"
-                value={viewService.pricing
-                  .map((p) => `${p.vehicleType}: ${p.basePrice ?? p.discountedPrice ?? '—'}`)
-                  .join(', ')}
-              />
-            )}
-          </>
-        ) : (
-          <p className="text-sm text-slate-500">Service not found.</p>
-        )}
-      </DetailModal>
-
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div />
         <Link
@@ -488,13 +388,13 @@ export default function ServicesPage() {
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
                       Duration
                     </th>
-                    <th className="w-14 px-4 py-3" />
+                    <th className="w-32 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {paginatedServices.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-4 py-12 text-center text-slate-500">
+                      <td colSpan={6} className="px-4 py-12 text-center text-slate-500">
                         No services found.
                       </td>
                     </tr>
@@ -503,8 +403,6 @@ export default function ServicesPage() {
                       <ServiceRow
                         key={s.id}
                         service={s}
-                        onView={setViewServiceId}
-                        onViewFullDetails={(id) => navigate(`/services/${id}`)}
                         onEdit={openEdit}
                         onDelete={(id) => deleteMutation.mutateAsync(id)}
                         openConfirm={openConfirm}

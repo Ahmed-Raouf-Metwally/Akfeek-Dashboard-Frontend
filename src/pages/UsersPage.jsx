@@ -1,12 +1,11 @@
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Search, UserMinus, Check, MoreHorizontal, Eye } from 'lucide-react';
-import { Menu, MenuButton, MenuItem, MenuItems, Transition } from '@headlessui/react';
+import { Search, UserMinus, Check, Eye, Trash2 } from 'lucide-react';
 import { userService } from '../services/userService';
 import { useConfirm } from '../hooks/useConfirm';
 import { TableSkeleton } from '../components/ui/Skeleton';
-import DetailModal from '../components/ui/DetailModal';
 import Pagination from '../components/ui/Pagination';
 import { Card } from '../components/ui/Card';
 
@@ -26,7 +25,7 @@ const STATUSES = [
   { value: 'INACTIVE', label: 'Inactive' },
 ];
 
-function UserRow({ user, onStatusChange, onDelete, onView, openConfirm }) {
+function UserRow({ user, onStatusChange, onDelete, openConfirm }) {
   const name = [user.profile?.firstName, user.profile?.lastName].filter(Boolean).join(' ') || '—';
   const email = user.email || '—';
   const role = user.role ?? '—';
@@ -59,6 +58,9 @@ function UserRow({ user, onStatusChange, onDelete, onView, openConfirm }) {
         ? 'bg-red-50 text-red-700'
         : 'bg-amber-50 text-amber-700';
 
+  const iconBtn =
+    'inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700';
+
   return (
     <tr className="border-b border-slate-100 transition-colors hover:bg-slate-50/50">
       <td className="px-4 py-3">
@@ -82,82 +84,46 @@ function UserRow({ user, onStatusChange, onDelete, onView, openConfirm }) {
           {status.replace(/_/g, ' ')}
         </span>
       </td>
-      <td className="w-14 px-4 py-3">
-        <Menu as="div" className="relative">
-          <MenuButton
-            className="inline-flex size-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
-            aria-label="Actions"
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-1">
+          <Link
+            to={`/users/${user.id}`}
+            className={iconBtn}
+            title="View full details"
+            aria-label="View full details"
           >
-            <MoreHorizontal className="size-5" />
-          </MenuButton>
-          <Transition
-            as={React.Fragment}
-            enter="transition ease-out duration-100"
-            enterFrom="opacity-0 scale-95"
-            enterTo="opacity-100 scale-100"
-            leave="transition ease-in duration-75"
-            leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-95"
+            <Eye className="size-5" />
+          </Link>
+          <button
+            type="button"
+            onClick={() => handleStatusClick('ACTIVE')}
+            className={iconBtn}
+            title="Set Active"
+            aria-label="Set Active"
           >
-            <MenuItems className="absolute right-0 top-full z-50 mt-1 w-48 origin-top-right rounded-lg border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none">
-              <MenuItem>
-                {({ focus }) => (
-                  <button
-                    type="button"
-                    onClick={() => onView?.(user.id)}
-                    className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${focus ? 'bg-slate-50' : ''} text-slate-700`}
-                  >
-                    <Eye className="size-4" /> View
-                  </button>
-                )}
-              </MenuItem>
-              <MenuItem>
-                {({ focus }) => (
-                  <button
-                    type="button"
-                    onClick={() => handleStatusClick('ACTIVE')}
-                    className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${focus ? 'bg-slate-50' : ''} text-slate-700`}
-                  >
-                    <Check className="size-4" /> Set Active
-                  </button>
-                )}
-              </MenuItem>
-              <MenuItem>
-                {({ focus }) => (
-                  <button
-                    type="button"
-                    onClick={() => handleStatusClick('SUSPENDED')}
-                    className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${focus ? 'bg-slate-50' : ''} text-slate-700`}
-                  >
-                    <UserMinus className="size-4" /> Suspend
-                  </button>
-                )}
-              </MenuItem>
-              <MenuItem>
-                {({ focus }) => (
-                  <button
-                    type="button"
-                    onClick={handleDeleteClick}
-                    className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${focus ? 'bg-red-50' : ''} text-red-600`}
-                  >
-                    <UserMinus className="size-4" /> Delete
-                  </button>
-                )}
-              </MenuItem>
-            </MenuItems>
-          </Transition>
-        </Menu>
+            <Check className="size-5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => handleStatusClick('SUSPENDED')}
+            className={iconBtn}
+            title="Suspend"
+            aria-label="Suspend"
+          >
+            <UserMinus className="size-5" />
+          </button>
+          <button
+            type="button"
+            onClick={handleDeleteClick}
+            className={`${iconBtn} hover:bg-red-50 hover:text-red-600`}
+            title="Delete"
+            aria-label="Delete"
+          >
+            <Trash2 className="size-5" />
+          </button>
+        </div>
       </td>
     </tr>
-  );
-}
-
-function DetailRow({ label, value }) {
-  return (
-    <div className="flex gap-3 border-b border-slate-100 py-3 last:border-0">
-      <span className="w-28 shrink-0 text-sm text-slate-500">{label}</span>
-      <span className="text-sm font-medium text-slate-900">{value ?? '—'}</span>
-    </div>
   );
 }
 
@@ -168,14 +134,7 @@ export default function UsersPage() {
   const [role, setRole] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
-  const [viewUserId, setViewUserId] = useState(null);
   const limit = 10;
-
-  const { data: viewUser, isLoading: viewLoading } = useQuery({
-    queryKey: ['user', viewUserId],
-    queryFn: () => userService.getUserById(viewUserId),
-    enabled: !!viewUserId,
-  });
 
   const params = useMemo(
     () => ({ search: search || undefined, role: role || undefined, status: status || undefined, page, limit }),
@@ -221,29 +180,6 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
       <ConfirmModal />
-      <DetailModal title="User details" open={!!viewUserId} onClose={() => setViewUserId(null)}>
-        {viewLoading ? (
-          <p className="text-sm text-slate-500">Loading…</p>
-        ) : viewUser ? (
-          <>
-            <DetailRow
-              label="Name"
-              value={[viewUser.profile?.firstName, viewUser.profile?.lastName].filter(Boolean).join(' ')}
-            />
-            <DetailRow label="Email" value={viewUser.email} />
-            <DetailRow label="Phone" value={viewUser.profile?.phoneNumber ?? viewUser.phone} />
-            <DetailRow label="Role" value={viewUser.role} />
-            <DetailRow label="Status" value={viewUser.status} />
-            <DetailRow
-              label="Created"
-              value={viewUser.createdAt ? new Date(viewUser.createdAt).toLocaleString() : null}
-            />
-          </>
-        ) : (
-          <p className="text-sm text-slate-500">User not found.</p>
-        )}
-      </DetailModal>
-
       <Card className="overflow-hidden p-0">
         <form onSubmit={handleSearchSubmit} className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-4 py-4">
           <div className="relative flex-1 min-w-[200px]">
@@ -302,7 +238,7 @@ export default function UsersPage() {
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
                       Status
                     </th>
-                    <th className="w-14 px-4 py-3" />
+                    <th className="w-32 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -317,7 +253,6 @@ export default function UsersPage() {
                       <UserRow
                         key={user.id}
                         user={user}
-                        onView={setViewUserId}
                         onStatusChange={(id, s) => updateStatusMutation.mutateAsync({ id, status: s })}
                         onDelete={(id) => deleteMutation.mutateAsync(id)}
                         openConfirm={openConfirm}

@@ -7,7 +7,12 @@ import {
   TrendingUp,
   Wrench,
   ExternalLink,
+  Plus,
+  UserPlus,
+  FileText,
+  Package,
 } from 'lucide-react';
+import { bookingService } from '../services/bookingService';
 import {
   BarChart,
   Bar,
@@ -78,12 +83,21 @@ function StatCard({ title, value, icon: Icon, colorClass, loading }) {
 
 export default function DashboardHome() {
   const user = useAuthStore((s) => s.user);
-  const name = user?.profile?.firstName || user?.email?.split('@')[0] || 'Admin';
+  const firstName = user?.profile?.firstName || user?.email?.split('@')[0] || '';
+  const name = firstName || 'Admin';
+  const greeting = firstName ? `Welcome back, ${firstName}` : 'Welcome to your dashboard';
   const [recentPage, setRecentPage] = useState(1);
 
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ['dashboard', 'users'],
     queryFn: () => userService.getUsers({ page: 1, limit: 1 }),
+    staleTime: 60_000,
+    retry: 1,
+  });
+
+  const { data: bookingsData, isLoading: bookingsLoading } = useQuery({
+    queryKey: ['dashboard', 'bookings'],
+    queryFn: () => bookingService.getBookings({ page: 1, limit: 1 }),
     staleTime: 60_000,
     retry: 1,
   });
@@ -96,6 +110,7 @@ export default function DashboardHome() {
   });
 
   const totalUsers = usersData?.pagination?.total ?? 0;
+  const totalBookings = bookingsData?.pagination?.total ?? 0;
   const services = Array.isArray(servicesData) ? servicesData : (servicesData?.length ? servicesData : []);
   const totalServices = services.length;
 
@@ -116,34 +131,70 @@ export default function DashboardHome() {
     return { paginatedItems, totalPages, total };
   }, [services, recentPage]);
 
+  const quickLinks = [
+    { to: '/services/new', label: 'New service', icon: Plus },
+    { to: '/users', label: 'Manage users', icon: UserPlus },
+    { to: '/bookings', label: 'Bookings', icon: CalendarCheck },
+    { to: '/invoices', label: 'Invoices', icon: FileText },
+    { to: '/products', label: 'Products', icon: Package },
+  ];
+
   return (
     <div className="space-y-8">
+      {/* Welcome banner */}
+      <section className="rounded-xl border border-slate-200 bg-gradient-to-r from-indigo-600 to-indigo-500 px-6 py-5 text-white shadow-sm">
+        <h2 className="text-lg font-semibold">{greeting}</h2>
+        <p className="mt-1 text-sm text-indigo-100">Here’s what’s happening across your platform.</p>
+      </section>
+
+      {/* Quick actions */}
+      <section aria-labelledby="quick-heading">
+        <h2 id="quick-heading" className="mb-3 text-sm font-medium text-slate-500">Quick actions</h2>
+        <div className="flex flex-wrap gap-3">
+          {quickLinks.map(({ to, label, icon: Icon }) => (
+            <Link
+              key={to}
+              to={to}
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+            >
+              <Icon className="size-4 text-slate-500" /> {label}
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <section aria-labelledby="overview-heading">
-        <h2 id="overview-heading" className="sr-only">
+        <h2 id="overview-heading" className="mb-4 text-lg font-semibold text-slate-900">
           Overview
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard
-            title="Total Users"
-            value={totalUsers.toLocaleString()}
-            icon={Users}
-            colorClass="bg-indigo-500"
-            loading={usersLoading}
-          />
-          <StatCard
-            title="Active Bookings"
-            value="—"
-            icon={CalendarCheck}
-            colorClass="bg-emerald-500"
-            loading={false}
-          />
-          <StatCard
-            title="Services"
-            value={totalServices}
-            icon={Wrench}
-            colorClass="bg-amber-500"
-            loading={servicesLoading}
-          />
+          <Link to="/users" className="block transition-transform hover:scale-[1.02]">
+            <StatCard
+              title="Total Users"
+              value={totalUsers.toLocaleString()}
+              icon={Users}
+              colorClass="bg-indigo-500"
+              loading={usersLoading}
+            />
+          </Link>
+          <Link to="/bookings" className="block transition-transform hover:scale-[1.02]">
+            <StatCard
+              title="Bookings"
+              value={bookingsLoading ? '…' : totalBookings.toLocaleString()}
+              icon={CalendarCheck}
+              colorClass="bg-emerald-500"
+              loading={bookingsLoading}
+            />
+          </Link>
+          <Link to="/services" className="block transition-transform hover:scale-[1.02]">
+            <StatCard
+              title="Services"
+              value={totalServices}
+              icon={Wrench}
+              colorClass="bg-amber-500"
+              loading={servicesLoading}
+            />
+          </Link>
           <StatCard
             title="Revenue (SAR)"
             value="—"
