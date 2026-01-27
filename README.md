@@ -1,16 +1,48 @@
-# React + Vite
+# Akfeek Admin Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Professional admin dashboard for the Akfeek auto-services backend. Built with React, Vite, and connected to the backend REST API.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Backend integration**: REST API client with JWT auth, centralized services, error handling
+- **Auth**: Login (email/phone + password), persisted session, role-based access (Admin)
+- **UI/UX**: Responsive layout (sidebar + navbar), design tokens, loading skeletons, toasts (no `window.alert`)
+- **Dashboard**: Analytics cards, charts (Recharts), stats from users & services
+- **Users**: Data table with pagination, search, filters (role/status), actions (status change, delete) with modal confirmations
+- **Services**: Data table, search, category filter, delete with confirmation
+- **State**: Zustand (auth), TanStack Query (server state, cache, loading)
 
-## React Compiler
+## Setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. **Backend**: Ensure [Akfeek-Backend](../Akfeek-Backend) is running (e.g. `npm run dev` on port 5000).
 
-## Expanding the ESLint configuration
+2. **Env** (optional):  
+   - Copy `.env.example` to `.env`.  
+   - Set `VITE_API_URL` if the backend is not at `http://localhost:5000`.  
+   - In dev, if `VITE_API_URL` is unset, the app uses the same origin and Vite proxies `/api` to `http://localhost:5000`.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+3. **Install & run**:
+   ```bash
+   npm install
+   npm run dev
+   ```
+   Open the URL shown (e.g. `http://localhost:5173`).
+
+## Admin user
+
+The dashboard requires an **ADMIN** user. Create one via your database or backend (e.g. set `role = 'ADMIN'` for a user, or add an admin seed). Log in with that user’s email/phone and password.
+
+## Scripts
+
+- `npm run dev` – development server
+- `npm run build` – production build
+- `npm run preview` – preview production build
+
+## Tech stack
+
+- React 19, Vite 7
+- React Router 7
+- TanStack Query (React Query)
+- Zustand (persist for auth)
+- Axios, react-hot-toast
+- Recharts (dashboard charts)

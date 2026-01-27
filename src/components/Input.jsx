@@ -1,29 +1,42 @@
 import React from 'react';
-import '../styles/components.css';
 
-const Input = ({ 
-  label, 
-  type = 'text', 
-  placeholder, 
-  value, 
-  onChange, 
+export default function Input({
+  label,
+  type = 'text',
+  placeholder,
+  value,
+  onChange,
   name,
-  error
-}) => {
+  error,
+  className = '',
+  ...rest
+}) {
   return (
-    <div className="input-group">
-      {label && <label className="input-label">{label}</label>}
+    <div className={`w-full ${className}`}>
+      {label && (
+        <label htmlFor={name} className="mb-1.5 block text-sm font-medium text-slate-700">
+          {label}
+        </label>
+      )}
       <input
         type={type}
-        className={`input-field ${error ? 'input-error' : ''}`}
-        placeholder={placeholder}
+        id={name}
+        name={name}
         value={value}
         onChange={onChange}
-        name={name}
+        placeholder={placeholder}
+        className={`
+          block w-full rounded-lg border px-3 py-2.5 text-slate-900 shadow-sm
+          placeholder:text-slate-400
+          focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1
+          disabled:pointer-events-none disabled:opacity-50
+          ${error
+            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+            : 'border-slate-300'}
+        `}
+        {...rest}
       />
-      {error && <span className="input-error-msg">{error}</span>}
+      {error && <p className="mt-1.5 text-sm text-red-600">{error}</p>}
     </div>
   );
-};
-
-export default Input;
+}

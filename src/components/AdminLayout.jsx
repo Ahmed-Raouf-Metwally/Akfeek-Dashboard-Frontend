@@ -1,96 +1,87 @@
-import React from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { FaHome, FaUsers, FaCog, FaSignOutAlt, FaCalendarCheck } from 'react-icons/fa';
+import React, { useEffect } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import Sidebar from './layout/Sidebar';
+import Header from './layout/Header';
+import { LayoutProvider, useLayout } from '../contexts/LayoutContext';
 
-const SidebarItem = ({ to, icon, label, active }) => (
-  <Link 
-    to={to} 
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      padding: '12px 16px',
-      color: active ? 'var(--primary)' : 'var(--text-muted)',
-      background: active ? '#F0F0FF' : 'transparent',
-      borderRadius: '8px',
-      marginBottom: '4px',
-      fontWeight: active ? '600' : '500',
-      transition: 'all 0.2s'
-    }}
-  >
-    <div style={{ marginRight: '12px', fontSize: '18px' }}>{icon}</div>
-    {label}
-  </Link>
-);
-
-const AdminLayout = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    // Clear auth stuff
-    navigate('/login');
-  };
-
-  return (
-    <div className="flex h-screen" style={{ background: '#F5F5F7' }}>
-      {/* Sidebar */}
-      <aside style={{ width: '260px', background: 'white', padding: '24px', borderRight: '1px solid var(--border)' }} className="flex-col">
-        <div style={{ marginBottom: '40px', paddingLeft: '8px' }}>
-          <h1 style={{ color: 'var(--primary)', fontSize: '24px', fontWeight: 'bold' }}>Akfeek Admin</h1>
-        </div>
-
-        <div className="flex-col" style={{ gap: '4px', flex: 1 }}>
-          <SidebarItem to="/dashboard" icon={<FaHome />} label="Dashboard" active={location.pathname === '/dashboard'} />
-          <SidebarItem to="/users" icon={<FaUsers />} label="Users" active={location.pathname === '/users'} />
-          <SidebarItem to="/bookings" icon={<FaCalendarCheck />} label="Bookings" active={location.pathname === '/bookings'} />
-          <SidebarItem to="/settings" icon={<FaCog />} label="Settings" active={location.pathname === '/settings'} />
-        </div>
-
-        <button 
-          onClick={handleLogout}
-          style={{ 
-            marginTop: 'auto', 
-            display: 'flex', 
-            alignItems: 'center', 
-            color: 'var(--danger)',
-            padding: '12px 16px',
-            background: 'none',
-            fontSize: '16px',
-            fontWeight: '500'
-          }}
-        >
-          <FaSignOutAlt style={{ marginRight: '12px' }} />
-          Logout
-        </button>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-col" style={{ flex: 1, overflow: 'hidden' }}>
-        {/* Header */}
-        <header style={{ 
-          height: '64px', 
-          background: 'white', 
-          borderBottom: '1px solid var(--border)',
-          padding: '0 32px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'flex-end'
-        }}>
-          <div className="flex items-center gap-2">
-            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-              SA
-            </div>
-            <span style={{ fontWeight: '500', fontSize: '14px' }}>Super Admin</span>
-          </div>
-        </header>
-
-        {/* Page Content */}
-        <div style={{ padding: '32px', overflowY: 'auto', height: '100%' }}>
-          <Outlet />
-        </div>
-      </main>
-    </div>
-  );
+const ROUTE_TITLES = {
+  '/dashboard': ['Dashboard', 'Overview and stats'],
+  '/users': ['Users', 'Manage platform users'],
+  '/services': ['Services', 'Service catalog'],
+  '/services/new': ['Create service', 'Add a new service'],
+  '/brands': ['Vehicle Brands', 'Manage brands'],
+  '/models': ['Vehicle Models', 'Manage models'],
+  '/bookings': ['Bookings', 'Manage bookings'],
+  '/products': ['Products', 'Product catalog'],
+  '/invoices': ['Invoices', 'View invoices'],
+  '/settings': ['Settings', 'App settings'],
 };
 
-export default AdminLayout;
+function getTitleForPath(pathname) {
+  if (ROUTE_TITLES[pathname]) return ROUTE_TITLES[pathname];
+  if (pathname.startsWith('/services/') && pathname !== '/services/new') {
+    return ['Service details', ''];
+  }
+  return ['', ''];
+}
+
+function AdminLayoutInner() {
+  const location = useLocation();
+  const { setHeader, sidebarCollapsed, toggleSidebar, openMobileMenu, closeMobileMenu, mobileMenuOpen } = useLayout();
+  const [title, subtitle] = getTitleForPath(location.pathname);
+
+  useEffect(() => {
+    setHeader(title, subtitle);
+  }, [title, subtitle, setHeader]);
+
+  useEffect(() => {
+    closeMobileMenu();
+  }, [location.pathname, closeMobileMenu]);
+
+  return (
+    <div className="flex min-h-screen bg-slate-50">
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={toggleSidebar}
+        mobileOpen={mobileMenuOpen}
+        onCloseMobile={closeMobileMenu}
+      />
+      <div
+        className={`flex min-h-screen flex-1 flex-col transition-[margin] duration-200 ${
+          sidebarCollapsed ? 'lg:ml-[72px]' : 'lg:ml-64'
+        }`}
+      >
+        <Header
+          title={title}
+          subtitle={subtitle}
+          onMenuClick={openMobileMenu}
+          onToggleSidebar={toggleSidebar}
+          sidebarCollapsed={sidebarCollapsed}
+        />
+        <main className="flex-1 overflow-auto p-4 sm:p-6">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="min-h-0"
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+export default function AdminLayout() {
+  return (
+    <LayoutProvider>
+      <AdminLayoutInner />
+    </LayoutProvider>
+  );
+}
