@@ -78,8 +78,16 @@ export default function BookingsPage() {
             <option value="">All</option>
             <option value="PENDING">Pending</option>
             <option value="CONFIRMED">Confirmed</option>
+            <option value="BROADCASTING">Broadcasting</option>
+            <option value="OFFERS_RECEIVED">Offers received</option>
+            <option value="TECHNICIAN_ASSIGNED">Technician assigned</option>
+            <option value="IN_PROGRESS">In progress</option>
             <option value="COMPLETED">Completed</option>
+            <option value="READY_FOR_DELIVERY">Ready for delivery</option>
+            <option value="DELIVERED">Delivered</option>
             <option value="CANCELLED">Cancelled</option>
+            <option value="REJECTED">Rejected</option>
+            <option value="NO_SHOW">No show</option>
           </select>
         </div>
       </div>
@@ -101,6 +109,7 @@ export default function BookingsPage() {
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Vehicle</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Status</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Date</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Time</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Total</th>
                     <th className="w-20 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Actions</th>
                   </tr>
@@ -121,6 +130,7 @@ export default function BookingsPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600">{formatDate(b.scheduledDate)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{b.scheduledTime ?? '—'}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">
                         {b.totalPrice != null ? Number(b.totalPrice).toFixed(2) : '—'}
                       </td>

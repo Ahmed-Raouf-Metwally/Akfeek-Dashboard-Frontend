@@ -9,6 +9,9 @@ const ROUTE_TITLES = {
   '/dashboard': ['Dashboard', 'Overview and stats'],
   '/profile': ['Profile', 'Your account'],
   '/users': ['Users', 'Manage platform users'],
+  '/roles': ['Roles & Permissions', 'Roles and access control'],
+  '/notifications': ['Notifications', 'View and manage notifications'],
+  '/activity': ['Activity / Logs', 'Audit and activity log'],
   '/services': ['Services', 'Service catalog'],
   '/services/new': ['Create service', 'Add a new service'],
   '/brands': ['Vehicle Brands', 'Manage brands'],
@@ -21,9 +24,13 @@ const ROUTE_TITLES = {
 
 function getTitleForPath(pathname) {
   if (ROUTE_TITLES[pathname]) return ROUTE_TITLES[pathname];
-  if (pathname.startsWith('/services/') && pathname !== '/services/new') {
-    return ['Service details', ''];
-  }
+  if (pathname.startsWith('/services/') && pathname !== '/services/new') return ['Service details', ''];
+  if (pathname.startsWith('/users/')) return ['User details', ''];
+  if (pathname.startsWith('/bookings/')) return ['Booking details', ''];
+  if (pathname.startsWith('/brands/')) return ['Brand details', ''];
+  if (pathname.startsWith('/models/')) return ['Model details', ''];
+  if (pathname.startsWith('/products/')) return ['Product details', ''];
+  if (pathname.startsWith('/invoices/')) return ['Invoice details', ''];
   return ['', ''];
 }
 
@@ -64,10 +71,10 @@ function AdminLayoutInner() {
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
               className="min-h-0"
             >
               <Outlet />

@@ -13,20 +13,65 @@ import {
   UserCircle,
   PanelLeftClose,
   PanelLeft,
+  Bell,
+  Shield,
+  Activity,
+  CircleDot,
 } from 'lucide-react';
 import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
 
-const navItems = [
-  { key: 'dashboard', to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { key: 'profile', to: '/profile', icon: UserCircle, label: 'Profile' },
-  { key: 'users', to: '/users', icon: Users, label: 'Users' },
-  { key: 'services', to: '/services', icon: Wrench, label: 'Services' },
-  { key: 'brands', to: '/brands', icon: Car, label: 'Vehicle Brands' },
-  { key: 'models', to: '/models', icon: Car, label: 'Vehicle Models' },
-  { key: 'bookings', to: '/bookings', icon: CalendarCheck, label: 'Bookings' },
-  { key: 'products', to: '/products', icon: Package, label: 'Products' },
-  { key: 'invoices', to: '/invoices', icon: FileText, label: 'Invoices' },
-  { key: 'settings', to: '/settings', icon: Settings, label: 'Settings' },
+const SECTIONS = [
+  {
+    key: 'main',
+    labelEn: 'Main',
+    labelAr: 'الرئيسية',
+    items: [
+      { key: 'dashboard', to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { key: 'profile', to: '/profile', icon: UserCircle, label: 'Profile' },
+    ],
+  },
+  {
+    key: 'management',
+    labelEn: 'Management',
+    labelAr: 'الإدارة',
+    items: [
+      { key: 'users', to: '/users', icon: Users, label: 'Users' },
+      { key: 'roles', to: '/roles', icon: Shield, label: 'Roles & Permissions' },
+      { key: 'notifications', to: '/notifications', icon: Bell, label: 'Notifications' },
+      { key: 'activity', to: '/activity', icon: Activity, label: 'Activity / Logs' },
+    ],
+  },
+  {
+    key: 'services-vehicles',
+    labelEn: 'Services & Vehicles',
+    labelAr: 'الخدمات والمركبات',
+    items: [
+      { key: 'services', to: '/services', icon: Wrench, label: 'Services' },
+      { key: 'brands', to: '/brands', icon: Car, label: 'Vehicle Brands' },
+      { key: 'models', to: '/models', icon: CircleDot, label: 'Vehicle Models' },
+    ],
+  },
+  {
+    key: 'orders',
+    labelEn: 'Orders & Finance',
+    labelAr: 'الطلبات والمالية',
+    items: [
+      { key: 'bookings', to: '/bookings', icon: CalendarCheck, label: 'Bookings' },
+      { key: 'invoices', to: '/invoices', icon: FileText, label: 'Invoices' },
+    ],
+  },
+  {
+    key: 'catalog',
+    labelEn: 'Catalog',
+    labelAr: 'المنتجات',
+    items: [{ key: 'products', to: '/products', icon: Package, label: 'Products' }],
+  },
+  {
+    key: 'system',
+    labelEn: 'System',
+    labelAr: 'النظام',
+    items: [{ key: 'settings', to: '/settings', icon: Settings, label: 'Settings' }],
+  },
 ];
 
 function SidebarLink({ to, icon: Icon, label, active, collapsed }) {
@@ -34,9 +79,9 @@ function SidebarLink({ to, icon: Icon, label, active, collapsed }) {
     <Link
       to={to}
       className={`
-        flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors
+        flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200
         ${active
-          ? 'bg-indigo-50 text-indigo-700'
+          ? 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100'
           : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}
         ${collapsed ? 'justify-center px-2' : ''}
       `}
@@ -63,7 +108,6 @@ function SidebarLink({ to, icon: Icon, label, active, collapsed }) {
 export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile }) {
   const location = useLocation();
   const navVisibility = useDashboardSettingsStore((s) => s.navVisibility);
-  const visibleItems = navItems.filter((item) => navVisibility[item.key] !== false);
 
   const panel = (
     <aside
@@ -80,7 +124,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
           to="/dashboard"
           className={`flex items-center gap-2 overflow-hidden rounded-md font-semibold text-slate-800 ${collapsed ? 'w-9 justify-center' : ''}`}
         >
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold text-white">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-500 text-sm font-bold text-white shadow-sm">
             A
           </span>
           <AnimatePresence initial={false}>
@@ -109,17 +153,33 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
         )}
       </div>
 
-      <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">
-        {visibleItems.map((item) => (
-          <SidebarLink
-            key={item.to}
-            to={item.to}
-            icon={item.icon}
-            label={item.label}
-            active={location.pathname === item.to || (item.to !== '/dashboard' && location.pathname.startsWith(item.to))}
-            collapsed={collapsed}
-          />
-        ))}
+      <nav className="flex-1 space-y-6 overflow-y-auto p-3">
+        {SECTIONS.map((section) => {
+          const visibleItems = section.items.filter((item) => navVisibility[item.key] !== false);
+          if (visibleItems.length === 0) return null;
+          return (
+            <div key={section.key} className="space-y-1">
+              {!collapsed && (
+                <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  {section.labelEn}
+                </p>
+              )}
+              <ul className="space-y-0.5">
+                {visibleItems.map((item) => (
+                  <li key={item.to}>
+                    <SidebarLink
+                      to={item.to}
+                      icon={item.icon}
+                      label={item.label}
+                      active={location.pathname === item.to || (item.to !== '/dashboard' && location.pathname.startsWith(item.to))}
+                      collapsed={collapsed}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
       </nav>
 
       {collapsed && (

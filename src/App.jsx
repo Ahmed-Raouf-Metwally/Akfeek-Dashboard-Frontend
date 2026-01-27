@@ -25,6 +25,9 @@ import InvoicesPage from './pages/InvoicesPage';
 import InvoiceDetailPage from './pages/InvoiceDetailPage';
 import SettingsPage from './pages/SettingsPage';
 import ProfilePage from './pages/ProfilePage';
+import NotificationsPage from './pages/NotificationsPage';
+import RolesPermissionsPage from './pages/RolesPermissionsPage';
+import ActivityLogsPage from './pages/ActivityLogsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -71,6 +74,9 @@ function App() {
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardHome />} />
             <Route path="users" element={<UsersPage />} />
+            <Route path="roles" element={<RolesPermissionsPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="activity" element={<ActivityLogsPage />} />
             <Route path="users/:id" element={<UserDetailPage />} />
             <Route path="services" element={<ServicesPage />} />
             <Route path="services/new" element={<CreateServicePage />} />

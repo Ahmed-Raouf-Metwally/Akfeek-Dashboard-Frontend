@@ -1,10 +1,12 @@
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import { ArrowLeft, Wrench } from 'lucide-react';
 import { serviceService } from '../services/serviceService';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import { Card } from '../components/ui/Card';
+import { ImageOrPlaceholder } from '../components/ui/ImageOrPlaceholder';
 
 function DetailRow({ label, value }) {
   return (
@@ -70,16 +72,29 @@ export default function ServiceDetailPage() {
         </Link>
       </div>
 
-      <Card className="p-6">
-        <div className="flex flex-wrap items-start gap-4">
-          <div className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
-            <Wrench className="size-7" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-semibold text-slate-900">{service.name}</h1>
+      <Card className="overflow-hidden p-0">
+        <div className="grid gap-6 sm:grid-cols-[auto_1fr]">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.2 }}
+            className="aspect-square w-full max-w-[240px] shrink-0 sm:max-w-[200px]"
+          >
+            <ImageOrPlaceholder
+              src={service.imageUrl || service.icon}
+              alt={service.name}
+              className="size-full"
+              aspect="square"
+            />
+          </motion.div>
+          <div className="flex min-w-0 flex-1 flex-col justify-center p-6 sm:p-6 sm:pl-0">
+            <h1 className="text-2xl font-semibold text-slate-900">{service.name}</h1>
             {service.nameAr && <p className="mt-1 text-sm text-slate-500">{service.nameAr}</p>}
-            <div className="mt-3 flex flex-wrap gap-2">
-              <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
+            {service.description && (
+              <p className="mt-3 line-clamp-3 text-sm text-slate-600">{service.description}</p>
+            )}
+            <div className="mt-4 flex flex-wrap gap-2">
+              <span className="inline-flex rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
                 {service.category ?? '—'}
               </span>
               <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import {
   Users,
   CalendarCheck,
@@ -32,6 +33,7 @@ import { useAuthStore } from '../store/authStore';
 import { Card, CardHeader, CardBody } from '../components/ui/Card';
 import { Skeleton, TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
+import { ImageOrPlaceholder } from '../components/ui/ImageOrPlaceholder';
 
 const CHART_COLORS = [
   'rgb(99 102 241)',   // indigo-500
@@ -142,10 +144,15 @@ export default function DashboardHome() {
   return (
     <div className="space-y-8">
       {/* Welcome banner */}
-      <section className="rounded-xl border border-slate-200 bg-gradient-to-r from-indigo-600 to-indigo-500 px-6 py-5 text-white shadow-sm">
-        <h2 className="text-lg font-semibold">{greeting}</h2>
-        <p className="mt-1 text-sm text-indigo-100">Here’s what’s happening across your platform.</p>
-      </section>
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+        className="overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-br from-indigo-600 via-indigo-600 to-indigo-700 px-6 py-6 text-white shadow-lg"
+      >
+        <h2 className="text-xl font-semibold">{greeting}</h2>
+        <p className="mt-1.5 text-sm text-indigo-100/90">Here’s what’s happening across your platform.</p>
+      </motion.section>
 
       {/* Quick actions */}
       <section aria-labelledby="quick-heading">
@@ -297,7 +304,7 @@ export default function DashboardHome() {
                   <thead>
                     <tr className="border-b border-slate-200 bg-slate-50/80">
                       <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                        Name
+                        Service
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
                         Category
@@ -312,13 +319,29 @@ export default function DashboardHome() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {recentServices.map((s) => (
-                      <tr key={s.id} className="transition-colors hover:bg-slate-50/50">
+                    {recentServices.map((s, i) => (
+                      <motion.tr
+                        key={s.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: i * 0.04 }}
+                        className="transition-colors hover:bg-slate-50/50"
+                      >
                         <td className="px-4 py-3">
-                          <span className="block font-medium text-slate-900">{s.name}</span>
-                          {s.nameAr && (
-                            <span className="block text-sm text-slate-500">{s.nameAr}</span>
-                          )}
+                          <div className="flex items-center gap-3">
+                            <ImageOrPlaceholder
+                              src={s.imageUrl || s.icon}
+                              alt={s.name}
+                              className="size-10 shrink-0"
+                              aspect="square"
+                            />
+                            <div className="min-w-0">
+                              <span className="block font-medium text-slate-900">{s.name}</span>
+                              {s.nameAr && (
+                                <span className="block text-sm text-slate-500">{s.nameAr}</span>
+                              )}
+                            </div>
+                          </div>
                         </td>
                         <td className="px-4 py-3">
                           <span className="inline-flex rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
@@ -342,7 +365,7 @@ export default function DashboardHome() {
                             <ExternalLink className="size-4" />
                           </Link>
                         </td>
-                      </tr>
+                      </motion.tr>
                     ))}
                   </tbody>
                 </table>

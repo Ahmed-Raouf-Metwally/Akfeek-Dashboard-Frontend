@@ -1,14 +1,16 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { Search, Plus, Pencil, Trash2, Eye } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Eye, LayoutGrid, List } from 'lucide-react';
 import { serviceService } from '../services/serviceService';
 import { useConfirm } from '../hooks/useConfirm';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
 import Input from '../components/Input';
 import { Card } from '../components/ui/Card';
+import { ImageOrPlaceholder } from '../components/ui/ImageOrPlaceholder';
 
 const CATEGORIES = [
   { value: '', label: 'All categories' },
@@ -56,8 +58,18 @@ function ServiceRow({ service, onEdit, onDelete, openConfirm }) {
   return (
     <tr className="border-b border-slate-100 transition-colors hover:bg-slate-50/50">
       <td className="px-4 py-3">
-        <p className="font-medium text-slate-900">{service.name}</p>
-        {service.nameAr && <p className="text-sm text-slate-500">{service.nameAr}</p>}
+        <div className="flex items-center gap-3">
+          <ImageOrPlaceholder
+            src={service.imageUrl || service.icon}
+            alt={service.name}
+            className="size-12 shrink-0"
+            aspect="square"
+          />
+          <div className="min-w-0">
+            <p className="font-medium text-slate-900">{service.name}</p>
+            {service.nameAr && <p className="text-sm text-slate-500">{service.nameAr}</p>}
+          </div>
+        </div>
       </td>
       <td className="px-4 py-3">
         <span className="inline-flex rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
@@ -116,7 +128,6 @@ function DetailRow({ label, value }) {
 }
 
 export default function ServicesPage() {
-  const navigate = useNavigate();
   const [openConfirm, ConfirmModal] = useConfirm();
   const queryClient = useQueryClient();
   const PAGE_SIZE = 10;
@@ -126,6 +137,7 @@ export default function ServicesPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [editService, setEditService] = useState(null);
   const [form, setForm] = useState(emptyForm());
+  const [viewMode, setViewMode] = useState('table'); // 'table' | 'grid'
 
   useEffect(() => { setPage(1); }, [search, category]);
 
@@ -227,11 +239,28 @@ export default function ServicesPage() {
   return (
     <div className="space-y-6">
       <ConfirmModal />
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div />
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-1">
+          <button
+            type="button"
+            onClick={() => setViewMode('table')}
+            className={`rounded-md p-2 transition-colors ${viewMode === 'table' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-100'}`}
+            aria-label="Table view"
+          >
+            <List className="size-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('grid')}
+            className={`rounded-md p-2 transition-colors ${viewMode === 'grid' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-100'}`}
+            aria-label="Grid view"
+          >
+            <LayoutGrid className="size-4" />
+          </button>
+        </div>
         <Link
           to="/services/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500"
+          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-500"
         >
           <Plus className="size-4" /> Create service
         </Link>
@@ -338,7 +367,7 @@ export default function ServicesPage() {
       )}
 
       <Card className="overflow-hidden p-0">
-        <form onSubmit={handleSearchSubmit} className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-4 py-4">
+        <form onSubmit={handleSearchSubmit} className="flex flex-wrap items-center gap-3 border-b border-slate-100 bg-slate-50/50 px-4 py-4">
           <div className="relative min-w-[200px] flex-1">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
             <input
@@ -370,6 +399,94 @@ export default function ServicesPage() {
 
         {isLoading ? (
           <TableSkeleton rows={6} cols={5} />
+        ) : viewMode === 'grid' ? (
+          <>
+            <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {paginatedServices.length === 0 ? (
+                <div className="col-span-full py-12 text-center text-slate-500">No services found.</div>
+              ) : (
+                paginatedServices.map((s, i) => (
+                  <motion.div
+                    key={s.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.03 }}
+                    className="group"
+                  >
+                    <Card className="overflow-hidden transition-shadow duration-200 hover:shadow-lg">
+                      <Link to={`/services/${s.id}`} className="block">
+                        <div className="aspect-video w-full overflow-hidden bg-slate-100">
+                          <ImageOrPlaceholder
+                            src={s.imageUrl || s.icon}
+                            alt={s.name}
+                            className="size-full transition-transform duration-300 group-hover:scale-105"
+                            aspect="video"
+                          />
+                        </div>
+                        <div className="border-t border-slate-100 p-4">
+                          <p className="font-semibold text-slate-900">{s.name}</p>
+                          {s.nameAr && <p className="text-sm text-slate-500">{s.nameAr}</p>}
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            <span className="inline-flex rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+                              {s.category ?? '—'}
+                            </span>
+                            <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
+                              {s.estimatedDuration ? `${s.estimatedDuration} min` : '—'}
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+                      <div className="flex items-center justify-end gap-1 border-t border-slate-100 bg-slate-50/50 px-4 py-2">
+                        <Link
+                          to={`/services/${s.id}`}
+                          className="inline-flex size-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700"
+                          title="View"
+                        >
+                          <Eye className="size-4" />
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => openEdit(s)}
+                          className="inline-flex size-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700"
+                          title="Edit"
+                        >
+                          <Pencil className="size-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const ok = await openConfirm({
+                              title: 'Delete service',
+                              message: `Remove "${s.name}"? This cannot be undone.`,
+                              confirmLabel: 'Delete',
+                              variant: 'danger',
+                            });
+                            if (ok) deleteMutation.mutate(s.id);
+                          }}
+                          className="inline-flex size-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600"
+                          title="Delete"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </div>
+                    </Card>
+                  </motion.div>
+                ))
+              )}
+            </div>
+            {totalPages > 1 && (
+              <div className="border-t border-slate-200 px-4 py-3">
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  total={total}
+                  pageSize={PAGE_SIZE}
+                  onPageChange={setPage}
+                  disabled={isLoading}
+                />
+              </div>
+            )}
+          </>
         ) : (
           <>
             <div className="overflow-x-auto">
@@ -377,7 +494,7 @@ export default function ServicesPage() {
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/80">
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      Name
+                      Service
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
                       Category

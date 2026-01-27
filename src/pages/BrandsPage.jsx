@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { Plus, Trash2, Eye, Pencil } from 'lucide-react';
 import { brandService } from '../services/brandService';
@@ -9,6 +10,7 @@ import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
 import Input from '../components/Input';
 import { Card } from '../components/ui/Card';
+import { ImageOrPlaceholder } from '../components/ui/ImageOrPlaceholder';
 
 function BrandRow({ brand, onEdit, onDelete, openConfirm }) {
   const modelCount = brand._count?.models ?? 0;
@@ -29,8 +31,18 @@ function BrandRow({ brand, onEdit, onDelete, openConfirm }) {
   return (
     <tr className="border-b border-slate-100 transition-colors hover:bg-slate-50/50">
       <td className="px-4 py-3">
-        <p className="font-medium text-slate-900">{brand.name}</p>
-        {brand.nameAr && <p className="text-sm text-slate-500">{brand.nameAr}</p>}
+        <div className="flex items-center gap-3">
+          <ImageOrPlaceholder
+            src={brand.logo}
+            alt={brand.name}
+            className="size-12 shrink-0"
+            aspect="square"
+          />
+          <div className="min-w-0">
+            <p className="font-medium text-slate-900">{brand.name}</p>
+            {brand.nameAr && <p className="text-sm text-slate-500">{brand.nameAr}</p>}
+          </div>
+        </div>
       </td>
       <td className="px-4 py-3 text-sm text-slate-600">{brand._count?.models ?? 0}</td>
       <td className="px-4 py-3">
@@ -316,7 +328,7 @@ export default function BrandsPage() {
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/80">
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      Name
+                      Brand
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
                       Models

@@ -6,7 +6,7 @@ export default function DetailModal({ title, open, onClose, children }) {
   return (
     <Transition show={open}>
       <Dialog onClose={onClose} className="relative z-50">
-        <div className="fixed inset-0 bg-slate-900/40" aria-hidden="true" />
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <TransitionChild
             enter="ease-out duration-200"

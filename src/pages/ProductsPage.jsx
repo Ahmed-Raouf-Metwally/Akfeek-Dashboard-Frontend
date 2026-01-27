@@ -6,6 +6,7 @@ import { productService } from '../services/productService';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
 import { Card } from '../components/ui/Card';
+import { ImageOrPlaceholder } from '../components/ui/ImageOrPlaceholder';
 
 const PAGE_SIZE = 10;
 
@@ -105,19 +106,35 @@ export default function ProductsPage() {
               <table className="w-full border-collapse" role="grid">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/80">
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Product</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">SKU</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Name</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Brand</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Category</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Price</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Stock</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Featured</th>
                     <th className="w-20 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {list.map((p) => (
                     <tr key={p.id} className="border-b border-slate-100 transition-colors hover:bg-slate-50/50">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <ImageOrPlaceholder
+                            src={p.imageUrl}
+                            alt={p.name}
+                            className="size-12 shrink-0"
+                            aspect="square"
+                          />
+                          <div className="min-w-0">
+                            <p className="font-medium text-slate-900">{p.name ?? '—'}</p>
+                            {p.nameAr && <p className="text-sm text-slate-500">{p.nameAr}</p>}
+                          </div>
+                        </div>
+                      </td>
                       <td className="px-4 py-3 text-sm font-medium text-slate-900">{p.sku ?? '—'}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{p.name ?? '—'}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{p.brand ?? '—'}</td>
                       <td className="px-4 py-3">
                         <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
                           {p.category ?? '—'}
@@ -127,6 +144,13 @@ export default function ProductsPage() {
                         {p.price != null ? Number(p.price).toFixed(2) : '—'}
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600">{p.stockQuantity ?? '—'}</td>
+                      <td className="px-4 py-3">
+                        {p.isFeatured ? (
+                          <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">Featured</span>
+                        ) : (
+                          <span className="text-slate-400">—</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3">
                         <Link
                           to={`/products/${p.id}`}

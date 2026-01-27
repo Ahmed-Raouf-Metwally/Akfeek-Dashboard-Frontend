@@ -10,6 +10,7 @@ import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
 import Input from '../components/Input';
 import { Card } from '../components/ui/Card';
+import { ImageOrPlaceholder } from '../components/ui/ImageOrPlaceholder';
 
 const SIZES = [
   { value: '', label: 'All sizes' },
@@ -37,7 +38,17 @@ function ModelRow({ model, onEdit, onDelete, openConfirm }) {
 
   return (
     <tr className="border-b border-slate-100 transition-colors hover:bg-slate-50/50">
-      <td className="px-4 py-3 text-sm font-medium text-slate-900">{model.brand?.name ?? '—'}</td>
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-3">
+          <ImageOrPlaceholder
+            src={model.imageUrl || model.brand?.logo}
+            alt={model.name}
+            className="size-12 shrink-0"
+            aspect="square"
+          />
+          <p className="font-medium text-slate-900">{model.brand?.name ?? '—'}</p>
+        </div>
+      </td>
       <td className="px-4 py-3">
         <p className="font-medium text-slate-900">{model.name}</p>
         {model.nameAr && <p className="text-sm text-slate-500">{model.nameAr}</p>}
