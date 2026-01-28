@@ -21,6 +21,13 @@ function customerLabel(b) {
   return b.customer?.email || b.customer?.phone || b.customerId || '—';
 }
 
+function technicianLabel(b) {
+  if (!b.technician) return '—';
+  const p = b.technician.profile;
+  if (p?.firstName || p?.lastName) return [p.firstName, p.lastName].filter(Boolean).join(' ');
+  return b.technician.email || '—';
+}
+
 export default function BookingsPage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
@@ -81,9 +88,19 @@ export default function BookingsPage() {
             <option value="BROADCASTING">Broadcasting</option>
             <option value="OFFERS_RECEIVED">Offers received</option>
             <option value="TECHNICIAN_ASSIGNED">Technician assigned</option>
+            <option value="PICKUP_SCHEDULED">Pickup scheduled</option>
+            <option value="IN_TRANSIT_PICKUP">In transit (pickup)</option>
+            <option value="INSPECTING">Inspecting</option>
+            <option value="QUOTE_PENDING">Quote pending</option>
+            <option value="QUOTE_APPROVED">Quote approved</option>
+            <option value="QUOTE_REJECTED">Quote rejected</option>
             <option value="IN_PROGRESS">In progress</option>
+            <option value="PARTS_NEEDED">Parts needed</option>
+            <option value="PARTS_ORDERED">Parts ordered</option>
+            <option value="PARTS_DELIVERED">Parts delivered</option>
             <option value="COMPLETED">Completed</option>
             <option value="READY_FOR_DELIVERY">Ready for delivery</option>
+            <option value="IN_TRANSIT_DELIVERY">In transit (delivery)</option>
             <option value="DELIVERED">Delivered</option>
             <option value="CANCELLED">Cancelled</option>
             <option value="REJECTED">Rejected</option>
@@ -107,6 +124,7 @@ export default function BookingsPage() {
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Booking #</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Customer</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Vehicle</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Technician</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Status</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Date</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Time</th>
@@ -124,6 +142,7 @@ export default function BookingsPage() {
                           ? `${b.vehicle.vehicleModel.brand.name} ${b.vehicle.vehicleModel?.name ?? ''}`.trim()
                           : '—')}
                       </td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{technicianLabel(b)}</td>
                       <td className="px-4 py-3">
                         <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
                           {b.status ?? '—'}

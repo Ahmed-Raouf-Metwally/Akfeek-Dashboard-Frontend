@@ -23,6 +23,13 @@ import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import InvoicesPage from './pages/InvoicesPage';
 import InvoiceDetailPage from './pages/InvoiceDetailPage';
+import PaymentsPage from './pages/PaymentsPage';
+import WalletsPage from './pages/WalletsPage';
+import RatingsPage from './pages/RatingsPage';
+import JobBroadcastsPage from './pages/JobBroadcastsPage';
+import BroadcastDetailPage from './pages/BroadcastDetailPage';
+import InspectionsPage from './pages/InspectionsPage';
+import SupplyRequestsPage from './pages/SupplyRequestsPage';
 import SettingsPage from './pages/SettingsPage';
 import ProfilePage from './pages/ProfilePage';
 import NotificationsPage from './pages/NotificationsPage';
@@ -87,10 +94,17 @@ function App() {
             <Route path="models/:id" element={<ModelDetailPage />} />
             <Route path="bookings" element={<BookingsPage />} />
             <Route path="bookings/:id" element={<BookingDetailPage />} />
+            <Route path="broadcasts" element={<JobBroadcastsPage />} />
+            <Route path="broadcasts/:id" element={<BroadcastDetailPage />} />
+            <Route path="inspections" element={<InspectionsPage />} />
+            <Route path="supply-requests" element={<SupplyRequestsPage />} />
             <Route path="products" element={<ProductsPage />} />
             <Route path="products/:id" element={<ProductDetailPage />} />
             <Route path="invoices" element={<InvoicesPage />} />
             <Route path="invoices/:id" element={<InvoiceDetailPage />} />
+            <Route path="payments" element={<PaymentsPage />} />
+            <Route path="wallets" element={<WalletsPage />} />
+            <Route path="ratings" element={<RatingsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>

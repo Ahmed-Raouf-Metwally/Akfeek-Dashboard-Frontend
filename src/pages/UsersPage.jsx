@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Search, UserMinus, Check, Eye, Trash2 } from 'lucide-react';
+import { Search, UserMinus, Check, Eye, Trash2, Car, MapPin } from 'lucide-react';
 import { userService } from '../services/userService';
 import { useConfirm } from '../hooks/useConfirm';
 import { TableSkeleton } from '../components/ui/Skeleton';
@@ -80,9 +80,27 @@ function UserRow({ user, onStatusChange, onDelete, openConfirm }) {
         </span>
       </td>
       <td className="px-4 py-3">
-        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${statusClass}`}>
-          {status.replace(/_/g, ' ')}
-        </span>
+        <div className="flex flex-col gap-1">
+          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${statusClass}`}>
+            {status.replace(/_/g, ' ')}
+          </span>
+          {user._count && (user._count.vehicles > 0 || user._count.addresses > 0) && (
+            <div className="flex gap-2 text-xs text-slate-500">
+              {user._count.vehicles > 0 && (
+                <span className="flex items-center gap-1">
+                  <Car className="size-3" />
+                  {user._count.vehicles}
+                </span>
+              )}
+              {user._count.addresses > 0 && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="size-3" />
+                  {user._count.addresses}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       </td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-1">

@@ -17,6 +17,12 @@ import {
   Shield,
   Activity,
   CircleDot,
+  CreditCard,
+  Wallet,
+  Star,
+  Radio,
+  ClipboardCheck,
+  PackageSearch,
 } from 'lucide-react';
 import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
 
@@ -47,7 +53,13 @@ const SECTIONS = [
     labelAr: 'الطلبات والمالية',
     items: [
       { key: 'bookings', to: '/bookings', icon: CalendarCheck, label: 'Bookings' },
+      { key: 'broadcasts', to: '/broadcasts', icon: Radio, label: 'Broadcasts' },
+      { key: 'inspections', to: '/inspections', icon: ClipboardCheck, label: 'Inspections' },
+      { key: 'supply-requests', to: '/supply-requests', icon: PackageSearch, label: 'Supply Requests' },
       { key: 'invoices', to: '/invoices', icon: FileText, label: 'Invoices' },
+      { key: 'payments', to: '/payments', icon: CreditCard, label: 'Payments' },
+      { key: 'wallets', to: '/wallets', icon: Wallet, label: 'Wallets' },
+      { key: 'ratings', to: '/ratings', icon: Star, label: 'Ratings' },
     ],
   },
   {
