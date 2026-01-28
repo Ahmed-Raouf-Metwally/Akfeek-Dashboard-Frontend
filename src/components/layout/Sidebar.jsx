@@ -27,20 +27,10 @@ const SECTIONS = [
     labelAr: 'الرئيسية',
     items: [
       { key: 'dashboard', to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-      { key: 'profile', to: '/profile', icon: UserCircle, label: 'Profile' },
+  
     ],
   },
-  {
-    key: 'management',
-    labelEn: 'Management',
-    labelAr: 'الإدارة',
-    items: [
-      { key: 'users', to: '/users', icon: Users, label: 'Users' },
-      { key: 'roles', to: '/roles', icon: Shield, label: 'Roles & Permissions' },
-      { key: 'notifications', to: '/notifications', icon: Bell, label: 'Notifications' },
-      { key: 'activity', to: '/activity', icon: Activity, label: 'Activity / Logs' },
-    ],
-  },
+  
   {
     key: 'services-vehicles',
     labelEn: 'Services & Vehicles',
@@ -67,10 +57,24 @@ const SECTIONS = [
     items: [{ key: 'products', to: '/products', icon: Package, label: 'Products' }],
   },
   {
+    key: 'management',
+    labelEn: 'Management',
+    labelAr: 'الإدارة',
+    items: [
+      { key: 'users', to: '/users', icon: Users, label: 'Users' },
+      { key: 'roles', to: '/roles', icon: Shield, label: 'Roles & Permissions' },
+      { key: 'notifications', to: '/notifications', icon: Bell, label: 'Notifications' },
+      { key: 'activity', to: '/activity', icon: Activity, label: 'Activity / Logs' },
+    ],
+  },
+  {
     key: 'system',
     labelEn: 'System',
     labelAr: 'النظام',
-    items: [{ key: 'settings', to: '/settings', icon: Settings, label: 'Settings' }],
+    items: [{ key: 'settings', to: '/settings', icon: Settings, label: 'Settings' },
+      { key: 'profile', to: '/profile', icon: UserCircle, label: 'Profile' },
+    ],
+    
   },
 ];
 
