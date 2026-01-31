@@ -23,6 +23,9 @@ import {
   Radio,
   ClipboardCheck,
   PackageSearch,
+  Store,
+  ShoppingBag,
+  Layers,
 } from 'lucide-react';
 import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
 
@@ -67,6 +70,17 @@ const SECTIONS = [
     labelEn: 'Catalog',
     labelAr: 'المنتجات',
     items: [{ key: 'products', to: '/products', icon: Package, label: 'Products' }],
+  },
+  {
+    key: 'marketplace',
+    labelEn: 'Marketplace',
+    labelAr: 'المتجر',
+    items: [
+      { key: 'vendors', to: '/vendors', icon: Store, label: 'Vendors' },
+      { key: 'auto-part-categories', to: '/auto-part-categories', icon: Layers, label: 'Categories' },
+      { key: 'auto-parts', to: '/auto-parts', icon: ShoppingBag, label: 'Auto Parts' },
+      { key: 'marketplace-orders', to: '/marketplace-orders', icon: Package, label: 'Orders' },
+    ],
   },
   {
     key: 'management',

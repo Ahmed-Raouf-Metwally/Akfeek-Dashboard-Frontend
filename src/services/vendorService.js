@@ -1,0 +1,93 @@
+import api from './api';
+
+export const vendorService = {
+  /**
+   * Get all vendors with filters (status, search, etc.)
+   */
+  async getVendors(params = {}) {
+    const { data } = await api.get('/vendors', { params });
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to load vendors');
+    }
+    return data.data;
+  },
+
+  /**
+   * Get vendor by ID (includes parts preview)
+   */
+  async getVendorById(id) {
+    const { data } = await api.get(`/vendors/${id}`);
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to load vendor details');
+    }
+    return data.data;
+  },
+
+  /**
+   * Get current user's vendor profile
+   */
+  async getMyVendorProfile() {
+    const { data } = await api.get('/vendors/profile/me');
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to load your vendor profile');
+    }
+    return data.data;
+  },
+
+  /**
+   * Create new vendor profile
+   */
+  async createVendor(payload) {
+    const { data } = await api.post('/vendors', payload);
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to create vendor profile');
+    }
+    return data.data;
+  },
+
+  /**
+   * Update vendor profile
+   */
+  async updateVendor(id, payload) {
+    const { data } = await api.put(`/vendors/${id}`, payload);
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to update vendor');
+    }
+    return data.data;
+  },
+
+  /**
+   * Update vendor status (Admin only)
+   */
+  async updateVendorStatus(id, status) {
+    const { data } = await api.put(`/vendors/${id}/status`, { status });
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to update vendor status');
+    }
+    return data.data;
+  },
+
+  /**
+   * Get vendor statistics
+   */
+  async getVendorStats(id) {
+    const { data } = await api.get(`/vendors/${id}/stats`);
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to load vendor statistics');
+    }
+    return data.data;
+  },
+
+  /**
+   * Delete vendor
+   */
+  async deleteVendor(id) {
+    const { data } = await api.delete(`/vendors/${id}`);
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to delete vendor');
+    }
+    return data;
+  }
+};
+
+export default vendorService;

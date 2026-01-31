@@ -35,6 +35,17 @@ import ProfilePage from './pages/ProfilePage';
 import NotificationsPage from './pages/NotificationsPage';
 import RolesPermissionsPage from './pages/RolesPermissionsPage';
 import ActivityLogsPage from './pages/ActivityLogsPage';
+import VendorsPage from './pages/VendorsPage';
+import CreateVendorPage from './pages/CreateVendorPage';
+import VendorDetailPage from './pages/VendorDetailPage';
+import AutoPartsPage from './pages/AutoPartsPage';
+import CreateAutoPartPage from './pages/CreateAutoPartPage';
+import AutoPartDetailPage from './pages/AutoPartDetailPage';
+import AutoPartCategoriesPage from './pages/AutoPartCategoriesPage';
+import MarketplaceOrdersPage from './pages/MarketplaceOrdersPage';
+import MarketplaceOrderDetailPage from './pages/MarketplaceOrderDetailPage';
+
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -107,6 +118,17 @@ function App() {
             <Route path="ratings" element={<RatingsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="profile" element={<ProfilePage />} />
+            
+            {/* Marketplace Routes */}
+            <Route path="vendors" element={<VendorsPage />} />
+            <Route path="vendors/new" element={<CreateVendorPage />} />
+            <Route path="vendors/:id" element={<VendorDetailPage />} />
+            <Route path="auto-parts" element={<AutoPartsPage />} />
+            <Route path="auto-parts/new" element={<CreateAutoPartPage />} />
+            <Route path="auto-parts/:id" element={<AutoPartDetailPage />} />
+            <Route path="auto-part-categories" element={<AutoPartCategoriesPage />} />
+            <Route path="marketplace-orders" element={<MarketplaceOrdersPage />} />
+            <Route path="marketplace-orders/:id" element={<MarketplaceOrderDetailPage />} />
           </Route>
         </Routes>
       </Router>

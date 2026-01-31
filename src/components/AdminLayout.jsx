@@ -20,6 +20,11 @@ const ROUTE_TITLES = {
   '/products': ['Products', 'Product catalog'],
   '/invoices': ['Invoices', 'View invoices'],
   '/settings': ['Settings', 'App settings'],
+  '/vendors': ['Vendors', 'Manage auto parts vendors'],
+  '/vendors/new': ['Add Vendor', 'Create new vendor profile'],
+  '/auto-parts': ['Auto Parts', 'Manage parts catalog'],
+  '/auto-parts/new': ['Add Auto Part', 'Create new part listing'],
+  '/auto-part-categories': ['Categories', 'Manage auto part categories'],
 };
 
 function getTitleForPath(pathname) {
@@ -30,7 +35,11 @@ function getTitleForPath(pathname) {
   if (pathname.startsWith('/brands/')) return ['Brand details', ''];
   if (pathname.startsWith('/models/')) return ['Model details', ''];
   if (pathname.startsWith('/products/')) return ['Product details', ''];
+  if (pathname.startsWith('/models/')) return ['Model details', ''];
+  if (pathname.startsWith('/products/')) return ['Product details', ''];
   if (pathname.startsWith('/invoices/')) return ['Invoice details', ''];
+  if (pathname.startsWith('/vendors/')) return ['Vendor Profile', 'Manage vendor and catalog'];
+  if (pathname.startsWith('/auto-parts/')) return ['Auto Part Details', 'Manage part listing'];
   return ['', ''];
 }
 
