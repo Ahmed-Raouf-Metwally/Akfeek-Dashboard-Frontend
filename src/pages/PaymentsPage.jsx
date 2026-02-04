@@ -126,7 +126,7 @@ export default function PaymentsPage() {
               <table className="w-full border-collapse" role="grid">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/80">
-                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('finance.invoiceNumber')}</th> {/* Actually transaction ID usually */}
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('finance.invoiceNumber')}</th>
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.customer')}</th>
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.totalPrice')}</th>
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('finance.method')}</th>

@@ -13,8 +13,14 @@ import {
   UserPlus,
   FileText,
   Package,
+  Activity,
 } from 'lucide-react';
-import { bookingService } from '../services/bookingService';
+import { dashboardService } from '../services/dashboardService';
+import { serviceService } from '../services/serviceService';
+import { useAuthStore } from '../store/authStore';
+import { Card, CardHeader, CardBody } from '../components/ui/Card';
+import { Skeleton, TableSkeleton } from '../components/ui/Skeleton';
+import { ImageOrPlaceholder } from '../components/ui/ImageOrPlaceholder';
 import {
   BarChart,
   Bar,
@@ -28,13 +34,6 @@ import {
   Cell,
   Legend,
 } from 'recharts';
-import { userService } from '../services/userService';
-import { serviceService } from '../services/serviceService';
-import { useAuthStore } from '../store/authStore';
-import { Card, CardHeader, CardBody } from '../components/ui/Card';
-import { Skeleton, TableSkeleton } from '../components/ui/Skeleton';
-import Pagination from '../components/ui/Pagination';
-import { ImageOrPlaceholder } from '../components/ui/ImageOrPlaceholder';
 
 const CHART_COLORS = [
   'rgb(99 102 241)',   // indigo-500
@@ -46,13 +45,13 @@ const CHART_COLORS = [
 ];
 
 const MOCK_CHART = [
-  { name: 'Mon', count: 12 },
-  { name: 'Tue', count: 19 },
-  { name: 'Wed', count: 15 },
-  { name: 'Thu', count: 22 },
-  { name: 'Fri', count: 18 },
-  { name: 'Sat', count: 24 },
-  { name: 'Sun', count: 14 },
+    { name: 'Mon', count: 12 },
+    { name: 'Tue', count: 19 },
+    { name: 'Wed', count: 15 },
+    { name: 'Thu', count: 22 },
+    { name: 'Fri', count: 18 },
+    { name: 'Sat', count: 24 },
+    { name: 'Sun', count: 14 },
 ];
 
 const PAGE_SIZE = 5;
@@ -85,36 +84,28 @@ function StatCard({ title, value, icon: Icon, colorClass, loading }) {
 }
 
 export default function DashboardHome() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const firstName = user?.profile?.firstName || user?.email?.split('@')[0] || '';
-  const name = firstName || 'Admin';
   const greeting = firstName ? t('dashboard.welcomeBack', { name: firstName }) : t('dashboard.welcomeToDashboard');
   const [recentPage, setRecentPage] = useState(1);
 
-  const { data: usersData, isLoading: usersLoading } = useQuery({
-    queryKey: ['dashboard', 'users'],
-    queryFn: () => userService.getUsers({ page: 1, limit: 1 }),
+  const { data: statsData, isLoading: statsLoading } = useQuery({
+    queryKey: ['dashboard', 'stats'],
+    queryFn: dashboardService.getStats,
     staleTime: 60_000,
-    retry: 1,
   });
-
-  const { data: bookingsData, isLoading: bookingsLoading } = useQuery({
-    queryKey: ['dashboard', 'bookings'],
-    queryFn: () => bookingService.getBookings({ page: 1, limit: 1 }),
-    staleTime: 60_000,
-    retry: 1,
-  });
-
+  
   const { data: servicesData, isLoading: servicesLoading } = useQuery({
-    queryKey: ['dashboard', 'services'],
-    queryFn: () => serviceService.getServices(),
-    staleTime: 60_000,
-    retry: 1,
+      queryKey: ['dashboard', 'services'],
+      queryFn: () => serviceService.getServices(),
+      staleTime: 300_000, // Cache services longer
   });
 
-  const totalUsers = usersData?.pagination?.total ?? 0;
-  const totalBookings = bookingsData?.pagination?.total ?? 0;
+  const stats = statsData?.data?.stats || {};
+  const recentBookings = statsData?.data?.recentBookings || [];
+  const recentActivity = statsData?.data?.recentActivity || [];
+  
   const services = Array.isArray(servicesData) ? servicesData : (servicesData?.length ? servicesData : []);
   const totalServices = services.length;
 
@@ -142,6 +133,10 @@ export default function DashboardHome() {
     { to: '/invoices', label: t('nav.invoices'), icon: FileText },
     { to: '/products', label: t('nav.products'), icon: Package },
   ];
+
+  const totalUsers = stats.totalUsers ?? 0;
+  const totalBookingsCount = stats.totalBookings ?? 0;
+  const revenue = stats.revenue ?? 0;
 
   return (
     <div className="space-y-8">
@@ -183,16 +178,16 @@ export default function DashboardHome() {
               value={totalUsers.toLocaleString()}
               icon={Users}
               colorClass="bg-indigo-500"
-              loading={usersLoading}
+              loading={statsLoading}
             />
           </Link>
           <Link to="/bookings" className="block transition-transform hover:scale-[1.02]">
             <StatCard
               title={t('dashboard.bookings')}
-              value={bookingsLoading ? '…' : totalBookings.toLocaleString()}
+              value={totalBookingsCount.toLocaleString()}
               icon={CalendarCheck}
               colorClass="bg-emerald-500"
-              loading={bookingsLoading}
+              loading={statsLoading}
             />
           </Link>
           <Link to="/services" className="block transition-transform hover:scale-[1.02]">
@@ -206,23 +201,115 @@ export default function DashboardHome() {
           </Link>
           <StatCard
             title={t('dashboard.revenueSAR')}
-            value="—"
+            value={revenue.toLocaleString()}
             icon={TrendingUp}
             colorClass="bg-blue-500"
-            loading={false}
+            loading={statsLoading}
           />
         </div>
       </section>
 
-      <section aria-labelledby="activity-heading">
-        <h2 id="activity-heading" className="mb-4 text-lg font-semibold text-slate-900">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Recent Activity */}
+        <section aria-labelledby="activity-heading">
+           <div className="mb-4 flex items-center justify-between">
+            <h2 id="activity-heading" className="text-lg font-semibold text-slate-900">
+               {t('dashboard.recentActivity')}
+            </h2>
+             <Link to="/activity" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
+               {t('dashboard.viewAll')}
+            </Link>
+           </div>
+           <Card className="h-full overflow-hidden">
+             {statsLoading ? (
+               <div className="p-4 space-y-4">
+                 {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+               </div>
+             ) : recentActivity.length === 0 ? (
+               <div className="flex h-40 items-center justify-center text-slate-500">
+                 {t('dashboard.noActivity')}
+               </div>
+             ) : (
+                <div className="divide-y divide-slate-100">
+                  {recentActivity.map((log) => (
+                    <div key={log.id} className="flex items-center gap-3 p-4 hover:bg-slate-50">
+                      <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                        <Activity className="size-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-slate-900">
+                           <span className="font-mono text-xs text-indigo-600 mr-2">{log.action}</span>
+                           {log.entity}
+                        </p>
+                        <div className="flex items-center text-xs text-slate-500 gap-2">
+                           <span>{log.user?.profile?.firstName || log.user?.email || 'System'}</span>
+                           <span>•</span>
+                           <span>{new Date(log.createdAt).toLocaleString(i18n.language)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+             )}
+           </Card>
+        </section>
+
+        {/* Recent Bookings */}
+        <section aria-labelledby="bookings-heading">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 id="bookings-heading" className="text-lg font-semibold text-slate-900">
+              {t('dashboard.recentBookings')}
+            </h2>
+            <Link to="/bookings" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
+              {t('dashboard.viewAll')}
+            </Link>
+          </div>
+          <Card className="h-full overflow-hidden">
+            {statsLoading ? (
+               <div className="p-4 space-y-4">
+                 {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+               </div>
+            ) : recentBookings.length === 0 ? (
+              <div className="flex h-40 items-center justify-center text-slate-500">
+                {t('dashboard.noBookings')}
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                 {recentBookings.map((booking) => (
+                    <div key={booking.id} className="flex items-center gap-3 p-4 hover:bg-slate-50">
+                       <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                         <CalendarCheck className="size-5" />
+                       </div>
+                       <div className="min-w-0 flex-1">
+                          <p className="font-medium text-slate-900 line-clamp-1">
+                             {booking.vehicle?.vehicleModel?.name || 'Unknown Vehicle'}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                             {booking.bookingNumber} • {booking.customer?.profile?.firstName || 'Customer'}
+                          </p>
+                       </div>
+                       <div className="text-right">
+                          <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                             {booking.status}
+                          </span>
+                       </div>
+                    </div>
+                 ))}
+              </div>
+            )}
+          </Card>
+        </section>
+      </div>
+      
+       <section aria-labelledby="chart-heading">
+        <h2 id="chart-heading" className="mb-4 text-lg font-semibold text-slate-900">
           {t('dashboard.activityDistribution')}
         </h2>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Card className="overflow-hidden">
             <CardHeader title={t('dashboard.weeklyActivity')} />
             <CardBody className="pt-0">
-              <div className="h-[280px] w-full">
+              <div className="h-[280px] w-full min-h-[280px] min-w-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={MOCK_CHART} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -242,10 +329,11 @@ export default function DashboardHome() {
               </div>
             </CardBody>
           </Card>
-          <Card className="overflow-hidden">
+          
+           <Card className="overflow-hidden">
             <CardHeader title={t('dashboard.servicesByCategory')} />
             <CardBody className="pt-0">
-              <div className="h-[280px] w-full">
+              <div className="h-[280px] w-full min-h-[280px] min-w-0">
                 {categoryData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -276,114 +364,8 @@ export default function DashboardHome() {
           </Card>
         </div>
       </section>
-
-      <section aria-labelledby="recent-heading">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 id="recent-heading" className="text-lg font-semibold text-slate-900">
-            {t('dashboard.recentServices')}
-          </h2>
-          <Link
-            to="/services"
-            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
-          >
-            {t('dashboard.viewAll')}
-          </Link>
-        </div>
-        <Card className="overflow-hidden">
-          {servicesLoading ? (
-            <TableSkeleton rows={5} cols={5} />
-          ) : recentServices.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center text-slate-500">
-              <p>{t('dashboard.noServices')}.</p>
-              <Link to="/services/new" className="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-700">
-                {t('dashboard.createOne')}
-              </Link>
-            </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-200 bg-slate-50/80">
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                        {t('dashboard.service')}
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                        {t('dashboard.category')}
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                        {t('dashboard.type')}
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                        {t('dashboard.duration')}
-                      </th>
-                      <th className="w-14 px-4 py-3" />
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {recentServices.map((s, i) => (
-                      <motion.tr
-                        key={s.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: i * 0.04 }}
-                        className="transition-colors hover:bg-slate-50/50"
-                      >
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            <ImageOrPlaceholder
-                              src={s.imageUrl || s.icon}
-                              alt={s.name}
-                              className="size-10 shrink-0"
-                              aspect="square"
-                            />
-                            <div className="min-w-0">
-                              <span className="block font-medium text-slate-900">{s.name}</span>
-                              {s.nameAr && (
-                                <span className="block text-sm text-slate-500">{s.nameAr}</span>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="inline-flex rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
-                            {s.category ?? '—'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
-                            {s.type ?? '—'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
-                          {s.estimatedDuration != null ? `${s.estimatedDuration} min` : '—'}
-                        </td>
-                        <td className="px-4 py-3">
-                          <Link
-                            to={`/services/${s.id}`}
-                            className="inline-flex size-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
-                            aria-label={t('dashboard.viewDetails')}
-                          >
-                            <ExternalLink className="size-4" />
-                          </Link>
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <Pagination
-                page={recentPage}
-                totalPages={totalPages}
-                total={total}
-                pageSize={PAGE_SIZE}
-                onPageChange={setRecentPage}
-                disabled={servicesLoading}
-              />
-            </>
-          )}
-        </Card>
-      </section>
+      
+      {/* Recent Services List from previous implementation or removed if not needed. Keeping charts instead. */}
     </div>
   );
 }

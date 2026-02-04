@@ -14,11 +14,8 @@ export default function AutoPartCard({ part, isArabic = false }) {
     : null;
 
   return (
-    <Link 
-      to={`/auto-parts/${part.id}`} 
-      className="group block border border-slate-200 rounded-lg overflow-hidden bg-white hover:shadow-md transition-shadow"
-    >
-      <div className="aspect-[4/3] bg-slate-100 relative overflow-hidden">
+    <div className="group block border border-slate-200 rounded-lg overflow-hidden bg-white hover:shadow-md transition-shadow relative">
+      <Link to={`/auto-parts/${part.id}`} className="block aspect-[4/3] bg-slate-100 relative overflow-hidden">
         {primaryImage ? (
           <img 
             src={primaryImage.url} 
@@ -44,15 +41,17 @@ export default function AutoPartCard({ part, isArabic = false }) {
              </span>
           )}
         </div>
-      </div>
+      </Link>
       
       <div className="p-3">
-        <div className="mb-2">
+        <div className="mb-2 relative z-10">
           <VendorBadge vendor={part.vendor} isArabic={isArabic} />
         </div>
         
         <h3 className="font-semibold text-slate-800 line-clamp-2 min-h-[2.5rem]" title={name}>
-          {name}
+          <Link to={`/auto-parts/${part.id}`} className="hover:text-indigo-600 transition-colors">
+            {name}
+          </Link>
         </h3>
         
         <div className="mt-2 flex items-baseline justify-between">
@@ -72,6 +71,6 @@ export default function AutoPartCard({ part, isArabic = false }) {
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
