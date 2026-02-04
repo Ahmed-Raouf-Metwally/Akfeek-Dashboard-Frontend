@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { CreditCard, Eye } from 'lucide-react';
 import { paymentService } from '../services/paymentService';
 import { TableSkeleton } from '../components/ui/Skeleton';
@@ -9,10 +9,10 @@ import { Card } from '../components/ui/Card';
 
 const PAGE_SIZE = 10;
 
-function formatDate(d) {
+function formatDate(d, locale = 'en-SA') {
   if (!d) return '—';
   const x = typeof d === 'string' ? new Date(d) : d;
-  return Number.isNaN(x.getTime()) ? '—' : x.toLocaleDateString('en-SA', { dateStyle: 'short' });
+  return Number.isNaN(x.getTime()) ? '—' : x.toLocaleDateString(locale, { dateStyle: 'short' });
 }
 
 function customerLabel(p) {
@@ -23,7 +23,7 @@ function customerLabel(p) {
   return cust?.email || '—';
 }
 
-function statusBadge(status) {
+function StatusBadge({ status, t }) {
   const colors = {
     PENDING: 'bg-yellow-100 text-yellow-800',
     PROCESSING: 'bg-blue-100 text-blue-800',
@@ -33,24 +33,18 @@ function statusBadge(status) {
   };
   return (
     <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${colors[status] || 'bg-slate-100 text-slate-700'}`}>
-      {status ?? '—'}
+      {t(`finance.status.${status}`) || (status ?? '—')}
     </span>
   );
 }
 
-function methodLabel(method) {
-  const labels = {
-    CASH: 'Cash',
-    CARD: 'Card',
-    WALLET: 'Wallet',
-    BANK_TRANSFER: 'Bank Transfer',
-    APPLE_PAY: 'Apple Pay',
-    MADA: 'Mada',
-  };
-  return labels[method] || method || '—';
+function MethodLabel({ method, t }) {
+  const label = t(`finance.methods.${method}`) || method;
+  return <span>{label || '—'}</span>;
 }
 
 export default function PaymentsPage() {
+  const { t, i18n } = useTranslation();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
   const { data, isLoading, isError, error } = useQuery({
@@ -62,12 +56,20 @@ export default function PaymentsPage() {
   const list = data?.list ?? [];
   const pagination = data?.pagination ?? { page: 1, total: 0, totalPages: 1, limit: PAGE_SIZE };
 
+  const STATUS_OPTIONS = [
+    { value: 'PENDING', label: t('finance.status.PENDING') },
+    { value: 'PROCESSING', label: t('finance.status.PROCESSING') },
+    { value: 'COMPLETED', label: t('finance.status.COMPLETED') },
+    { value: 'FAILED', label: t('finance.status.FAILED') },
+    { value: 'REFUNDED', label: t('finance.status.REFUNDED') || 'Refunded' },
+  ];
+
   if (isLoading) {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Payments</h1>
-          <p className="text-sm text-slate-500">View and manage payment transactions.</p>
+          <h1 className="text-xl font-semibold text-slate-900">{t('finance.payments')}</h1>
+          <p className="text-sm text-slate-500">{t('finance.managePayments') || 'View and manage payment transactions.'}</p>
         </div>
         <Card className="overflow-hidden p-0">
           <TableSkeleton rows={5} cols={6} />
@@ -80,11 +82,11 @@ export default function PaymentsPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Payments</h1>
-          <p className="text-sm text-slate-500">View and manage payment transactions.</p>
+          <h1 className="text-xl font-semibold text-slate-900">{t('finance.payments')}</h1>
+          <p className="text-sm text-slate-500">{t('finance.managePayments') || 'View and manage payment transactions.'}</p>
         </div>
         <Card className="p-8 text-center">
-          <p className="text-red-600">{error?.message ?? 'Failed to load payments.'}</p>
+          <p className="text-red-600">{error?.message ?? t('common.error')}</p>
         </Card>
       </div>
     );
@@ -94,22 +96,20 @@ export default function PaymentsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Payments</h1>
-          <p className="text-sm text-slate-500">View and manage payment transactions.</p>
+          <h1 className="text-xl font-semibold text-slate-900">{t('finance.payments')}</h1>
+          <p className="text-sm text-slate-500">{t('finance.managePayments') || 'View and manage payment transactions.'}</p>
         </div>
         <div className="flex items-center gap-3">
-          <label className="text-sm font-medium text-slate-700">Status</label>
+          <label className="text-sm font-medium text-slate-700">{t('common.status')}</label>
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
             className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
-            <option value="">All</option>
-            <option value="PENDING">Pending</option>
-            <option value="PROCESSING">Processing</option>
-            <option value="COMPLETED">Completed</option>
-            <option value="FAILED">Failed</option>
-            <option value="REFUNDED">Refunded</option>
+            <option value="">{t('common.all')}</option>
+            {STATUS_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
           </select>
         </div>
       </div>
@@ -117,8 +117,8 @@ export default function PaymentsPage() {
         {list.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 text-center">
             <CreditCard className="mb-4 size-12 text-slate-400" />
-            <h3 className="mb-2 text-base font-semibold text-slate-900">No payments</h3>
-            <p className="max-w-sm text-sm text-slate-500">No payments match your filters.</p>
+            <h3 className="mb-2 text-base font-semibold text-slate-900">{t('common.noData')}</h3>
+            <p className="max-w-sm text-sm text-slate-500">{t('common.noData')}</p>
           </div>
         ) : (
           <>
@@ -126,46 +126,29 @@ export default function PaymentsPage() {
               <table className="w-full border-collapse" role="grid">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/80">
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Payment #</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Invoice #</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Customer</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Amount</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Method</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Processed</th>
-                    <th className="w-20 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Actions</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('finance.invoiceNumber')}</th> {/* Actually transaction ID usually */}
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.customer')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.totalPrice')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('finance.method')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.status')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.date')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {list.map((p) => (
-                    <tr key={p.id} className="border-b border-slate-100 transition-colors hover:bg-slate-50/50">
-                      <td className="px-4 py-3 text-sm font-medium text-slate-900">{p.paymentNumber ?? p.id}</td>
+                  {list.map((pay) => (
+                    <tr key={pay.id} className="border-b border-slate-100 transition-colors hover:bg-slate-50/50">
+                      <td className="px-4 py-3 text-sm font-medium text-slate-900" title={pay.id}>{pay.transactionId || pay.id.substring(0,8)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{customerLabel(pay)}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">
-                        {p.invoice?.invoiceNumber ? (
-                          <Link to={`/invoices/${p.invoiceId}`} className="text-indigo-600 hover:underline">
-                            {p.invoice.invoiceNumber}
-                          </Link>
-                        ) : (
-                          '—'
-                        )}
+                        {pay.amount != null ? Number(pay.amount).toFixed(2) : '—'}
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{customerLabel(p)}</td>
-                      <td className="px-4 py-3 text-sm font-medium text-slate-900">
-                        {p.amount != null ? Number(p.amount).toFixed(2) : '—'} SAR
+                      <td className="px-4 py-3 text-sm text-slate-600">
+                         <MethodLabel method={pay.method} t={t} />
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{methodLabel(p.method)}</td>
-                      <td className="px-4 py-3">{statusBadge(p.status)}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{formatDate(p.processedAt)}</td>
                       <td className="px-4 py-3">
-                        <Link
-                          to={`/payments/${p.id}`}
-                          className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
-                          title="View full details"
-                          aria-label="View full details"
-                        >
-                          <Eye className="size-5" />
-                        </Link>
+                        <StatusBadge status={pay.status} t={t} />
                       </td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{formatDate(pay.createdAt, i18n.language)}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { User, Mail, Phone, Globe, Lock, Save, Camera } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { profileService } from '../services/profileService';
@@ -27,6 +28,7 @@ function DetailRow({ label, value, icon: Icon }) {
 }
 
 export default function ProfilePage() {
+  const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const setAuth = useAuthStore((s) => s.setAuth);
   const queryClient = useQueryClient();
@@ -65,9 +67,9 @@ export default function ProfilePage() {
     onSuccess: (updated) => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       setAuth(updated, useAuthStore.getState().token);
-      toast.success('Profile updated');
+      toast.success(t('common.success'));
     },
-    onError: (err) => toast.error(err?.message ?? 'Failed to update profile'),
+    onError: (err) => toast.error(err?.message ?? t('common.error')),
   });
 
   const languageMutation = useMutation({
@@ -76,7 +78,7 @@ export default function ProfilePage() {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       const u = useAuthStore.getState().user;
       if (u) setAuth({ ...u, preferredLanguage: lang }, useAuthStore.getState().token);
-      toast.success('Language updated');
+      toast.success(t('common.success'));
     },
     onError: (err) => toast.error(err?.message ?? 'Failed to update language'),
   });
@@ -112,8 +114,8 @@ export default function ProfilePage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Profile</h1>
-        <p className="text-sm text-slate-500">Manage your account and preferences.</p>
+        <h1 className="text-xl font-semibold text-slate-900">{t('profile.title')}</h1>
+        <p className="text-sm text-slate-500">{t('profile.manageAccount')}</p>
       </div>
 
       {/* Hero card */}
@@ -150,52 +152,52 @@ export default function ProfilePage() {
       {/* Read-only details */}
       <Card className="p-6">
         <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-slate-900">
-          <User className="size-5 text-indigo-600" /> Account details
+          <User className="size-5 text-indigo-600" /> {t('profile.accountDetails')}
         </h3>
-        <DetailRow label="Email" value={displayUser?.email} icon={Mail} />
-        <DetailRow label="Phone" value={displayUser?.phone} icon={Phone} />
-        <DetailRow label="Role" value={displayUser?.role} icon={User} />
-        <DetailRow label="Status" value={displayUser?.status} icon={User} />
+        <DetailRow label={t('common.email')} value={displayUser?.email} icon={Mail} />
+        <DetailRow label={t('common.phone')} value={displayUser?.phone} icon={Phone} />
+        <DetailRow label={t('roles.rolesTitle')} value={displayUser?.role} icon={User} />
+        <DetailRow label={t('common.status')} value={displayUser?.status} icon={User} />
       </Card>
 
       {/* Edit profile form */}
       <Card className="p-6">
         <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-slate-900">
-          <Camera className="size-5 text-indigo-600" /> Edit profile
+          <Camera className="size-5 text-indigo-600" /> {t('profile.editProfile')}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2">
             <Input
-              label="First name"
+              label={t('profile.firstName')}
               name="firstName"
               value={form.firstName}
               onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))}
-              placeholder="First name"
+              placeholder={t('profile.firstName')}
             />
             <Input
-              label="Last name"
+              label={t('profile.lastName')}
               name="lastName"
               value={form.lastName}
               onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))}
-              placeholder="Last name"
+              placeholder={t('profile.lastName')}
             />
           </div>
           <Input
-            label="Avatar URL"
+            label={t('profile.avatarUrl')}
             name="avatar"
             value={form.avatar}
             onChange={(e) => setForm((f) => ({ ...f, avatar: e.target.value }))}
             placeholder="https://example.com/avatar.jpg"
           />
           <Input
-            label="Bio (English)"
+            label={t('profile.bioEn')}
             name="bio"
             value={form.bio}
             onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
             placeholder="Short bio"
           />
           <Input
-            label="Bio (Arabic)"
+            label={t('profile.bioAr')}
             name="bioAr"
             value={form.bioAr}
             onChange={(e) => setForm((f) => ({ ...f, bioAr: e.target.value }))}
@@ -207,7 +209,7 @@ export default function ProfilePage() {
               disabled={updateMutation.isPending}
               className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500 disabled:opacity-50"
             >
-              <Save className="size-4" /> Save profile
+              <Save className="size-4" /> {t('settings.saveChanges')}
             </button>
           </div>
         </form>
@@ -216,10 +218,10 @@ export default function ProfilePage() {
       {/* Language */}
       <Card className="p-6">
         <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-slate-900">
-          <Globe className="size-5 text-indigo-600" /> Language
+          <Globe className="size-5 text-indigo-600" /> {t('common.language')}
         </h3>
         <div className="flex flex-wrap items-center gap-4">
-          <label className="text-sm font-medium text-slate-700">Preferred language</label>
+          <label className="text-sm font-medium text-slate-700">{t('common.language')}</label>
           <select
             value={displayUser?.preferredLanguage ?? 'AR'}
             onChange={(e) => languageMutation.mutate(e.target.value)}
@@ -236,10 +238,10 @@ export default function ProfilePage() {
       {/* Change password placeholder */}
       <Card className="p-6">
         <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-slate-900">
-          <Lock className="size-5 text-indigo-600" /> Change password
+          <Lock className="size-5 text-indigo-600" /> {t('profile.changePassword')}
         </h3>
         <p className="text-sm text-slate-500">
-          Password change will be available in a future update. For now, use the forgot-password flow from the login page or contact support.
+          {t('profile.changePasswordDesc')}
         </p>
       </Card>
     </div>

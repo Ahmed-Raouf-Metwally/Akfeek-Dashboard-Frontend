@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { Search, Plus, Filter, LayoutGrid, List, CheckCircle, XCircle } from 'lucide-react';
 import { autoPartService } from '../services/autoPartService';
 import { autoPartCategoryService } from '../services/autoPartCategoryService';
@@ -15,6 +16,7 @@ import ApprovalStatusBadge from '../components/marketplace/ApprovalStatusBadge';
 import VendorBadge from '../components/marketplace/VendorBadge';
 
 export default function AutoPartsPage() {
+  const { t } = useTranslation();
   const [openConfirm, ConfirmModal] = useConfirm();
   const queryClient = useQueryClient();
   const PAGE_SIZE = 12;
@@ -52,9 +54,9 @@ export default function AutoPartsPage() {
     mutationFn: ({ id, isApproved }) => autoPartService.updatePartApproval(id, isApproved),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auto-parts'] });
-      toast.success('Part approval status updated');
+      toast.success(t('common.success'));
     },
-    onError: (err) => toast.error(err?.message || 'Failed to update part'),
+    onError: (err) => toast.error(err?.message || t('common.error')),
   });
 
   const { paginatedItems: paginatedParts, totalPages, total } = useMemo(() => {
@@ -70,8 +72,8 @@ export default function AutoPartsPage() {
       <ConfirmModal />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Auto Parts</h1>
-          <p className="text-slate-500">Manage catalog and vendor part approvals</p>
+          <h1 className="text-2xl font-bold text-slate-900">{t('autoParts.title')}</h1>
+          <p className="text-slate-500">{t('autoParts.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
            <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-1">
@@ -94,7 +96,7 @@ export default function AutoPartsPage() {
             to="/auto-parts/new"
             className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-500"
           >
-            <Plus className="size-4" /> Add Part
+            <Plus className="size-4" /> {t('autoParts.addPart')}
           </Link>
         </div>
       </div>
@@ -102,13 +104,13 @@ export default function AutoPartsPage() {
       <Card className="overflow-hidden p-0">
         <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 bg-slate-50/50 px-4 py-4">
           <div className="relative min-w-[200px] flex-1">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400 rtl:left-auto rtl:right-3" />
             <input
               type="search"
-              placeholder="Search parts (SKU, Name)..."
+              placeholder={t('autoParts.searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 py-2 pl-10 pr-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-slate-300 py-2 pl-10 pr-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 rtl:pl-4 rtl:pr-10"
             />
           </div>
           
@@ -118,7 +120,7 @@ export default function AutoPartsPage() {
               onChange={(e) => setCategoryId(e.target.value)}
               className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 max-w-[200px]"
             >
-              <option value="">All Categories</option>
+              <option value="">{t('autoParts.allCategories')}</option>
               {flatCategories.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
@@ -129,9 +131,9 @@ export default function AutoPartsPage() {
               onChange={(e) => setIsApproved(e.target.value)}
               className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             >
-              <option value="">All Status</option>
-              <option value="true">Approved</option>
-              <option value="false">Pending Approval</option>
+              <option value="">{t('common.status')}</option>
+              <option value="true">{t('autoParts.approved')}</option>
+              <option value="false">{t('autoParts.pending')}</option>
             </select>
           </div>
         </div>
@@ -143,7 +145,7 @@ export default function AutoPartsPage() {
         ) : viewMode === 'grid' ? (
           <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
              {paginatedParts.length === 0 ? (
-                <div className="col-span-full py-12 text-center text-slate-500">No parts found.</div>
+                <div className="col-span-full py-12 text-center text-slate-500">{t('autoParts.noParts')}</div>
              ) : (
                 paginatedParts.map((part, i) => (
                   <motion.div
@@ -162,17 +164,17 @@ export default function AutoPartsPage() {
              <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/80">
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Info</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">SKU / Brand</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Category</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Price/Stock</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Vendor</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500">Actions</th>
+                  <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('autoParts.info')}</th>
+                  <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('products.sku')} / {t('common.brand')}</th>
+                  <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('services.category')}</th>
+                  <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('products.price')}/{t('products.stock')}</th>
+                  <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('autoParts.vendor')}</th>
+                  <th className="px-4 py-3 text-end text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody>
                  {paginatedParts.length === 0 ? (
-                    <tr><td colSpan={6} className="px-4 py-12 text-center text-slate-500">No parts found.</td></tr>
+                    <tr><td colSpan={6} className="px-4 py-12 text-center text-slate-500">{t('autoParts.noParts')}</td></tr>
                  ) : (
                     paginatedParts.map(part => (
                       <tr key={part.id} className="border-b border-slate-100 hover:bg-slate-50/50">
@@ -185,7 +187,7 @@ export default function AutoPartsPage() {
                             )}
                             <div>
                                <div className="font-medium text-slate-900 line-clamp-1">{part.name}</div>
-                               <div className="text-xs text-slate-500">{!part.isApproved && <span className="text-amber-600 font-medium">Pending Approval</span>}</div>
+                               <div className="text-xs text-slate-500">{!part.isApproved && <span className="text-amber-600 font-medium">{t('autoParts.pending')}</span>}</div>
                             </div>
                           </div>
                         </td>
@@ -198,26 +200,26 @@ export default function AutoPartsPage() {
                         </td>
                         <td className="px-4 py-3 text-sm text-slate-900">
                            <div className="font-semibold">{parseFloat(part.price).toFixed(2)} SAR</div>
-                           <div className={`text-xs ${part.stockQuantity > 0 ? 'text-green-600' : 'text-red-500'}`}>Stock: {part.stockQuantity}</div>
+                           <div className={`text-xs ${part.stockQuantity > 0 ? 'text-green-600' : 'text-red-500'}`}>{t('products.stock')}: {part.stockQuantity}</div>
                         </td>
                         <td className="px-4 py-3 text-sm text-slate-600">
                            <VendorBadge vendor={part.vendor} />
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-4 py-3 text-end">
                            <div className="flex items-center justify-end gap-2">
                               {!part.isApproved && (
                                 <button
                                   onClick={async () => {
                                       const ok = await openConfirm({
-                                          title: 'Approve Part',
-                                          message: `Approve "${part.name}" for listing?`,
-                                          confirmLabel: 'Approve',
+                                          title: t('autoParts.approvePart'),
+                                          message: t('autoParts.confirmApprove', {name: part.name}),
+                                          confirmLabel: t('common.approve'),
                                           variant: 'primary'
                                       });
                                       if (ok) updateApprovalMutation.mutate({ id: part.id, isApproved: true });
                                   }}
                                   className="p-1 text-green-600 hover:bg-green-50 rounded"
-                                  title="Approve"
+                                  title={t('common.approve')}
                                 >
                                   <CheckCircle className="size-5" />
                                 </button>

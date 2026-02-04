@@ -7,4 +7,26 @@
   body {
     @apply bg-slate-50 text-slate-900 font-sans;
   }
+
+  /* RTL Support */
+  [dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+  }
+
+  [dir="ltr"] {
+    direction: ltr;
+    text-align: left;
+  }
+}
+
+@layer utilities {
+  /* RTL-aware spacing */
+  .rtl\:mr-auto {
+    margin-inline-start: auto;
+  }
+
+  .rtl\:ml-auto {
+    margin-inline-end: auto;
+  }
 }

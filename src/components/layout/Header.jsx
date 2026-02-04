@@ -2,10 +2,13 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, Transition } from '@headlessui/react';
 import { Bell, User, Settings, LogOut, PanelLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../store/authStore';
+import LanguageSwitcher from '../LanguageSwitcher';
 
 export default function Header({ title, subtitle, onMenuClick, onToggleSidebar, sidebarCollapsed }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const name = user?.profile?.firstName || user?.email?.split('@')[0] || 'Admin';
@@ -42,10 +45,13 @@ export default function Header({ title, subtitle, onMenuClick, onToggleSidebar, 
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
+        {/* Language Switcher */}
+        <LanguageSwitcher />
+
         <Menu as="div" className="relative">
           <Menu.Button
             className="flex size-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
-            aria-label="Notifications"
+            aria-label={t('nav.notifications')}
           >
             <Bell className="size-5" />
             <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-indigo-500 text-[10px] font-medium text-white">3</span>
@@ -61,7 +67,7 @@ export default function Header({ title, subtitle, onMenuClick, onToggleSidebar, 
           >
             <Menu.Items className="absolute right-0 top-full z-50 mt-2 w-72 origin-top-right rounded-xl border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none">
               <div className="border-b border-slate-100 px-3 py-2">
-                <p className="text-sm font-medium text-slate-900">Notifications</p>
+                <p className="text-sm font-medium text-slate-900">{t('nav.notifications')}</p>
                 <p className="text-xs text-slate-500">You have 3 unread</p>
               </div>
               <div className="max-h-60 overflow-auto py-1">
@@ -99,21 +105,21 @@ export default function Header({ title, subtitle, onMenuClick, onToggleSidebar, 
                 <Menu.Item>
                   {({ close }) => (
                     <Link to="/profile" onClick={close} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100">
-                      <User className="size-4 shrink-0 text-slate-500" /> Profile
+                      <User className="size-4 shrink-0 text-slate-500" /> {t('nav.profile')}
                     </Link>
                   )}
                 </Menu.Item>
                 <Menu.Item>
                   {({ close }) => (
                     <Link to="/settings" onClick={close} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100">
-                      <Settings className="size-4 shrink-0 text-slate-500" /> Settings
+                      <Settings className="size-4 shrink-0 text-slate-500" /> {t('nav.settings')}
                     </Link>
                   )}
                 </Menu.Item>
                 <Menu.Item>
                   {({ close }) => (
                     <button type="button" onClick={() => { close(); handleLogout(); }} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50">
-                      <LogOut className="size-4 shrink-0" /> Log out
+                      <LogOut className="size-4 shrink-0" /> {t('auth.logout')}
                     </button>
                   )}
                 </Menu.Item>

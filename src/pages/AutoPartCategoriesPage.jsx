@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { Plus, Edit2, Trash2, ChevronRight, ChevronDown, Folder, Tag } from 'lucide-react';
 import { autoPartCategoryService } from '../services/autoPartCategoryService';
 import { useConfirm } from '../hooks/useConfirm';
@@ -15,13 +16,13 @@ function CategoryItem({ category, onEdit, onDelete, depth = 0 }) {
   return (
     <div className="select-none">
       <div 
-        className={`flex items-center gap-2 p-2 rounded hover:bg-slate-50 border-b border-slate-100 ${depth > 0 ? 'ml-6 border-l-2 border-slate-200 pl-4' : ''}`}
+        className={`flex items-center gap-2 p-2 rounded hover:bg-slate-50 border-b border-slate-100 ${depth > 0 ? 'ltr:ml-6 rtl:mr-6 ltr:border-l-2 rtl:border-r-2 border-slate-200 ltr:pl-4 rtl:pr-4' : ''}`}
       >
         <button 
           onClick={() => setExpanded(!expanded)}
           className={`p-1 rounded hover:bg-slate-200 text-slate-500 ${hasChildren ? '' : 'opacity-0'}`}
         >
-          {expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
+          {expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4 rtl:rotate-180" />}
         </button>
         
         <div className="flex items-center gap-2 flex-1">
@@ -57,7 +58,7 @@ function CategoryItem({ category, onEdit, onDelete, depth = 0 }) {
       </div>
       
       {expanded && hasChildren && (
-        <div className="border-l border-indigo-100 ml-4">
+        <div className="ltr:border-l ltr:ml-4 rtl:border-r rtl:mr-4 border-indigo-100">
           {category.children.map(child => (
             <CategoryItem 
               key={child.id} 
@@ -74,6 +75,7 @@ function CategoryItem({ category, onEdit, onDelete, depth = 0 }) {
 }
 
 export default function AutoPartCategoriesPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [openConfirm, ConfirmModal] = useConfirm();
   const [isEditing, setIsEditing] = useState(false);
@@ -94,10 +96,10 @@ export default function AutoPartCategoriesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories-tree'] });
       queryClient.invalidateQueries({ queryKey: ['categories'] });
-      toast.success('Category created');
+      toast.success(t('common.success'));
       resetForm();
     },
-    onError: (err) => toast.error(err?.message),
+    onError: (err) => toast.error(err?.message || t('common.error')),
   });
 
   const updateMutation = useMutation({
@@ -105,10 +107,10 @@ export default function AutoPartCategoriesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories-tree'] });
       queryClient.invalidateQueries({ queryKey: ['categories'] });
-      toast.success('Category updated');
+      toast.success(t('common.success'));
       resetForm();
     },
-    onError: (err) => toast.error(err?.message),
+    onError: (err) => toast.error(err?.message || t('common.error')),
   });
 
   const deleteMutation = useMutation({
@@ -116,9 +118,9 @@ export default function AutoPartCategoriesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories-tree'] });
       queryClient.invalidateQueries({ queryKey: ['categories'] });
-      toast.success('Category deleted');
+      toast.success(t('common.success'));
     },
-    onError: (err) => toast.error(err?.message),
+    onError: (err) => toast.error(err?.message || t('common.error')),
   });
 
   const resetForm = () => {
@@ -138,8 +140,8 @@ export default function AutoPartCategoriesPage() {
 
   const handleDelete = async (category) => {
     const ok = await openConfirm({
-      title: 'Delete Category',
-      message: `Delete "${category.name}"?`,
+      title: t('common.delete'),
+      message: t('common.confirmDelete', {name: category.name}),
       variant: 'danger'
     });
     if (ok) deleteMutation.mutate(category.id);
@@ -167,15 +169,15 @@ export default function AutoPartCategoriesPage() {
       {/* List Column */}
       <div className="lg:col-span-2 space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Categories</h1>
-          <p className="text-slate-500">Manage auto part categories hierarchy</p>
+          <h1 className="text-2xl font-bold text-slate-900">{t('categories.title')}</h1>
+          <p className="text-slate-500">{t('categories.subtitle')}</p>
         </div>
 
         <Card className="p-4 min-h-[500px]">
           {isLoading ? (
-            <div className="text-center py-12 text-slate-500">Loading categories...</div>
+            <div className="text-center py-12 text-slate-500">{t('common.loading')}</div>
           ) : tree.length === 0 ? (
-            <div className="text-center py-12 text-slate-500">No categories found.</div>
+            <div className="text-center py-12 text-slate-500">{t('common.noData')}</div>
           ) : (
             <div className="space-y-1">
               {tree.map(cat => (
@@ -196,31 +198,31 @@ export default function AutoPartCategoriesPage() {
         <div className="h-[60px] hidden lg:block"></div> {/* Spacer for alignment */}
         <Card className="p-6 sticky top-6">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">
-            {isEditing ? 'Edit Category' : 'Add New Category'}
+            {isEditing ? t('categories.editCategory') : t('categories.newCategory')}
           </h2>
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input 
-              label="Name (English)" 
+              label={t('common.nameEn')} 
               value={formData.name} 
               onChange={(e) => setFormData({...formData, name: e.target.value})}
               required
             />
             <Input 
-              label="Name (Arabic)" 
+              label={t('common.nameAr')} 
               value={formData.nameAr} 
               onChange={(e) => setFormData({...formData, nameAr: e.target.value})}
               dir="rtl"
             />
             
             <div>
-               <label className="mb-1.5 block text-sm font-medium text-slate-700">Parent Category</label>
+               <label className="mb-1.5 block text-sm font-medium text-slate-700">{t('categories.parentCategory')}</label>
                <select
                  value={formData.parentId}
                  onChange={(e) => setFormData({...formData, parentId: e.target.value})}
                  className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                >
-                 <option value="">None (Root Category)</option>
+                 <option value="">{t('categories.noneRoot')}</option>
                  {flatCategories
                    .filter(c => c.id !== formData.id) // Prevent selecting self as parent
                    .map(c => (
@@ -234,7 +236,7 @@ export default function AutoPartCategoriesPage() {
                 type="submit"
                 className="flex-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
               >
-                {isEditing ? 'Update' : 'Create'}
+                {isEditing ? t('common.update') : t('common.create')}
               </button>
               {isEditing && (
                 <button
@@ -242,7 +244,7 @@ export default function AutoPartCategoriesPage() {
                   onClick={resetForm}
                   className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
               )}
             </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { CalendarCheck, Eye } from 'lucide-react';
 import { bookingService } from '../services/bookingService';
 import { TableSkeleton } from '../components/ui/Skeleton';
@@ -9,10 +10,10 @@ import { Card } from '../components/ui/Card';
 
 const PAGE_SIZE = 10;
 
-function formatDate(d) {
+function formatDate(d, locale = 'en-SA') {
   if (!d) return '—';
   const x = typeof d === 'string' ? new Date(d) : d;
-  return Number.isNaN(x.getTime()) ? '—' : x.toLocaleDateString('en-SA', { dateStyle: 'short' });
+  return Number.isNaN(x.getTime()) ? '—' : x.toLocaleDateString(locale, { dateStyle: 'short' });
 }
 
 function customerLabel(b) {
@@ -29,6 +30,7 @@ function technicianLabel(b) {
 }
 
 export default function BookingsPage() {
+  const { t, i18n } = useTranslation();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
   const { data, isLoading, isError, error } = useQuery({
@@ -40,12 +42,37 @@ export default function BookingsPage() {
   const list = data?.list ?? [];
   const pagination = data?.pagination ?? { page: 1, total: 0, totalPages: 1, limit: PAGE_SIZE };
 
+  const STATUS_OPTIONS = [
+    { value: 'PENDING', label: t('finance.status.PENDING') },
+    { value: 'CONFIRMED', label: t('finance.status.CONFIRMED') || 'Confirmed' },
+    { value: 'BROADCASTING', label: t('broadcasts.status.BROADCASTING') },
+    { value: 'OFFERS_RECEIVED', label: t('broadcasts.status.OFFERS_RECEIVED') },
+    { value: 'TECHNICIAN_ASSIGNED', label: t('broadcasts.status.TECHNICIAN_SELECTED') || 'Technician Assigned' },
+    { value: 'PICKUP_SCHEDULED', label: 'Pickup Scheduled' },
+    { value: 'IN_TRANSIT_PICKUP', label: 'In Transit (Pickup)' },
+    { value: 'INSPECTING', label: 'Inspecting' },
+    { value: 'QUOTE_PENDING', label: 'Quote Pending' },
+    { value: 'QUOTE_APPROVED', label: 'Quote Approved' },
+    { value: 'QUOTE_REJECTED', label: 'Quote Rejected' },
+    { value: 'IN_PROGRESS', label: 'In Progress' },
+    { value: 'PARTS_NEEDED', label: 'Parts Needed' },
+    { value: 'PARTS_ORDERED', label: 'Parts Ordered' },
+    { value: 'PARTS_DELIVERED', label: 'Parts Delivered' },
+    { value: 'COMPLETED', label: t('finance.status.COMPLETED') },
+    { value: 'READY_FOR_DELIVERY', label: 'Ready for Delivery' },
+    { value: 'IN_TRANSIT_DELIVERY', label: 'In Transit (Delivery)' },
+    { value: 'DELIVERED', label: t('finance.status.DELIVERED') || 'Delivered' },
+    { value: 'CANCELLED', label: t('finance.status.CANCELLED') },
+    { value: 'REJECTED', label: 'Rejected' },
+    { value: 'NO_SHOW', label: 'No Show' },
+  ];
+
   if (isLoading) {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Bookings</h1>
-          <p className="text-sm text-slate-500">Manage customer bookings.</p>
+          <h1 className="text-xl font-semibold text-slate-900">{t('bookings.title')}</h1>
+          <p className="text-sm text-slate-500">{t('bookings.manage') || 'Manage customer bookings.'}</p>
         </div>
         <Card className="overflow-hidden p-0">
           <TableSkeleton rows={5} cols={5} />
@@ -58,11 +85,11 @@ export default function BookingsPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Bookings</h1>
-          <p className="text-sm text-slate-500">Manage customer bookings.</p>
+          <h1 className="text-xl font-semibold text-slate-900">{t('bookings.title')}</h1>
+          <p className="text-sm text-slate-500">{t('bookings.manage') || 'Manage customer bookings.'}</p>
         </div>
         <Card className="p-8 text-center">
-          <p className="text-red-600">{error?.message ?? 'Failed to load bookings.'}</p>
+          <p className="text-red-600">{error?.message ?? t('common.error')}</p>
         </Card>
       </div>
     );
@@ -72,39 +99,20 @@ export default function BookingsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Bookings</h1>
-          <p className="text-sm text-slate-500">Manage customer bookings.</p>
+          <h1 className="text-xl font-semibold text-slate-900">{t('bookings.title')}</h1>
+          <p className="text-sm text-slate-500">{t('bookings.manage') || 'Manage customer bookings.'}</p>
         </div>
         <div className="flex items-center gap-3">
-          <label className="text-sm font-medium text-slate-700">Status</label>
+          <label className="text-sm font-medium text-slate-700">{t('common.status')}</label>
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
             className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
-            <option value="">All</option>
-            <option value="PENDING">Pending</option>
-            <option value="CONFIRMED">Confirmed</option>
-            <option value="BROADCASTING">Broadcasting</option>
-            <option value="OFFERS_RECEIVED">Offers received</option>
-            <option value="TECHNICIAN_ASSIGNED">Technician assigned</option>
-            <option value="PICKUP_SCHEDULED">Pickup scheduled</option>
-            <option value="IN_TRANSIT_PICKUP">In transit (pickup)</option>
-            <option value="INSPECTING">Inspecting</option>
-            <option value="QUOTE_PENDING">Quote pending</option>
-            <option value="QUOTE_APPROVED">Quote approved</option>
-            <option value="QUOTE_REJECTED">Quote rejected</option>
-            <option value="IN_PROGRESS">In progress</option>
-            <option value="PARTS_NEEDED">Parts needed</option>
-            <option value="PARTS_ORDERED">Parts ordered</option>
-            <option value="PARTS_DELIVERED">Parts delivered</option>
-            <option value="COMPLETED">Completed</option>
-            <option value="READY_FOR_DELIVERY">Ready for delivery</option>
-            <option value="IN_TRANSIT_DELIVERY">In transit (delivery)</option>
-            <option value="DELIVERED">Delivered</option>
-            <option value="CANCELLED">Cancelled</option>
-            <option value="REJECTED">Rejected</option>
-            <option value="NO_SHOW">No show</option>
+            <option value="">{t('common.all')}</option>
+            {STATUS_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
           </select>
         </div>
       </div>
@@ -112,8 +120,8 @@ export default function BookingsPage() {
         {list.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 text-center">
             <CalendarCheck className="mb-4 size-12 text-slate-400" />
-            <h3 className="mb-2 text-base font-semibold text-slate-900">No bookings</h3>
-            <p className="max-w-sm text-sm text-slate-500">There are no bookings matching your filters.</p>
+            <h3 className="mb-2 text-base font-semibold text-slate-900">{t('bookings.noBookings')}</h3>
+            <p className="max-w-sm text-sm text-slate-500">{t('bookings.noBookingsDesc')}</p>
           </div>
         ) : (
           <>
@@ -121,15 +129,15 @@ export default function BookingsPage() {
               <table className="w-full border-collapse" role="grid">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/80">
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Booking #</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Customer</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Vehicle</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Technician</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Date</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Time</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Total</th>
-                    <th className="w-20 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Actions</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.bookingId')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.customer')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.vehicle')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.technician')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.status')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.date')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.time')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.totalPrice')}</th>
+                    <th className="w-20 px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -148,7 +156,7 @@ export default function BookingsPage() {
                           {b.status ?? '—'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{formatDate(b.scheduledDate)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{formatDate(b.scheduledDate, i18n.language)}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{b.scheduledTime ?? '—'}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">
                         {b.totalPrice != null ? Number(b.totalPrice).toFixed(2) : '—'}
@@ -157,8 +165,8 @@ export default function BookingsPage() {
                         <Link
                           to={`/bookings/${b.id}`}
                           className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
-                          title="View full details"
-                          aria-label="View full details"
+                          title={t('common.details')}
+                          aria-label={t('common.details')}
                         >
                           <Eye className="size-5" />
                         </Link>

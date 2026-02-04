@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import { useAuthStore } from '../store/authStore';
 import authService from '../services/authService';
 
 export default function Login() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const setAuth = useAuthStore((s) => s.setAuth);
@@ -31,8 +33,8 @@ export default function Login() {
 
   const validate = () => {
     const next = {};
-    if (!formData.identifier.trim()) next.identifier = 'Email or phone is required';
-    if (!formData.password) next.password = 'Password is required';
+    if (!formData.identifier.trim()) next.identifier = t('auth.emailOrPhoneRequired', 'Email or phone is required');
+    if (!formData.password) next.password = t('auth.passwordRequired', 'Password is required');
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -48,13 +50,13 @@ export default function Login() {
         password: formData.password,
       });
       setAuth(user, token);
-      toast.success('Signed in successfully');
+      toast.success(t('auth.signedInSuccessfully', 'Signed in successfully'));
       navigate(from, { replace: true });
     } catch (err) {
-      const msg = err?.response?.data?.error || err?.normalized?.message || err?.message || 'Sign-in failed';
+      const msg = err?.response?.data?.error || err?.normalized?.message || err?.message || t('auth.signInFailed', 'Sign-in failed');
       toast.error(msg);
       if (err?.response?.status === 401) {
-        setErrors({ password: 'Invalid credentials' });
+        setErrors({ password: t('auth.invalidCredentials', 'Invalid credentials') });
       }
     } finally {
       setLoading(false);
@@ -65,17 +67,17 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-900">Sign in</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{t('auth.signIn')}</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Welcome back. Enter your details to continue.
+            {t('auth.welcomeBack')}. {t('auth.enterDetailsTo Continue', 'Enter your details to continue')}.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <Input
-            label="Email or phone"
+            label={t('auth.emailOrPhone', 'Email or phone')}
             type="text"
-            placeholder="you@example.com or +966..."
+            placeholder={t('auth.emailOrPhonePlaceholder', 'you@example.com or +966...')}
             name="identifier"
             value={formData.identifier}
             onChange={handleChange}
@@ -83,7 +85,7 @@ export default function Login() {
             autoComplete="username"
           />
           <Input
-            label="Password"
+            label={t('auth.password')}
             type="password"
             placeholder="••••••••"
             name="password"
@@ -97,18 +99,18 @@ export default function Login() {
               to="/forgot-password"
               className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
             >
-              Forgot password?
+              {t('auth.forgotPassword')}
             </Link>
           </div>
           <Button type="submit" fullWidth disabled={loading}>
-            {loading ? 'Signing in…' : 'Sign in'}
+            {loading ? t('auth.signingIn', 'Signing in…') : t('auth.signIn')}
           </Button>
         </form>
 
         <p className="mt-6 text-center text-sm text-slate-500">
-          Don&apos;t have an account?{' '}
+          {t('auth.dontHaveAccount', "Don't have an account?")}{' '}
           <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-700">
-            Register
+            {t('auth.register', 'Register')}
           </Link>
         </p>
       </div>

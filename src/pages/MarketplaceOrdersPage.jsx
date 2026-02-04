@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { marketplaceOrderService } from '../services/marketplaceOrderService';
 import { useAuthStore } from '../store/authStore';
 import { 
@@ -7,9 +8,10 @@ import {
   AlertCircle, ChevronRight, Eye 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
+
 
 export default function MarketplaceOrdersPage() {
+  const { t } = useTranslation();
   const user = useAuthStore((state) => state.user);
   const isAdmin = user?.role === 'ADMIN';
   const isVendor = user?.role === 'VENDOR';
@@ -51,20 +53,20 @@ export default function MarketplaceOrdersPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">
-            {isAdmin ? 'All Marketplace Orders' : 'My Vendor Orders'}
+            {isAdmin ? t('marketplaceOrders.titleAdmin') : t('marketplaceOrders.titleVendor')}
           </h1>
-          <p className="text-slate-500">Manage and track orders</p>
+          <p className="text-slate-500">{t('marketplaceOrders.subtitle')}</p>
         </div>
       </div>
 
       {/* Filters */}
       <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-4 items-center justify-between">
         <div className="relative flex-1 min-w-[200px] max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 rtl:left-auto rtl:right-3" />
           <input 
             type="text"
-            placeholder="Search order # or customer..."
-            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder={t('marketplaceOrders.searchPlaceholder')}
+            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 rtl:pl-4 rtl:pr-10"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -77,13 +79,13 @@ export default function MarketplaceOrdersPage() {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
-            <option value="">All Statuses</option>
-            <option value="PENDING">Pending</option>
-            <option value="CONFIRMED">Confirmed</option>
-            <option value="PROCESSING">Processing</option>
-            <option value="SHIPPED">Shipped</option>
-            <option value="DELIVERED">Delivered</option>
-            <option value="CANCELLED">Cancelled</option>
+            <option value="">{t('common.status')}</option>
+            <option value="PENDING">{t('finance.status.PENDING')}</option>
+            <option value="CONFIRMED">{t('finance.status.CONFIRMED') || 'Confirmed'}</option>
+            <option value="PROCESSING">{t('finance.status.PROCESSING')}</option>
+            <option value="SHIPPED">{t('finance.status.SHIPPED') || 'Shipped'}</option>
+            <option value="DELIVERED">{t('finance.status.DELIVERED') || 'Delivered'}</option>
+            <option value="CANCELLED">{t('finance.status.CANCELLED')}</option>
           </select>
         </div>
       </div>
@@ -91,24 +93,24 @@ export default function MarketplaceOrdersPage() {
       {/* Orders Table */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         {isLoading ? (
-          <div className="p-8 text-center text-slate-500">Loading orders...</div>
+          <div className="p-8 text-center text-slate-500">{t('common.loading')}</div>
         ) : orders.length === 0 ? (
           <div className="p-12 text-center flex flex-col items-center">
             <Package className="w-12 h-12 text-slate-300 mb-4" />
-            <h3 className="text-lg font-medium text-slate-800">No orders found</h3>
-            <p className="text-slate-500">Try adjusting your search or filters</p>
+            <h3 className="text-lg font-medium text-slate-800">{t('marketplaceOrders.noOrders')}</h3>
+            <p className="text-slate-500">{t('marketplaceOrders.noOrdersDesc')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-600">
               <thead className="bg-slate-50 text-xs uppercase font-semibold text-slate-500">
                 <tr>
-                  <th className="px-6 py-4">Order #</th>
-                  <th className="px-6 py-4">Customer</th>
-                  <th className="px-6 py-4">Date</th>
-                  <th className="px-6 py-4">Total</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                  <th className="px-6 py-4">{t('marketplaceOrders.orderNumber')}</th>
+                  <th className="px-6 py-4">{t('bookings.customer')}</th>
+                  <th className="px-6 py-4">{t('bookings.date')}</th>
+                  <th className="px-6 py-4">{t('bookings.totalPrice')}</th>
+                  <th className="px-6 py-4">{t('common.status')}</th>
+                  <th className="px-6 py-4 text-right">{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -129,15 +131,15 @@ export default function MarketplaceOrdersPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${getStatusColor(order.status)}`}>
-                        {order.status}
+                        {t(`finance.status.${order.status}`) || order.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <Link 
-                        to={`/admin/marketplace-orders/${order.id}`}
+                        to={`/marketplace-orders/${order.id}`} // Fixed path to match likely route
                         className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800"
                       >
-                        <Eye className="w-4 h-4" /> View
+                        <Eye className="w-4 h-4" /> {t('common.view')}
                       </Link>
                     </td>
                   </tr>
@@ -147,7 +149,7 @@ export default function MarketplaceOrdersPage() {
           </div>
         )}
         
-        {/* Pagination */}
+        {/* Pagination - Translating manually to keep logic simple */}
         {pagination.totalPages > 1 && (
           <div className="px-6 py-4 border-t border-slate-100 flex justify-between items-center">
             <button 
@@ -155,17 +157,17 @@ export default function MarketplaceOrdersPage() {
               disabled={page === 1}
               className="px-3 py-1 border rounded disabled:opacity-50"
             >
-              Previous
+              {t('pagination.previous')}
             </button>
             <span className="text-sm text-slate-500">
-              Page {page} of {pagination.totalPages}
+              {t('pagination.page')} {page} {t('pagination.of')} {pagination.totalPages}
             </span>
             <button 
               onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
               disabled={page === pagination.totalPages}
               className="px-3 py-1 border rounded disabled:opacity-50"
             >
-              Next
+              {t('pagination.next')}
             </button>
           </div>
         )}

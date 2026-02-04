@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { Search, Plus, Pencil, Trash2, Eye, LayoutGrid, List } from 'lucide-react';
 import { serviceService } from '../services/serviceService';
 import { useConfirm } from '../hooks/useConfirm';
@@ -11,23 +12,6 @@ import Pagination from '../components/ui/Pagination';
 import Input from '../components/Input';
 import { Card } from '../components/ui/Card';
 import { ImageOrPlaceholder } from '../components/ui/ImageOrPlaceholder';
-
-const CATEGORIES = [
-  { value: '', label: 'All categories' },
-  { value: 'CLEANING', label: 'Cleaning' },
-  { value: 'MAINTENANCE', label: 'Maintenance' },
-  { value: 'REPAIR', label: 'Repair' },
-  { value: 'EMERGENCY', label: 'Emergency' },
-  { value: 'INSPECTION', label: 'Inspection' },
-  { value: 'CUSTOMIZATION', label: 'Customization' },
-];
-
-const TYPES = [
-  { value: 'FIXED', label: 'Fixed' },
-  { value: 'CATALOG', label: 'Catalog' },
-  { value: 'EMERGENCY', label: 'Emergency' },
-  { value: 'INSPECTION', label: 'Inspection' },
-];
 
 const emptyForm = () => ({
   name: '',
@@ -41,12 +25,12 @@ const emptyForm = () => ({
   icon: '',
 });
 
-function ServiceRow({ service, onEdit, onDelete, openConfirm }) {
+function ServiceRow({ service, onEdit, onDelete, openConfirm, t }) {
   const handleDelete = async () => {
     const ok = await openConfirm({
-      title: 'Delete service',
-      message: `Remove "${service.name}"? This cannot be undone.`,
-      confirmLabel: 'Delete',
+      title: t('services.deleteService', 'Delete service'),
+      message: t('common.confirmDelete', { name: service.name }),
+      confirmLabel: t('common.delete'),
       variant: 'danger',
     });
     if (ok) await onDelete(service.id);
@@ -73,12 +57,12 @@ function ServiceRow({ service, onEdit, onDelete, openConfirm }) {
       </td>
       <td className="px-4 py-3">
         <span className="inline-flex rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
-          {service.category ?? '—'}
+          {t(`services.categories.${service.category}`) || service.category || '—'}
         </span>
       </td>
       <td className="px-4 py-3">
         <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
-          {service.type ?? '—'}
+           {t(`services.types.${service.type}`) || service.type || '—'}
         </span>
       </td>
       <td className="px-4 py-3 text-sm text-slate-600">
@@ -89,8 +73,8 @@ function ServiceRow({ service, onEdit, onDelete, openConfirm }) {
           <Link
             to={`/services/${service.id}`}
             className={iconBtn}
-            title="View full details"
-            aria-label="View full details"
+            title={t('common.viewDetails')}
+            aria-label={t('common.viewDetails')}
           >
             <Eye className="size-5" />
           </Link>
@@ -98,8 +82,8 @@ function ServiceRow({ service, onEdit, onDelete, openConfirm }) {
             type="button"
             onClick={() => onEdit?.(service)}
             className={iconBtn}
-            title="Edit"
-            aria-label="Edit"
+            title={t('common.edit')}
+            aria-label={t('common.edit')}
           >
             <Pencil className="size-5" />
           </button>
@@ -107,8 +91,8 @@ function ServiceRow({ service, onEdit, onDelete, openConfirm }) {
             type="button"
             onClick={handleDelete}
             className={`${iconBtn} hover:bg-red-50 hover:text-red-600`}
-            title="Delete"
-            aria-label="Delete"
+            title={t('common.delete')}
+            aria-label={t('common.delete')}
           >
             <Trash2 className="size-5" />
           </button>
@@ -118,16 +102,8 @@ function ServiceRow({ service, onEdit, onDelete, openConfirm }) {
   );
 }
 
-function DetailRow({ label, value }) {
-  return (
-    <div className="flex gap-3 border-b border-slate-100 py-3 last:border-0">
-      <span className="w-28 shrink-0 text-sm text-slate-500">{label}</span>
-      <span className="text-sm font-medium text-slate-900">{value != null && value !== '' ? value : '—'}</span>
-    </div>
-  );
-}
-
 export default function ServicesPage() {
+  const { t } = useTranslation();
   const [openConfirm, ConfirmModal] = useConfirm();
   const queryClient = useQueryClient();
   const PAGE_SIZE = 10;
@@ -141,6 +117,23 @@ export default function ServicesPage() {
 
   useEffect(() => { setPage(1); }, [search, category]);
 
+  const CATEGORIES = [
+    { value: '', label: t('common.all') },
+    { value: 'CLEANING', label: t('services.categories.CLEANING') },
+    { value: 'MAINTENANCE', label: t('services.categories.MAINTENANCE') },
+    { value: 'REPAIR', label: t('services.categories.REPAIR') },
+    { value: 'EMERGENCY', label: t('services.categories.EMERGENCY') },
+    { value: 'INSPECTION', label: t('services.categories.INSPECTION') },
+    { value: 'CUSTOMIZATION', label: t('services.categories.CUSTOMIZATION') },
+  ];
+
+  const TYPES = [
+    { value: 'FIXED', label: t('services.types.FIXED') },
+    { value: 'CATALOG', label: t('services.types.CATALOG') },
+    { value: 'EMERGENCY', label: t('services.types.EMERGENCY') },
+    { value: 'INSPECTION', label: t('services.types.INSPECTION') },
+  ];
+
   const { data: services = [], isLoading } = useQuery({
     queryKey: ['services', { search, category }],
     queryFn: () => serviceService.getServices({ search: search || undefined, category: category || undefined }),
@@ -151,7 +144,7 @@ export default function ServicesPage() {
     mutationFn: (payload) => serviceService.createService(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['services'] });
-      toast.success('Service created');
+      toast.success(t('common.success'));
       setShowAdd(false);
       setForm(emptyForm());
     },
@@ -163,7 +156,7 @@ export default function ServicesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['services'] });
       queryClient.invalidateQueries({ queryKey: ['service', editService?.id] });
-      toast.success('Service updated');
+      toast.success(t('common.success'));
       setEditService(null);
       setForm(emptyForm());
     },
@@ -174,9 +167,9 @@ export default function ServicesPage() {
     mutationFn: (id) => serviceService.deleteService(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['services'] });
-      toast.success('Service deleted');
+      toast.success(t('common.success'));
     },
-    onError: (err) => toast.error(err?.message || 'Failed to delete service'),
+    onError: (err) => toast.error(err?.message || t('error.deleteFailed')),
   });
 
   const openEdit = (s) => {
@@ -222,7 +215,7 @@ export default function ServicesPage() {
   };
 
   const showForm = showAdd || !!editService;
-  const formTitle = editService ? 'Edit service' : 'New service';
+  const formTitle = editService ? t('services.editService', 'Edit service') : t('services.newService', 'New service');
 
   const { paginatedItems: paginatedServices, totalPages, total } = useMemo(() => {
     const total = services.length;
@@ -245,7 +238,7 @@ export default function ServicesPage() {
             type="button"
             onClick={() => setViewMode('table')}
             className={`rounded-md p-2 transition-colors ${viewMode === 'table' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-100'}`}
-            aria-label="Table view"
+            aria-label={t('common.viewTable', 'Table view')}
           >
             <List className="size-4" />
           </button>
@@ -253,7 +246,7 @@ export default function ServicesPage() {
             type="button"
             onClick={() => setViewMode('grid')}
             className={`rounded-md p-2 transition-colors ${viewMode === 'grid' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-100'}`}
-            aria-label="Grid view"
+            aria-label={t('common.viewGrid', 'Grid view')}
           >
             <LayoutGrid className="size-4" />
           </button>
@@ -262,7 +255,7 @@ export default function ServicesPage() {
           to="/services/new"
           className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-500"
         >
-          <Plus className="size-4" /> Create service
+          <Plus className="size-4" /> {t('services.addService')}
         </Link>
       </div>
 
@@ -271,7 +264,7 @@ export default function ServicesPage() {
           <h3 className="mb-4 text-base font-semibold text-slate-900">{formTitle}</h3>
           <form onSubmit={handleFormSubmit} className="flex flex-wrap gap-4">
             <Input
-              label="Name"
+              label={t('services.name')}
               name="name"
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
@@ -280,7 +273,7 @@ export default function ServicesPage() {
               className="min-w-[180px] flex-1"
             />
             <Input
-              label="Name (Ar)"
+              label={t('common.nameAr')}
               name="nameAr"
               value={form.nameAr}
               onChange={(e) => setForm((f) => ({ ...f, nameAr: e.target.value }))}
@@ -288,7 +281,7 @@ export default function ServicesPage() {
               className="min-w-[180px] flex-1"
             />
             <Input
-              label="Description"
+              label={t('common.description')}
               name="description"
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
@@ -296,7 +289,7 @@ export default function ServicesPage() {
               className="w-full"
             />
             <div className="min-w-[140px] flex-1">
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">Category</label>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700">{t('services.category')}</label>
               <select
                 value={form.category}
                 onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
@@ -308,7 +301,7 @@ export default function ServicesPage() {
               </select>
             </div>
             <div className="min-w-[140px] flex-1">
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">Type</label>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700">{t('services.type')}</label>
               <select
                 value={form.type}
                 onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
@@ -320,7 +313,7 @@ export default function ServicesPage() {
               </select>
             </div>
             <Input
-              label="Duration (min)"
+              label={t('services.duration')}
               type="number"
               min={1}
               name="estimatedDuration"
@@ -329,7 +322,7 @@ export default function ServicesPage() {
               className="min-w-[100px]"
             />
             <Input
-              label="Image URL"
+              label={t('common.imageUrl')}
               name="imageUrl"
               type="url"
               value={form.imageUrl ?? ''}
@@ -338,7 +331,7 @@ export default function ServicesPage() {
               className="min-w-[200px] flex-1"
             />
             <Input
-              label="Icon URL"
+              label={t('common.iconUrl')}
               name="icon"
               type="url"
               value={form.icon ?? ''}
@@ -352,14 +345,14 @@ export default function ServicesPage() {
                 disabled={createMutation.isPending || updateMutation.isPending}
                 className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
               >
-                {editService ? (updateMutation.isPending ? 'Saving…' : 'Save') : (createMutation.isPending ? 'Creating…' : 'Create')}
+                {editService ? (updateMutation.isPending ? t('common.saving') : t('common.save')) : (createMutation.isPending ? t('common.creating') : t('common.create'))}
               </button>
               <button
                 type="button"
                 onClick={closeForm}
                 className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
               >
-                Cancel
+                 {t('common.cancel')}
               </button>
             </div>
           </form>
@@ -372,11 +365,11 @@ export default function ServicesPage() {
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
             <input
               type="search"
-              placeholder="Search services..."
+              placeholder={t('services.searchServices')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full rounded-lg border border-slate-300 py-2 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              aria-label="Search services"
+              aria-label={t('services.searchServices')}
             />
           </div>
           <select
@@ -393,7 +386,7 @@ export default function ServicesPage() {
             type="submit"
             className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
           >
-            Search
+            {t('common.search')}
           </button>
         </form>
 
@@ -403,7 +396,7 @@ export default function ServicesPage() {
           <>
             <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {paginatedServices.length === 0 ? (
-                <div className="col-span-full py-12 text-center text-slate-500">No services found.</div>
+                <div className="col-span-full py-12 text-center text-slate-500">{t('services.noServices')}</div>
               ) : (
                 paginatedServices.map((s, i) => (
                   <motion.div
@@ -428,7 +421,7 @@ export default function ServicesPage() {
                           {s.nameAr && <p className="text-sm text-slate-500">{s.nameAr}</p>}
                           <div className="mt-2 flex flex-wrap gap-2">
                             <span className="inline-flex rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
-                              {s.category ?? '—'}
+                              {t(`services.categories.${s.category}`) || s.category || '—'}
                             </span>
                             <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
                               {s.estimatedDuration ? `${s.estimatedDuration} min` : '—'}
@@ -440,7 +433,7 @@ export default function ServicesPage() {
                         <Link
                           to={`/services/${s.id}`}
                           className="inline-flex size-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700"
-                          title="View"
+                          title={t('common.view')}
                         >
                           <Eye className="size-4" />
                         </Link>
@@ -448,7 +441,7 @@ export default function ServicesPage() {
                           type="button"
                           onClick={() => openEdit(s)}
                           className="inline-flex size-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700"
-                          title="Edit"
+                          title={t('common.edit')}
                         >
                           <Pencil className="size-4" />
                         </button>
@@ -456,15 +449,15 @@ export default function ServicesPage() {
                           type="button"
                           onClick={async () => {
                             const ok = await openConfirm({
-                              title: 'Delete service',
-                              message: `Remove "${s.name}"? This cannot be undone.`,
-                              confirmLabel: 'Delete',
+                              title: t('services.deleteService', 'Delete service'),
+                              message: t('common.confirmDelete', { name: s.name }),
+                              confirmLabel: t('common.delete'),
                               variant: 'danger',
                             });
                             if (ok) deleteMutation.mutate(s.id);
                           }}
                           className="inline-flex size-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                          title="Delete"
+                          title={t('common.delete')}
                         >
                           <Trash2 className="size-4" />
                         </button>
@@ -493,26 +486,26 @@ export default function ServicesPage() {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/80">
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      Service
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">
+                      {t('services.name')}
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      Category
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">
+                      {t('services.category')}
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      Type
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">
+                      {t('services.type')}
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      Duration
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">
+                      {t('services.duration')}
                     </th>
-                    <th className="w-32 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Actions</th>
+                    <th className="w-32 px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {paginatedServices.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="px-4 py-12 text-center text-slate-500">
-                        No services found.
+                        {t('services.noServices')}
                       </td>
                     </tr>
                   ) : (
@@ -523,6 +516,7 @@ export default function ServicesPage() {
                         onEdit={openEdit}
                         onDelete={(id) => deleteMutation.mutateAsync(id)}
                         openConfirm={openConfirm}
+                        t={t}
                       />
                     ))
                   )}

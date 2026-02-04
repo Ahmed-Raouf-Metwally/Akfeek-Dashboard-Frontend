@@ -2,10 +2,12 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { setAuthToken, clearAuthToken } from '../services/api';
 import authService from '../services/authService';
+import { cookieStorageAdapter } from '../utils/cookieStorage';
 
 /**
  * Auth store: user, token, permissions.
- * Token is persisted; user is refetched on app load when token exists.
+ * Token is persisted in cookies (more secure than localStorage).
+ * User is refetched on app load when token exists.
  */
 export const useAuthStore = create(
   persist(
@@ -53,14 +55,15 @@ export const useAuthStore = create(
     }),
     {
       name: 'akfeek-admin-auth',
+      storage: cookieStorageAdapter, // ✅ Using cookies instead of localStorage
       partialize: (s) => ({ token: s.token }),
       onRehydrateStorage: () => (state, err) => {
         if (err) return;
         // When rehydration finishes, trigger hydrate so isHydrated is set
         setTimeout(() => {
-          try {
-            useAuthStore.getState().hydrate();
-          } catch (_) {}
+          useAuthStore.getState().hydrate().catch(() => {
+            // Silently handle hydration errors
+          });
         }, 0);
       },
     }

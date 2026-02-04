@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Activity, User, CalendarCheck, FileText, Wrench, Filter } from 'lucide-react';
 import { Card } from '../components/ui/Card';
@@ -23,6 +24,7 @@ const ACTION_ICONS = {
 const PAGE_SIZE = 10;
 
 export default function ActivityLogsPage() {
+  const { t, i18n } = useTranslation();
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState('');
 
@@ -42,12 +44,12 @@ export default function ActivityLogsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-lg font-semibold text-slate-900">Activity & logs</h2>
+        <h2 className="text-lg font-semibold text-slate-900">{t('activity.title')}</h2>
         <div className="relative flex items-center">
           <Filter className="absolute left-3 size-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Filter by action or user..."
+            placeholder={t('activity.filterPlaceholder')}
             value={filter}
             onChange={(e) => {
               setFilter(e.target.value);
@@ -68,17 +70,17 @@ export default function ActivityLogsPage() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/80">
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                    Action
+                  <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">
+                    {t('activity.action')}
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                    Entity
+                  <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">
+                    {t('activity.entity')}
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                    User
+                  <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">
+                    {t('common.user')}
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                    Time
+                  <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">
+                    {t('common.time')}
                   </th>
                 </tr>
               </thead>
@@ -86,7 +88,7 @@ export default function ActivityLogsPage() {
                 {items.map((log, i) => {
                   const Icon = ACTION_ICONS[log.action] || Activity;
                   const time = log.createdAt
-                    ? new Date(log.createdAt).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })
+                    ? new Date(log.createdAt).toLocaleString(i18n.language, { dateStyle: 'short', timeStyle: 'short' })
                     : '—';
                   return (
                     <motion.tr
@@ -131,7 +133,7 @@ export default function ActivityLogsPage() {
       </motion.div>
 
       <p className="text-sm text-slate-500">
-        Activity feed is currently using sample data. Connect to an audit-log API or database for production.
+        {t('activity.mockDataDesc') || 'Activity feed is currently using sample data. Connect to an audit-log API or database for production.'}
       </p>
     </div>
   );

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, Eye, Pencil } from 'lucide-react';
 import { modelService } from '../services/modelService';
 import { brandService } from '../services/brandService';
@@ -12,22 +13,14 @@ import Input from '../components/Input';
 import { Card } from '../components/ui/Card';
 import { ImageOrPlaceholder } from '../components/ui/ImageOrPlaceholder';
 
-const SIZES = [
-  { value: '', label: 'All sizes' },
-  { value: 'SMALL', label: 'Small' },
-  { value: 'MEDIUM', label: 'Medium' },
-  { value: 'LARGE', label: 'Large' },
-  { value: 'EXTRA_LARGE', label: 'Extra large' },
-];
-
-function ModelRow({ model, onEdit, onDelete, openConfirm }) {
+function ModelRow({ model, onEdit, onDelete, openConfirm, t }) {
   const brandName = model.brand?.name ?? '—';
 
   const handleDelete = async () => {
     const ok = await openConfirm({
-      title: 'Deactivate model?',
-      message: `"${brandName} ${model.name}" (${model.year}) will be deactivated.`,
-      confirmLabel: 'Deactivate',
+      title: t('models.confirmDeactivate'),
+      message: t('models.deactivateMessage'),
+      confirmLabel: t('brands.deactivate'),
       variant: 'danger',
     });
     if (ok) await onDelete(model.id);
@@ -56,7 +49,7 @@ function ModelRow({ model, onEdit, onDelete, openConfirm }) {
       <td className="px-4 py-3 text-sm text-slate-600">{model.year}</td>
       <td className="px-4 py-3">
         <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
-          {model.size ?? model.type ?? '—'}
+          {t(`models.sizes.${model.size}`) || model.size || model.type || '—'}
         </span>
       </td>
       <td className="px-4 py-3">
@@ -67,7 +60,7 @@ function ModelRow({ model, onEdit, onDelete, openConfirm }) {
               : 'inline-flex rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700'
           }
         >
-          {model.isActive ? 'Active' : 'Inactive'}
+          {model.isActive ? t('brands.active') : t('brands.inactive')}
         </span>
       </td>
       <td className="px-4 py-3">
@@ -75,8 +68,8 @@ function ModelRow({ model, onEdit, onDelete, openConfirm }) {
           <Link
             to={`/models/${model.id}`}
             className={iconBtn}
-            title="View full details"
-            aria-label="View full details"
+            title={t('common.viewDetails')}
+            aria-label={t('common.viewDetails')}
           >
             <Eye className="size-5" />
           </Link>
@@ -84,8 +77,8 @@ function ModelRow({ model, onEdit, onDelete, openConfirm }) {
             type="button"
             onClick={() => onEdit?.(model)}
             className={iconBtn}
-            title="Edit"
-            aria-label="Edit"
+            title={t('common.edit')}
+            aria-label={t('common.edit')}
           >
             <Pencil className="size-5" />
           </button>
@@ -93,8 +86,8 @@ function ModelRow({ model, onEdit, onDelete, openConfirm }) {
             type="button"
             onClick={handleDelete}
             className={`${iconBtn} hover:bg-red-50 hover:text-red-600`}
-            title="Deactivate"
-            aria-label="Deactivate"
+            title={t('common.delete')}
+            aria-label={t('common.delete')}
           >
             <Trash2 className="size-5" />
           </button>
@@ -113,6 +106,7 @@ const emptyModelForm = () => ({
 });
 
 export default function VehicleModelsPage() {
+  const { t } = useTranslation();
   const [openConfirm, ConfirmModal] = useConfirm();
   const queryClient = useQueryClient();
   const PAGE_SIZE = 10;
@@ -124,6 +118,14 @@ export default function VehicleModelsPage() {
   const [addForm, setAddForm] = useState(emptyModelForm());
   const [editModel, setEditModel] = useState(null);
   const [editForm, setEditForm] = useState(emptyModelForm());
+
+  const SIZES = [
+    { value: '', label: t('common.all') },
+    { value: 'SMALL', label: t('models.sizes.SMALL') },
+    { value: 'MEDIUM', label: t('models.sizes.MEDIUM') },
+    { value: 'LARGE', label: t('models.sizes.LARGE') },
+    { value: 'EXTRA_LARGE', label: t('models.sizes.EXTRA_LARGE') },
+  ];
 
   const { data: brandsData } = useQuery({ queryKey: ['brands', false], queryFn: () => brandService.getBrands({ activeOnly: false }), staleTime: 60_000 });
   const brands = brandsData?.brands ?? [];
@@ -140,11 +142,11 @@ export default function VehicleModelsPage() {
     mutationFn: (payload) => modelService.createModel(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['models'] });
-      toast.success('Model created');
+      toast.success(t('models.created'));
       setShowAdd(false);
       setAddForm(emptyModelForm());
     },
-    onError: (err) => toast.error(err?.message || 'Failed to create model'),
+    onError: (err) => toast.error(err?.message || t('common.error')),
   });
 
   const updateMutation = useMutation({
@@ -152,20 +154,20 @@ export default function VehicleModelsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['models'] });
       queryClient.invalidateQueries({ queryKey: ['model', editModel?.id] });
-      toast.success('Model updated');
+      toast.success(t('models.updated'));
       setEditModel(null);
       setEditForm(emptyModelForm());
     },
-    onError: (err) => toast.error(err?.message || 'Failed to update model'),
+    onError: (err) => toast.error(err?.message || t('common.error')),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => modelService.deleteModel(id, false),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['models'] });
-      toast.success('Model deactivated');
+      toast.success(t('models.deactivated'));
     },
-    onError: (err) => toast.error(err?.message || 'Failed to deactivate model'),
+    onError: (err) => toast.error(err?.message || t('common.error')),
   });
 
   const models = data?.models ?? [];
@@ -191,7 +193,7 @@ export default function VehicleModelsPage() {
   const handleEditSubmit = (e) => {
     e.preventDefault();
     if (!editModel || !editForm.brandId || !editForm.name.trim() || !editForm.year || !editForm.size) {
-      toast.error('Fill brand, name, year and size');
+      toast.error(t('validation.required'));
       return;
     }
     const payload = {
@@ -207,7 +209,7 @@ export default function VehicleModelsPage() {
   const handleAddSubmit = (e) => {
     e.preventDefault();
     if (!addForm.brandId || !addForm.name.trim() || !addForm.year || !addForm.size) {
-      toast.error('Fill brand, name, year and size');
+      toast.error(t('validation.required'));
       return;
     }
     createMutation.mutate({
@@ -229,32 +231,32 @@ export default function VehicleModelsPage() {
           onClick={() => setShowAdd(true)}
           className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500"
         >
-          <Plus className="size-4" /> Add model
+          <Plus className="size-4" /> {t('models.addModel')}
         </button>
       </div>
 
       {showAdd && (
         <Card className="p-6">
-          <h3 className="mb-4 text-base font-semibold text-slate-900">New model</h3>
+          <h3 className="mb-4 text-base font-semibold text-slate-900">{t('models.newModel')}</h3>
           <form onSubmit={handleAddSubmit} className="flex flex-wrap gap-4">
             <div className="min-w-[180px] flex-1">
-              <label className="mb-1 block text-sm font-medium text-slate-700">Brand</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">{t('common.brand')}</label>
               <select
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 value={addForm.brandId}
                 onChange={(e) => setAddForm((f) => ({ ...f, brandId: e.target.value }))}
                 required
               >
-                <option value="">Select brand</option>
+                <option value="">{t('models.selectBrand')}</option>
                 {brands.map((b) => (
                   <option key={b.id} value={b.id}>{b.name}</option>
                 ))}
               </select>
             </div>
-            <Input label="Name" name="name" value={addForm.name} onChange={(e) => setAddForm((f) => ({ ...f, name: e.target.value }))} placeholder="e.g. Camry" className="min-w-[140px] flex-1" />
-            <Input label="Name (Ar)" name="nameAr" value={addForm.nameAr} onChange={(e) => setAddForm((f) => ({ ...f, nameAr: e.target.value }))} placeholder="كامري" className="min-w-[140px] flex-1" />
+            <Input label={t('models.modelName')} name="name" value={addForm.name} onChange={(e) => setAddForm((f) => ({ ...f, name: e.target.value }))} placeholder="e.g. Camry" className="min-w-[140px] flex-1" />
+            <Input label={t('models.modelNameAr')} name="nameAr" value={addForm.nameAr} onChange={(e) => setAddForm((f) => ({ ...f, nameAr: e.target.value }))} placeholder="كامري" className="min-w-[140px] flex-1" />
             <div className="min-w-[100px]">
-              <label className="mb-1 block text-sm font-medium text-slate-700">Year</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">{t('models.year')}</label>
               <input
                 type="number"
                 min="2000"
@@ -265,7 +267,7 @@ export default function VehicleModelsPage() {
               />
             </div>
             <div className="min-w-[140px]">
-              <label className="mb-1 block text-sm font-medium text-slate-700">Size</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">{t('models.size')}</label>
               <select
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 value={addForm.size}
@@ -278,10 +280,10 @@ export default function VehicleModelsPage() {
             </div>
             <div className="flex w-full gap-3 pt-2">
               <button type="submit" disabled={createMutation.isPending} className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50">
-                {createMutation.isPending ? 'Creating…' : 'Create'}
+                {createMutation.isPending ? t('common.creating') : t('common.create')}
               </button>
               <button type="button" onClick={() => setShowAdd(false)} className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                Cancel
+                {t('common.cancel')}
               </button>
             </div>
           </form>
@@ -290,26 +292,26 @@ export default function VehicleModelsPage() {
 
       {editModel && (
         <Card className="p-6">
-          <h3 className="mb-4 text-base font-semibold text-slate-900">Edit model</h3>
+          <h3 className="mb-4 text-base font-semibold text-slate-900">{t('models.editModel')}</h3>
           <form onSubmit={handleEditSubmit} className="flex flex-wrap gap-4">
             <div className="min-w-[180px] flex-1">
-              <label className="mb-1 block text-sm font-medium text-slate-700">Brand</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">{t('common.brand')}</label>
               <select
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 value={editForm.brandId}
                 onChange={(e) => setEditForm((f) => ({ ...f, brandId: e.target.value }))}
                 required
               >
-                <option value="">Select brand</option>
+                <option value="">{t('models.selectBrand')}</option>
                 {brands.map((b) => (
                   <option key={b.id} value={b.id}>{b.name}</option>
                 ))}
               </select>
             </div>
-            <Input label="Name" name="name" value={editForm.name} onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))} placeholder="e.g. Camry" className="min-w-[140px] flex-1" required />
-            <Input label="Name (Ar)" name="nameAr" value={editForm.nameAr} onChange={(e) => setEditForm((f) => ({ ...f, nameAr: e.target.value }))} placeholder="كامري" className="min-w-[140px] flex-1" />
+            <Input label={t('models.modelName')} name="name" value={editForm.name} onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))} placeholder="e.g. Camry" className="min-w-[140px] flex-1" required />
+            <Input label={t('models.modelNameAr')} name="nameAr" value={editForm.nameAr} onChange={(e) => setEditForm((f) => ({ ...f, nameAr: e.target.value }))} placeholder="كامري" className="min-w-[140px] flex-1" />
             <div className="min-w-[100px]">
-              <label className="mb-1 block text-sm font-medium text-slate-700">Year</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">{t('models.year')}</label>
               <input
                 type="number"
                 min="2000"
@@ -320,7 +322,7 @@ export default function VehicleModelsPage() {
               />
             </div>
             <div className="min-w-[140px]">
-              <label className="mb-1 block text-sm font-medium text-slate-700">Size</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">{t('models.size')}</label>
               <select
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 value={editForm.size}
@@ -333,10 +335,10 @@ export default function VehicleModelsPage() {
             </div>
             <div className="flex w-full gap-3 pt-2">
               <button type="submit" disabled={updateMutation.isPending} className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50">
-                {updateMutation.isPending ? 'Saving…' : 'Save'}
+                {updateMutation.isPending ? t('common.saving') : t('common.save')}
               </button>
               <button type="button" onClick={() => { setEditModel(null); setEditForm(emptyModelForm()); }} className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                Cancel
+                {t('common.cancel')}
               </button>
             </div>
           </form>
@@ -346,23 +348,23 @@ export default function VehicleModelsPage() {
       <Card className="overflow-hidden p-0">
         <div className="flex flex-wrap items-center gap-4 border-b border-slate-100 px-4 py-4">
           <div className="min-w-[180px]">
-            <label className="mb-1 block text-sm font-medium text-slate-700">Brand</label>
+            <label className="mb-1 block text-sm font-medium text-slate-700">{t('common.brand')}</label>
             <select
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               value={brandId}
               onChange={(e) => setBrandId(e.target.value)}
             >
-              <option value="">All brands</option>
+              <option value="">{t('common.all')}</option>
               {brands.map((b) => (
                 <option key={b.id} value={b.id}>{b.name}</option>
               ))}
             </select>
           </div>
           <div className="min-w-[100px]">
-            <label className="mb-1 block text-sm font-medium text-slate-700">Year</label>
+            <label className="mb-1 block text-sm font-medium text-slate-700">{t('models.year')}</label>
             <input
               type="number"
-              placeholder="Year"
+              placeholder={t('models.year')}
               min="2000"
               max="2030"
               value={year}
@@ -371,7 +373,7 @@ export default function VehicleModelsPage() {
             />
           </div>
           <div className="min-w-[140px] self-end">
-            <label className="mb-1 block text-sm font-medium text-slate-700">Size</label>
+            <label className="mb-1 block text-sm font-medium text-slate-700">{t('models.size')}</label>
             <select
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               value={size}
@@ -392,18 +394,18 @@ export default function VehicleModelsPage() {
               <table className="w-full border-collapse" role="grid">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/80">
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Brand</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Model</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Year</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Size</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Status</th>
-                    <th className="w-32 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Actions</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.brand')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('models.model')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('models.year')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('models.size')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.status')}</th>
+                    <th className="w-32 px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {paginatedModels.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-12 text-center text-slate-500">No models found.</td>
+                      <td colSpan={6} className="px-4 py-12 text-center text-slate-500">{t('models.noModels')}</td>
                     </tr>
                   ) : (
                     paginatedModels.map((m) => (
@@ -413,6 +415,7 @@ export default function VehicleModelsPage() {
                         onEdit={openEdit}
                         onDelete={(id) => deleteMutation.mutateAsync(id)}
                         openConfirm={openConfirm}
+                        t={t}
                       />
                     ))
                   )}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Package, Eye } from 'lucide-react';
 import { productService } from '../services/productService';
 import { TableSkeleton } from '../components/ui/Skeleton';
@@ -11,6 +12,7 @@ import { ImageOrPlaceholder } from '../components/ui/ImageOrPlaceholder';
 const PAGE_SIZE = 10;
 
 export default function ProductsPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [categoryFilter, setCategoryFilter] = useState('');
   const [activeOnly, setActiveOnly] = useState(true);
@@ -29,12 +31,23 @@ export default function ProductsPage() {
   const list = data?.list ?? [];
   const pagination = data?.pagination ?? { page: 1, total: 0, totalPages: 1, limit: PAGE_SIZE };
 
+  const CATEGORIES = [
+    { value: '', label: t('common.all') },
+    { value: 'OIL', label: t('products.categories.OIL') },
+    { value: 'FILTER', label: t('products.categories.FILTER') },
+    { value: 'BRAKE_PAD', label: t('products.categories.BRAKE_PAD') },
+    { value: 'BATTERY', label: t('products.categories.BATTERY') },
+    { value: 'TIRE', label: t('products.categories.TIRE') },
+    { value: 'FLUID', label: t('products.categories.FLUID') },
+    { value: 'ACCESSORY', label: t('products.categories.ACCESSORY') },
+  ];
+
   if (isLoading) {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Products</h1>
-          <p className="text-sm text-slate-500">Manage product catalog (parts, fluids, etc.).</p>
+          <h1 className="text-xl font-semibold text-slate-900">{t('products.title')}</h1>
+          <p className="text-sm text-slate-500">{t('common.productCatalog')}</p>
         </div>
         <Card className="overflow-hidden p-0">
           <TableSkeleton rows={5} cols={5} />
@@ -47,11 +60,11 @@ export default function ProductsPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Products</h1>
-          <p className="text-sm text-slate-500">Manage product catalog.</p>
+          <h1 className="text-xl font-semibold text-slate-900">{t('products.title')}</h1>
+          <p className="text-sm text-slate-500">{t('common.productCatalog')}</p>
         </div>
         <Card className="p-8 text-center">
-          <p className="text-red-600">{error?.message ?? 'Failed to load products.'}</p>
+          <p className="text-red-600">{error?.message ?? t('common.error')}</p>
         </Card>
       </div>
     );
@@ -61,8 +74,8 @@ export default function ProductsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Products</h1>
-          <p className="text-sm text-slate-500">Manage product catalog (parts, fluids, accessories).</p>
+          <h1 className="text-xl font-semibold text-slate-900">{t('products.title')}</h1>
+          <p className="text-sm text-slate-500">{t('common.productCatalog')}</p>
         </div>
         <div className="flex flex-wrap items-center gap-4">
           <label className="flex cursor-pointer items-center gap-2">
@@ -72,23 +85,18 @@ export default function ProductsPage() {
               onChange={(e) => { setActiveOnly(e.target.checked); setPage(1); }}
               className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
             />
-            <span className="text-sm font-medium text-slate-700">Active only</span>
+            <span className="text-sm font-medium text-slate-700">{t('products.activeOnly')}</span>
           </label>
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-slate-700">Category</label>
+            <label className="text-sm font-medium text-slate-700">{t('services.category')}</label>
             <select
               value={categoryFilter}
               onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
               className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             >
-              <option value="">All</option>
-              <option value="OIL">Oil</option>
-              <option value="FILTER">Filter</option>
-              <option value="BRAKE_PAD">Brake pad</option>
-              <option value="BATTERY">Battery</option>
-              <option value="TIRE">Tire</option>
-              <option value="FLUID">Fluid</option>
-              <option value="ACCESSORY">Accessory</option>
+              {CATEGORIES.map(c => (
+                <option key={c.value || 'all'} value={c.value}>{c.label}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -97,8 +105,8 @@ export default function ProductsPage() {
         {list.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 text-center">
             <Package className="mb-4 size-12 text-slate-400" />
-            <h3 className="mb-2 text-base font-semibold text-slate-900">No products</h3>
-            <p className="max-w-sm text-sm text-slate-500">No products match your filters.</p>
+            <h3 className="mb-2 text-base font-semibold text-slate-900">{t('products.noProducts')}</h3>
+            <p className="max-w-sm text-sm text-slate-500">{t('products.noProductsDesc')}</p>
           </div>
         ) : (
           <>
@@ -106,14 +114,14 @@ export default function ProductsPage() {
               <table className="w-full border-collapse" role="grid">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/80">
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Product</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">SKU</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Brand</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Category</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Price</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Stock</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Featured</th>
-                    <th className="w-20 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Actions</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('products.name')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('products.sku')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.brand')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('services.category')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('products.price')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('products.stock')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.featured')}</th>
+                    <th className="w-20 px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -137,7 +145,7 @@ export default function ProductsPage() {
                       <td className="px-4 py-3 text-sm text-slate-600">{p.brand ?? '—'}</td>
                       <td className="px-4 py-3">
                         <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
-                          {p.category ?? '—'}
+                           {t(`products.categories.${p.category}`) || p.category || '—'}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600">
@@ -146,7 +154,7 @@ export default function ProductsPage() {
                       <td className="px-4 py-3 text-sm text-slate-600">{p.stockQuantity ?? '—'}</td>
                       <td className="px-4 py-3">
                         {p.isFeatured ? (
-                          <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">Featured</span>
+                          <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">{t('common.featured')}</span>
                         ) : (
                           <span className="text-slate-400">—</span>
                         )}
@@ -155,8 +163,8 @@ export default function ProductsPage() {
                         <Link
                           to={`/products/${p.id}`}
                           className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
-                          title="View full details"
-                          aria-label="View full details"
+                          title={t('common.viewDetails')}
+                          aria-label={t('common.viewDetails')}
                         >
                           <Eye className="size-5" />
                         </Link>

@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import {
   Users,
   CalendarCheck,
@@ -84,10 +85,11 @@ function StatCard({ title, value, icon: Icon, colorClass, loading }) {
 }
 
 export default function DashboardHome() {
+  const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const firstName = user?.profile?.firstName || user?.email?.split('@')[0] || '';
   const name = firstName || 'Admin';
-  const greeting = firstName ? `Welcome back, ${firstName}` : 'Welcome to your dashboard';
+  const greeting = firstName ? t('dashboard.welcomeBack', { name: firstName }) : t('dashboard.welcomeToDashboard');
   const [recentPage, setRecentPage] = useState(1);
 
   const { data: usersData, isLoading: usersLoading } = useQuery({
@@ -134,11 +136,11 @@ export default function DashboardHome() {
   }, [services, recentPage]);
 
   const quickLinks = [
-    { to: '/services/new', label: 'New service', icon: Plus },
-    { to: '/users', label: 'Manage users', icon: UserPlus },
-    { to: '/bookings', label: 'Bookings', icon: CalendarCheck },
-    { to: '/invoices', label: 'Invoices', icon: FileText },
-    { to: '/products', label: 'Products', icon: Package },
+    { to: '/services/new', label: t('dashboard.newService'), icon: Plus },
+    { to: '/users', label: t('dashboard.manageUsers'), icon: UserPlus },
+    { to: '/bookings', label: t('nav.bookings'), icon: CalendarCheck },
+    { to: '/invoices', label: t('nav.invoices'), icon: FileText },
+    { to: '/products', label: t('nav.products'), icon: Package },
   ];
 
   return (
@@ -151,12 +153,12 @@ export default function DashboardHome() {
         className="overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-br from-indigo-600 via-indigo-600 to-indigo-700 px-6 py-6 text-white shadow-lg"
       >
         <h2 className="text-xl font-semibold">{greeting}</h2>
-        <p className="mt-1.5 text-sm text-indigo-100/90">Here’s what’s happening across your platform.</p>
+        <p className="mt-1.5 text-sm text-indigo-100/90">{t('dashboard.platformActivity')}</p>
       </motion.section>
 
       {/* Quick actions */}
       <section aria-labelledby="quick-heading">
-        <h2 id="quick-heading" className="mb-3 text-sm font-medium text-slate-500">Quick actions</h2>
+        <h2 id="quick-heading" className="mb-3 text-sm font-medium text-slate-500">{t('dashboard.quickActions')}</h2>
         <div className="flex flex-wrap gap-3">
           {quickLinks.map(({ to, label, icon: Icon }) => (
             <Link
@@ -172,12 +174,12 @@ export default function DashboardHome() {
 
       <section aria-labelledby="overview-heading">
         <h2 id="overview-heading" className="mb-4 text-lg font-semibold text-slate-900">
-          Overview
+          {t('dashboard.overview')}
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Link to="/users" className="block transition-transform hover:scale-[1.02]">
             <StatCard
-              title="Total Users"
+              title={t('dashboard.totalUsers')}
               value={totalUsers.toLocaleString()}
               icon={Users}
               colorClass="bg-indigo-500"
@@ -186,7 +188,7 @@ export default function DashboardHome() {
           </Link>
           <Link to="/bookings" className="block transition-transform hover:scale-[1.02]">
             <StatCard
-              title="Bookings"
+              title={t('dashboard.bookings')}
               value={bookingsLoading ? '…' : totalBookings.toLocaleString()}
               icon={CalendarCheck}
               colorClass="bg-emerald-500"
@@ -195,7 +197,7 @@ export default function DashboardHome() {
           </Link>
           <Link to="/services" className="block transition-transform hover:scale-[1.02]">
             <StatCard
-              title="Services"
+              title={t('dashboard.services')}
               value={totalServices}
               icon={Wrench}
               colorClass="bg-amber-500"
@@ -203,7 +205,7 @@ export default function DashboardHome() {
             />
           </Link>
           <StatCard
-            title="Revenue (SAR)"
+            title={t('dashboard.revenueSAR')}
             value="—"
             icon={TrendingUp}
             colorClass="bg-blue-500"
@@ -214,11 +216,11 @@ export default function DashboardHome() {
 
       <section aria-labelledby="activity-heading">
         <h2 id="activity-heading" className="mb-4 text-lg font-semibold text-slate-900">
-          Activity & distribution
+          {t('dashboard.activityDistribution')}
         </h2>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Card className="overflow-hidden">
-            <CardHeader title="Weekly activity" />
+            <CardHeader title={t('dashboard.weeklyActivity')} />
             <CardBody className="pt-0">
               <div className="h-[280px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -241,7 +243,7 @@ export default function DashboardHome() {
             </CardBody>
           </Card>
           <Card className="overflow-hidden">
-            <CardHeader title="Services by category" />
+            <CardHeader title={t('dashboard.servicesByCategory')} />
             <CardBody className="pt-0">
               <div className="h-[280px] w-full">
                 {categoryData.length > 0 ? (
@@ -266,7 +268,7 @@ export default function DashboardHome() {
                   </ResponsiveContainer>
                 ) : (
                   <div className="flex h-full items-center justify-center text-slate-500">
-                    No services yet
+                    {t('dashboard.noServices')}
                   </div>
                 )}
               </div>
@@ -278,13 +280,13 @@ export default function DashboardHome() {
       <section aria-labelledby="recent-heading">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 id="recent-heading" className="text-lg font-semibold text-slate-900">
-            Recent services
+            {t('dashboard.recentServices')}
           </h2>
           <Link
             to="/services"
             className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
           >
-            View all
+            {t('dashboard.viewAll')}
           </Link>
         </div>
         <Card className="overflow-hidden">
@@ -292,9 +294,9 @@ export default function DashboardHome() {
             <TableSkeleton rows={5} cols={5} />
           ) : recentServices.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center text-slate-500">
-              <p>No services.</p>
+              <p>{t('dashboard.noServices')}.</p>
               <Link to="/services/new" className="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-700">
-                Create one
+                {t('dashboard.createOne')}
               </Link>
             </div>
           ) : (
@@ -304,16 +306,16 @@ export default function DashboardHome() {
                   <thead>
                     <tr className="border-b border-slate-200 bg-slate-50/80">
                       <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                        Service
+                        {t('dashboard.service')}
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                        Category
+                        {t('dashboard.category')}
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                        Type
+                        {t('dashboard.type')}
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                        Duration
+                        {t('dashboard.duration')}
                       </th>
                       <th className="w-14 px-4 py-3" />
                     </tr>
@@ -360,7 +362,7 @@ export default function DashboardHome() {
                           <Link
                             to={`/services/${s.id}`}
                             className="inline-flex size-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
-                            aria-label="View details"
+                            aria-label={t('dashboard.viewDetails')}
                           >
                             <ExternalLink className="size-4" />
                           </Link>

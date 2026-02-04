@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { Bell, Check, CheckCheck, Loader2 } from 'lucide-react';
 import { notificationService } from '../services/notificationService';
 import { Card } from '../components/ui/Card';
@@ -10,13 +11,13 @@ import Pagination from '../components/ui/Pagination';
 
 const PAGE_SIZE = 20;
 
-function NotificationRow({ item, onMarkRead }) {
+function NotificationRow({ item, onMarkRead, t, i18n }) {
   const isRead = item.isRead ?? false;
   const type = item.type || 'MESSAGE';
   const title = item.title || '—';
   const message = item.message || '';
   const createdAt = item.createdAt
-    ? new Date(item.createdAt).toLocaleDateString(undefined, { dateStyle: 'short', timeStyle: 'short' })
+    ? new Date(item.createdAt).toLocaleDateString(i18n.language, { dateStyle: 'short', timeStyle: 'short' })
     : '—';
 
   return (
@@ -54,7 +55,7 @@ function NotificationRow({ item, onMarkRead }) {
             onClick={() => onMarkRead(item.id)}
             className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-indigo-600 transition-colors hover:bg-indigo-50"
           >
-            <Check className="size-3.5" /> Mark read
+            <Check className="size-3.5" /> {t('notifications.markRead')}
           </button>
         )}
       </td>
@@ -63,6 +64,7 @@ function NotificationRow({ item, onMarkRead }) {
 }
 
 export default function NotificationsPage() {
+  const { t, i18n } = useTranslation();
   const [page, setPage] = useState(1);
   const [unreadOnly, setUnreadOnly] = useState(false);
   const queryClient = useQueryClient();
@@ -82,18 +84,18 @@ export default function NotificationsPage() {
     mutationFn: (id) => notificationService.markAsRead(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      toast.success('Marked as read');
+      toast.success(t('common.success'));
     },
-    onError: (err) => toast.error(err?.response?.data?.error || 'Failed to update'),
+    onError: (err) => toast.error(err?.response?.data?.error || t('common.error')),
   });
 
   const markAllRead = useMutation({
     mutationFn: () => notificationService.markAllAsRead(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      toast.success('All notifications marked as read');
+      toast.success(t('common.success'));
     },
-    onError: (err) => toast.error(err?.response?.data?.error || 'Failed to update'),
+    onError: (err) => toast.error(err?.response?.data?.error || t('common.error')),
   });
 
   const items = data?.data ?? [];
@@ -104,7 +106,7 @@ export default function NotificationsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-lg font-semibold text-slate-900">Notifications</h2>
+        <h2 className="text-lg font-semibold text-slate-900">{t('notifications.title')}</h2>
         <div className="flex items-center gap-2">
           <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
             <input
@@ -113,7 +115,7 @@ export default function NotificationsPage() {
               onChange={(e) => setUnreadOnly(e.target.checked)}
               className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
             />
-            Unread only
+            <span className="text-sm text-slate-600">{t('notifications.unreadOnly')}</span>
           </label>
           <button
             type="button"
@@ -122,7 +124,7 @@ export default function NotificationsPage() {
             className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
           >
             {markAllRead.isPending ? <Loader2 className="size-4 animate-spin" /> : <CheckCheck className="size-4" />}
-            Mark all read
+            {t('notifications.markAllRead')}
           </button>
         </div>
       </div>
@@ -141,12 +143,12 @@ export default function NotificationsPage() {
             </div>
           ) : isError ? (
             <div className="flex flex-col items-center justify-center py-16 text-slate-500">
-              <p>Failed to load notifications.</p>
+              <p>{t('common.error')}</p>
             </div>
           ) : items.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-slate-500">
               <Bell className="mb-3 size-12 text-slate-300" />
-              <p>No notifications yet.</p>
+              <p>{t('notifications.noNotifications')}</p>
             </div>
           ) : (
             <>
@@ -154,11 +156,11 @@ export default function NotificationsPage() {
                 <table className="w-full border-collapse">
                   <thead>
                     <tr className="border-b border-slate-200 bg-slate-50/80">
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                        Notification
+                      <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">
+                        {t('notifications.notification')}
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                        Type
+                      <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">
+                        {t('services.type')}
                       </th>
                       <th className="w-24 px-4 py-3" />
                     </tr>
@@ -169,6 +171,8 @@ export default function NotificationsPage() {
                         key={item.id}
                         item={item}
                         onMarkRead={(id) => markRead.mutate(id)}
+                        t={t}
+                        i18n={i18n}
                       />
                     ))}
                   </tbody>

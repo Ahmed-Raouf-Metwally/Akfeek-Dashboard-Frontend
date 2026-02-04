@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   Users,
@@ -136,17 +137,20 @@ function SidebarLink({ to, icon: Icon, label, active, collapsed }) {
 }
 
 export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile }) {
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const navVisibility = useDashboardSettingsStore((s) => s.navVisibility);
+  const isRTL = i18n.language === 'ar';
 
   const panel = (
     <aside
       className={`
-        fixed inset-y-0 left-0 z-40 flex flex-col border-r border-slate-200 bg-white
+        fixed inset-y-0 z-40 flex flex-col border-slate-200 bg-white
         transition-[width,transform] duration-200 ease-in-out
         w-64
         ${collapsed ? 'lg:w-[72px]' : ''}
-        ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        ${isRTL ? 'right-0 border-l' : 'left-0 border-r'}
+        ${mobileOpen ? 'translate-x-0' : `${isRTL ? 'translate-x-full' : '-translate-x-full'} lg:translate-x-0`}
       `}
     >
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 px-3">
@@ -191,7 +195,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
             <div key={section.key} className="space-y-1">
               {!collapsed && (
                 <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                  {section.labelEn}
+                  {isRTL ? section.labelAr : section.labelEn}
                 </p>
               )}
               <ul className="space-y-0.5">
@@ -200,7 +204,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
                     <SidebarLink
                       to={item.to}
                       icon={item.icon}
-                      label={item.label}
+                      label={t(`nav.${item.key}`, item.label)}
                       active={location.pathname === item.to || (item.to !== '/dashboard' && location.pathname.startsWith(item.to))}
                       collapsed={collapsed}
                     />
