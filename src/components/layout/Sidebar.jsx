@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
+  BarChart3,
   Users,
   Wrench,
   Car,
@@ -27,7 +28,11 @@ import {
   Store,
   ShoppingBag,
   Layers,
+<<<<<<< HEAD
+  Truck,
+=======
   Building2,
+>>>>>>> 862e62f702765d0de0815648d2f0d7fe41cfd758
 } from 'lucide-react';
 import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
 
@@ -38,7 +43,7 @@ const SECTIONS = [
     labelAr: 'الرئيسية',
     items: [
       { key: 'dashboard', to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  
+      { key: 'analytics', to: '/analytics', icon: BarChart3, label: 'Analytics' },
     ],
   },
   
@@ -48,7 +53,11 @@ const SECTIONS = [
     labelAr: 'الخدمات والمركبات',
     items: [
       { key: 'services', to: '/services', icon: Wrench, label: 'Services' },
+<<<<<<< HEAD
+      { key: 'mobileCarService', to: '/mobile-car-service', icon: Truck, label: 'Mobile Car Service' },
+=======
       { key: 'workshops', to: '/workshops', icon: Building2, label: 'Workshops' },
+>>>>>>> 862e62f702765d0de0815648d2f0d7fe41cfd758
       { key: 'brands', to: '/brands', icon: Car, label: 'Vehicle Brands' },
       { key: 'models', to: '/models', icon: CircleDot, label: 'Vehicle Models' },
     ],
@@ -201,17 +210,23 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
                 </p>
               )}
               <ul className="space-y-0.5">
-                {visibleItems.map((item) => (
-                  <li key={item.to}>
-                    <SidebarLink
-                      to={item.to}
-                      icon={item.icon}
-                      label={t(`nav.${item.key}`, item.label)}
-                      active={location.pathname === item.to || (item.to !== '/dashboard' && location.pathname.startsWith(item.to))}
-                      collapsed={collapsed}
-                    />
-                  </li>
-                ))}
+                {visibleItems.map((item) => {
+                  const isMobileCar = item.key === 'mobileCarService';
+                  const active = isMobileCar
+                    ? location.pathname.startsWith('/mobile-car-service')
+                    : (location.pathname === item.to || (item.to !== '/dashboard' && location.pathname.startsWith(item.to.split('?')[0])));
+                  return (
+                    <li key={item.to}>
+                      <SidebarLink
+                        to={item.to}
+                        icon={item.icon}
+                        label={t(`nav.${item.key}`, item.label)}
+                        active={active}
+                        collapsed={collapsed}
+                      />
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           );

@@ -9,6 +9,7 @@ const DEFAULT_NAV = {
   notifications: true,
   activity: true,
   services: true,
+  mobileCarService: true,
   brands: true,
   models: true,
   bookings: true,

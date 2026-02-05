@@ -1,8 +1,9 @@
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Wrench } from 'lucide-react';
+import { ArrowLeft, Plus, Wrench } from 'lucide-react';
 import { serviceService } from '../services/serviceService';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import { Card } from '../components/ui/Card';
@@ -20,6 +21,7 @@ function DetailRow({ label, value }) {
 export default function ServiceDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const { data: service, isLoading, isError } = useQuery({
     queryKey: ['service', id],
@@ -55,21 +57,39 @@ export default function ServiceDetailPage() {
 
   const pricing = service.pricing ?? [];
   const addOns = service.parentAddOns ?? service.addOns ?? [];
+  const subServices = service.subServices ?? [];
+  const isMobileCarParent = service.type === 'MOBILE_CAR_SERVICE' && !service.parentServiceId;
+  const parentService = service.parentService;
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-4">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
-          aria-label="Back"
-        >
-          <ArrowLeft className="size-4" /> Back
-        </button>
-        <Link to="/services" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
-          All Services
-        </Link>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-4">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+            aria-label="Back"
+          >
+            <ArrowLeft className="size-4" /> Back
+          </button>
+          <Link to="/services" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+            All Services
+          </Link>
+          {parentService && (
+            <Link to={`/services/${parentService.id}`} className="text-sm font-medium text-slate-600 hover:text-slate-700">
+              ← {t('services.parentService')}: {parentService.nameAr || parentService.name}
+            </Link>
+          )}
+        </div>
+        {isMobileCarParent && (
+          <Link
+            to={`/services/new?parentId=${service.id}`}
+            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-500"
+          >
+            <Plus className="size-4" /> {t('services.addSubService')}
+          </Link>
+        )}
       </div>
 
       <Card className="overflow-hidden p-0">
@@ -124,6 +144,14 @@ export default function ServiceDetailPage() {
           <DetailRow label="Description (AR)" value={service.descriptionAr} />
           <DetailRow label="Category" value={service.category} />
           <DetailRow label="Type" value={service.type} />
+          {parentService && (
+            <div className="flex gap-3 border-b border-slate-100 py-3 last:border-0">
+              <span className="w-28 shrink-0 text-sm text-slate-500">{t('services.parentService')}</span>
+              <Link to={`/services/${parentService.id}`} className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                {parentService.nameAr || parentService.name}
+              </Link>
+            </div>
+          )}
           <DetailRow label="Est. duration" value={service.estimatedDuration != null ? `${service.estimatedDuration} min` : null} />
           <DetailRow label="Status" value={service.isActive !== false ? 'Active' : 'Inactive'} />
           {service.imageUrl && (
@@ -161,6 +189,42 @@ export default function ServiceDetailPage() {
                     </td>
                     <td className="px-4 py-3 text-sm text-slate-900">{p.basePrice != null ? Number(p.basePrice).toFixed(2) : '—'}</td>
                     <td className="px-4 py-3 text-sm text-slate-900">{p.discountedPrice != null ? Number(p.discountedPrice).toFixed(2) : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {isMobileCarParent && subServices.length > 0 && (
+        <Card className="overflow-hidden p-0">
+          <div className="border-b border-slate-100 px-6 py-4">
+            <h2 className="text-base font-semibold text-slate-900">{t('services.subServices')}</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50/80">
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Name</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Name (AR)</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Category</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Duration</th>
+                  <th className="w-24 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {subServices.map((sub) => (
+                  <tr key={sub.id} className="border-b border-slate-100 transition-colors hover:bg-slate-50/50">
+                    <td className="px-4 py-3 text-sm font-medium text-slate-900">{sub.name}</td>
+                    <td className="px-4 py-3 text-sm text-slate-900">{sub.nameAr ?? '—'}</td>
+                    <td className="px-4 py-3 text-sm text-slate-900">{sub.category ?? '—'}</td>
+                    <td className="px-4 py-3 text-sm text-slate-900">{sub.estimatedDuration != null ? `${sub.estimatedDuration} min` : '—'}</td>
+                    <td className="px-4 py-3">
+                      <Link to={`/services/${sub.id}`} className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                        View
+                      </Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>

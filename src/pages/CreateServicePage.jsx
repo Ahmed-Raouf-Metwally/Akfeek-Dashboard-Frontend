@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Image, Save } from 'lucide-react';
 import { serviceService } from '../services/serviceService';
 import Input from '../components/Input';
@@ -21,6 +22,7 @@ const TYPES = [
   { value: 'CATALOG', label: 'Catalog' },
   { value: 'EMERGENCY', label: 'Emergency' },
   { value: 'INSPECTION', label: 'Inspection' },
+  { value: 'MOBILE_CAR_SERVICE', label: 'Mobile Car Service' },
 ];
 
 const emptyForm = () => ({
@@ -33,6 +35,7 @@ const emptyForm = () => ({
   estimatedDuration: 30,
   imageUrl: '',
   icon: '',
+  parentServiceId: '',
 });
 
 function isValidUrl(s) {
@@ -47,9 +50,22 @@ function isValidUrl(s) {
 
 export default function CreateServicePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
-  const [form, setForm] = useState(emptyForm());
+  const { t } = useTranslation();
+  const preselectedParentId = searchParams.get('parentId') || '';
+  const [form, setForm] = useState(() => ({
+    ...emptyForm(),
+    ...(preselectedParentId && { type: 'MOBILE_CAR_SERVICE', parentServiceId: preselectedParentId }),
+  }));
   const [imagePreviewError, setImagePreviewError] = useState(false);
+
+  const { data: allServices = [] } = useQuery({
+    queryKey: ['services', { type: 'MOBILE_CAR_SERVICE' }],
+    queryFn: () => serviceService.getServices({ type: 'MOBILE_CAR_SERVICE' }),
+    enabled: form.type === 'MOBILE_CAR_SERVICE',
+  });
+  const parentServices = allServices.filter((s) => !s.parentServiceId);
 
   const createMutation = useMutation({
     mutationFn: (payload) => serviceService.createService(payload),
@@ -73,6 +89,7 @@ export default function CreateServicePage() {
       estimatedDuration: Number(form.estimatedDuration) || 30,
       imageUrl: form.imageUrl.trim() || undefined,
       icon: form.icon.trim() || undefined,
+      parentServiceId: form.type === 'MOBILE_CAR_SERVICE' && form.parentServiceId ? form.parentServiceId : undefined,
     };
     createMutation.mutate(payload);
   };
@@ -146,17 +163,33 @@ export default function CreateServicePage() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Type</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">{t('services.type')}</label>
               <select
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 value={form.type}
-                onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+                onChange={(e) => setForm((f) => ({ ...f, type: e.target.value, parentServiceId: e.target.value === 'MOBILE_CAR_SERVICE' ? f.parentServiceId : '' }))}
               >
-                {TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
+                {TYPES.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{t(`services.types.${opt.value}`) || opt.label}</option>
                 ))}
               </select>
             </div>
+            {form.type === 'MOBILE_CAR_SERVICE' && (
+              <div className="sm:col-span-2">
+                <label className="mb-1 block text-sm font-medium text-slate-700">{t('services.parentService')}</label>
+                <select
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  value={form.parentServiceId}
+                  onChange={(e) => setForm((f) => ({ ...f, parentServiceId: e.target.value }))}
+                >
+                  <option value="">{t('services.thisIsParent')}</option>
+                  {parentServices.map((s) => (
+                    <option key={s.id} value={s.id}>{s.nameAr || s.name}</option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-slate-500">{t('services.parentServiceHint')}</p>
+              </div>
+            )}
           </div>
           <Input
             label="Estimated duration (minutes)"

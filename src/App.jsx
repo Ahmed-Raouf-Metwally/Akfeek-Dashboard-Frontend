@@ -44,8 +44,15 @@ import AutoPartDetailPage from './pages/AutoPartDetailPage';
 import AutoPartCategoriesPage from './pages/AutoPartCategoriesPage';
 import MarketplaceOrdersPage from './pages/MarketplaceOrdersPage';
 import MarketplaceOrderDetailPage from './pages/MarketplaceOrderDetailPage';
+<<<<<<< HEAD
+import MobileCarServicePage from './pages/MobileCarServicePage';
+import MobileCarSubServiceNewPage from './pages/MobileCarSubServiceNewPage';
+import MobileCarSubServiceDetailPage from './pages/MobileCarSubServiceDetailPage';
+import AnalyticsPage from './pages/AnalyticsPage';
+=======
 import WorkshopsPage from './pages/WorkshopsPage';
 import WorkshopDetailPage from './pages/WorkshopDetailPage';
+>>>>>>> 862e62f702765d0de0815648d2f0d7fe41cfd758
 
 
 
@@ -93,6 +100,7 @@ function App() {
           >
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardHome />} />
+            <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="roles" element={<RolesPermissionsPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
@@ -101,6 +109,9 @@ function App() {
             <Route path="services" element={<ServicesPage />} />
             <Route path="services/new" element={<CreateServicePage />} />
             <Route path="services/:id" element={<ServiceDetailPage />} />
+            <Route path="mobile-car-service" element={<MobileCarServicePage />} />
+            <Route path="mobile-car-service/new" element={<MobileCarSubServiceNewPage />} />
+            <Route path="mobile-car-service/:id" element={<MobileCarSubServiceDetailPage />} />
             <Route path="brands" element={<BrandsPage />} />
             <Route path="brands/:id" element={<BrandDetailPage />} />
             <Route path="models" element={<VehicleModelsPage />} />
