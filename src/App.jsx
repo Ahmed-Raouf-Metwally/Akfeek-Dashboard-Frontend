@@ -44,10 +44,15 @@ import AutoPartDetailPage from './pages/AutoPartDetailPage';
 import AutoPartCategoriesPage from './pages/AutoPartCategoriesPage';
 import MarketplaceOrdersPage from './pages/MarketplaceOrdersPage';
 import MarketplaceOrderDetailPage from './pages/MarketplaceOrderDetailPage';
+<<<<<<< HEAD
 import MobileCarServicePage from './pages/MobileCarServicePage';
 import MobileCarSubServiceNewPage from './pages/MobileCarSubServiceNewPage';
 import MobileCarSubServiceDetailPage from './pages/MobileCarSubServiceDetailPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+=======
+import WorkshopsPage from './pages/WorkshopsPage';
+import WorkshopDetailPage from './pages/WorkshopDetailPage';
+>>>>>>> 862e62f702765d0de0815648d2f0d7fe41cfd758
 
 
 
@@ -137,6 +142,10 @@ function App() {
             <Route path="auto-part-categories" element={<AutoPartCategoriesPage />} />
             <Route path="marketplace-orders" element={<MarketplaceOrdersPage />} />
             <Route path="marketplace-orders/:id" element={<MarketplaceOrderDetailPage />} />
+            
+            {/* Workshops Routes */}
+            <Route path="workshops" element={<WorkshopsPage />} />
+            <Route path="workshops/:id" element={<WorkshopDetailPage />} />
           </Route>
         </Routes>
       </Router>

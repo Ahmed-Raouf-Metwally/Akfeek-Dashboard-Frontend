@@ -28,7 +28,11 @@ import {
   Store,
   ShoppingBag,
   Layers,
+<<<<<<< HEAD
   Truck,
+=======
+  Building2,
+>>>>>>> 862e62f702765d0de0815648d2f0d7fe41cfd758
 } from 'lucide-react';
 import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
 
@@ -49,7 +53,11 @@ const SECTIONS = [
     labelAr: 'الخدمات والمركبات',
     items: [
       { key: 'services', to: '/services', icon: Wrench, label: 'Services' },
+<<<<<<< HEAD
       { key: 'mobileCarService', to: '/mobile-car-service', icon: Truck, label: 'Mobile Car Service' },
+=======
+      { key: 'workshops', to: '/workshops', icon: Building2, label: 'Workshops' },
+>>>>>>> 862e62f702765d0de0815648d2f0d7fe41cfd758
       { key: 'brands', to: '/brands', icon: Car, label: 'Vehicle Brands' },
       { key: 'models', to: '/models', icon: CircleDot, label: 'Vehicle Models' },
     ],
