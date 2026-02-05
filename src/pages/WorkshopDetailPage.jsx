@@ -6,6 +6,7 @@ import { workshopService } from '../services/workshopService';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import { Card } from '../components/ui/Card';
 import { useTranslation } from 'react-i18next';
+import ReviewsList from '../components/workshops/ReviewsList';
 
 function DetailRow({ label, value }) {
   return (
@@ -53,9 +54,22 @@ export default function WorkshopDetailPage() {
     );
   }
 
-  const services = typeof workshop.services === 'string' 
-    ? JSON.parse(workshop.services || '[]') 
-    : workshop.services || [];
+  // Handle services - can be array, JSON string, or plain string
+  let services = [];
+  if (Array.isArray(workshop.services)) {
+    services = workshop.services;
+  } else if (typeof workshop.services === 'string') {
+    try {
+      // Try to parse as JSON first
+      const parsed = JSON.parse(workshop.services);
+      services = Array.isArray(parsed) ? parsed : [workshop.services];
+    } catch {
+      // If not valid JSON, treat as comma-separated string or single service
+      services = workshop.services.includes(',') 
+        ? workshop.services.split(',').map(s => s.trim())
+        : [workshop.services];
+    }
+  }
 
   const workingHours = workshop.workingHours || {};
 
@@ -75,44 +89,107 @@ export default function WorkshopDetailPage() {
         </Link>
       </div>
 
+      {/* Workshop Header with Logo and Images */}
       <Card className="overflow-hidden p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-semibold text-slate-900">{workshop.name}</h1>
-              {workshop.isVerified && (
-                <CheckCircle className="size-6 text-green-600" title={t('workshops.verified')} />
+        <div className="flex flex-col gap-6">
+          {/* Logo and Basic Info */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            {/* Logo */}
+            {workshop.logo && (
+              <div className="shrink-0">
+                <img
+                  src={`${import.meta.env.VITE_API_URL}${workshop.logo}`}
+                  alt={workshop.name}
+                  className="h-24 w-24 rounded-lg object-cover border-2 border-slate-200"
+                />
+              </div>
+            )}
+            
+            {/* Workshop Info */}
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-semibold text-slate-900">{workshop.name}</h1>
+                {workshop.isVerified && (
+                  <CheckCircle className="size-6 text-green-600" title={t('workshops.verified')} />
+                )}
+              </div>
+              {workshop.nameAr && <p className="mt-1 text-sm text-slate-500">{workshop.nameAr}</p>}
+              
+              {/* Rating Display */}
+              {workshop.averageRating > 0 && (
+                <div className="mt-2 flex items-center gap-2">
+                  <div className="flex items-center">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`size-4 ${
+                          i < Math.floor(workshop.averageRating)
+                            ? 'fill-amber-400 text-amber-400'
+                            : 'text-slate-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-sm font-medium text-slate-700">
+                    {workshop.averageRating.toFixed(1)}
+                  </span>
+                  <span className="text-sm text-slate-500">
+                    ({workshop.totalReviews || 0} {t('workshops.reviews', 'reviews')})
+                  </span>
+                </div>
+              )}
+              
+              {workshop.description && (
+                <p className="mt-3 text-sm text-slate-600">{workshop.description}</p>
+              )}
+              {workshop.descriptionAr && (
+                <p className="mt-1 text-sm text-slate-500">{workshop.descriptionAr}</p>
               )}
             </div>
-            {workshop.nameAr && <p className="mt-1 text-sm text-slate-500">{workshop.nameAr}</p>}
-            {workshop.description && (
-              <p className="mt-3 text-sm text-slate-600">{workshop.description}</p>
-            )}
-            {workshop.descriptionAr && (
-              <p className="mt-1 text-sm text-slate-500">{workshop.descriptionAr}</p>
-            )}
+            
+            {/* Status Badges */}
+            <div className="flex flex-wrap gap-2">
+              {workshop.isVerified ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
+                  <CheckCircle className="size-3" />
+                  {t('workshops.verified')}
+                </span>
+              ) : (
+                <span className="inline-flex rounded-full bg-yellow-50 px-3 py-1 text-xs font-medium text-yellow-700">
+                  {t('workshops.unverified')}
+                </span>
+              )}
+              {workshop.isActive ? (
+                <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                  {t('common.active')}
+                </span>
+              ) : (
+                <span className="inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
+                  {t('common.inactive')}
+                </span>
+              )}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {workshop.isVerified ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
-                <CheckCircle className="size-3" />
-                {t('workshops.verified')}
-              </span>
-            ) : (
-              <span className="inline-flex rounded-full bg-yellow-50 px-3 py-1 text-xs font-medium text-yellow-700">
-                {t('workshops.unverified')}
-              </span>
-            )}
-            {workshop.isActive ? (
-              <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-                {t('common.active')}
-              </span>
-            ) : (
-              <span className="inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
-                {t('common.inactive')}
-              </span>
-            )}
-          </div>
+
+          {/* Workshop Images Gallery */}
+          {workshop.images && workshop.images.length > 0 && (
+            <div>
+              <h3 className="mb-3 text-sm font-semibold text-slate-900">
+                {t('workshops.images.gallery', 'Gallery')}
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {workshop.images.map((imageUrl, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={`${import.meta.env.VITE_API_URL}${imageUrl}`}
+                      alt={`${workshop.name} ${index + 1}`}
+                      className="w-full h-32 object-cover rounded-lg border-2 border-slate-200 hover:border-indigo-400 transition-colors cursor-pointer"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </Card>
 
@@ -235,6 +312,14 @@ export default function WorkshopDetailPage() {
           <DetailRow label={t('workshops.verified')} value={workshop.isVerified ? t('common.yes') : t('common.no')} />
           <DetailRow label={t('common.status')} value={workshop.isActive ? t('common.active') : t('common.inactive')} />
         </div>
+      </Card>
+
+      {/* Customer Reviews */}
+      <Card className="p-6">
+        <h2 className="mb-4 text-lg font-semibold text-slate-900">
+          {t('workshops.reviews.title', 'Customer Reviews')}
+        </h2>
+        <ReviewsList workshopId={id} isAdmin={false} />
       </Card>
 
       <div className="flex flex-wrap gap-3">
