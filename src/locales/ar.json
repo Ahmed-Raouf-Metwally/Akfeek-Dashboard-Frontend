@@ -104,9 +104,11 @@
   },
   "nav": {
     "dashboard": "لوحة التحكم",
+    "analytics": "التحليلات",
     "users": "المستخدمون",
     "bookings": "الحجوزات",
     "services": "الخدمات",
+    "mobileCarService": "خدمة الورش المتنقلة",
     "products": "المنتجات",
     "vendors": "الموردون",
     "technicians": "الفنيون",
@@ -148,6 +150,11 @@
     "bookings": "الحجوزات",
     "services": "الخدمات",
     "revenueSAR": "الإيرادات (ريال)",
+    "analytics": "التحليلات",
+    "analyticsSubtitle": "مقاييس المنصة والأداء",
+    "growth": "النمو",
+    "revenueTrend": "اتجاه الإيرادات",
+    "bookingsByDay": "الحجوزات حسب اليوم",
     "weeklyActivity": "النشاط الأسبوعي",
     "servicesByCategory": "الخدمات حسب الفئة",
     "recentServices": "الخدمات الأخيرة",
@@ -208,8 +215,19 @@
       "FIXED": "ثابت",
       "CATALOG": "كتالوج",
       "EMERGENCY": "طوارئ",
-      "INSPECTION": "فحص"
-    }
+      "INSPECTION": "فحص",
+      "MOBILE_CAR_SERVICE": "خدمة الزرَش / الصيانة المتنقلة"
+    },
+    "parentService": "الخدمة الأم",
+    "thisIsParent": "لا شيء – هذه الخدمة هي الأم",
+    "addSubService": "إضافة خدمة فرعية",
+    "subServices": "الخدمات الفرعية",
+    "newService": "خدمة جديدة",
+    "editService": "تعديل الخدمة",
+    "parentServiceHint": "لا شيء = الخدمة الأم؛ اختر خدمة أم لإضافة خدمة فرعية.",
+    "noSubServices": "لا توجد خدمات فرعية بعد.",
+    "noMobileCarService": "لم يتم إعداد خدمة الورش المتنقلة بعد. أضفها من قائمة الخدمات الرئيسية.",
+    "price": "الأسعار"
   },
   "bookings": {
     "title": "الحجوزات",

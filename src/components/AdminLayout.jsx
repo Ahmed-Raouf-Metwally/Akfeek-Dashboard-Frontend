@@ -9,6 +9,7 @@ import { LayoutProvider, useLayout } from '../contexts/LayoutContext';
 function getTitleForPath(pathname, t) {
   const ROUTE_TITLES = {
     '/dashboard': [t('nav.dashboard', 'Dashboard'), t('dashboard.overview', 'Overview and stats')],
+    '/analytics': [t('nav.analytics', 'Analytics'), t('dashboard.analyticsSubtitle', 'Platform metrics and performance')],
     '/profile': [t('nav.profile', 'Profile'), t('common.yourAccount', 'Your account')],
     '/users': [t('nav.users', 'Users'), t('common.managePlatformUsers', 'Manage platform users')],
     '/roles': [t('nav.roles', 'Roles & Permissions'), t('common.rolesAndAccess', 'Roles and access control')],

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -23,6 +23,7 @@ const emptyForm = () => ({
   estimatedDuration: 30,
   imageUrl: '',
   icon: '',
+  parentServiceId: '',
 });
 
 function ServiceRow({ service, onEdit, onDelete, openConfirm, t }) {
@@ -114,8 +115,15 @@ export default function ServicesPage() {
   const [editService, setEditService] = useState(null);
   const [form, setForm] = useState(emptyForm());
   const [viewMode, setViewMode] = useState('table'); // 'table' | 'grid'
+  const [searchParams, setSearchParams] = useSearchParams();
+  const typeFromUrl = searchParams.get('type') || '';
 
-  useEffect(() => { setPage(1); }, [search, category]);
+  const [typeFilter, setTypeFilter] = useState(typeFromUrl);
+  useEffect(() => {
+    setTypeFilter(typeFromUrl);
+  }, [typeFromUrl]);
+
+  useEffect(() => { setPage(1); }, [search, category, typeFilter]);
 
   const CATEGORIES = [
     { value: '', label: t('common.all') },
@@ -132,13 +140,16 @@ export default function ServicesPage() {
     { value: 'CATALOG', label: t('services.types.CATALOG') },
     { value: 'EMERGENCY', label: t('services.types.EMERGENCY') },
     { value: 'INSPECTION', label: t('services.types.INSPECTION') },
+    { value: 'MOBILE_CAR_SERVICE', label: t('services.types.MOBILE_CAR_SERVICE') },
   ];
 
   const { data: services = [], isLoading } = useQuery({
-    queryKey: ['services', { search, category }],
-    queryFn: () => serviceService.getServices({ search: search || undefined, category: category || undefined }),
+    queryKey: ['services', { search, category, type: typeFilter }],
+    queryFn: () => serviceService.getServices({ search: search || undefined, category: category || undefined, type: typeFilter || undefined }),
     staleTime: 60_000,
   });
+
+  const parentServices = services.filter((s) => s.type === 'MOBILE_CAR_SERVICE' && !s.parentServiceId);
 
   const createMutation = useMutation({
     mutationFn: (payload) => serviceService.createService(payload),
@@ -185,6 +196,7 @@ export default function ServicesPage() {
       estimatedDuration: s.estimatedDuration ?? 30,
       imageUrl: s.imageUrl ?? '',
       icon: s.icon ?? '',
+      parentServiceId: s.parentServiceId ?? '',
     });
   };
 
@@ -206,6 +218,7 @@ export default function ServicesPage() {
       estimatedDuration: Number(form.estimatedDuration) || 30,
       imageUrl: form.imageUrl?.trim() || undefined,
       icon: form.icon?.trim() || undefined,
+      parentServiceId: form.type === 'MOBILE_CAR_SERVICE' && form.parentServiceId ? form.parentServiceId : undefined,
     };
     if (editService) {
       updateMutation.mutate({ id: editService.id, payload });
@@ -304,14 +317,29 @@ export default function ServicesPage() {
               <label className="mb-1.5 block text-sm font-medium text-slate-700">{t('services.type')}</label>
               <select
                 value={form.type}
-                onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+                onChange={(e) => setForm((f) => ({ ...f, type: e.target.value, parentServiceId: e.target.value === 'MOBILE_CAR_SERVICE' ? f.parentServiceId : '' }))}
                 className="block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               >
-                {TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
+                {TYPES.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
               </select>
             </div>
+            {form.type === 'MOBILE_CAR_SERVICE' && (
+              <div className="min-w-[200px] flex-1">
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">{t('services.parentService')}</label>
+                <select
+                  value={form.parentServiceId}
+                  onChange={(e) => setForm((f) => ({ ...f, parentServiceId: e.target.value }))}
+                  className="block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                >
+                  <option value="">{t('services.thisIsParent')}</option>
+                  {parentServices.map((s) => (
+                    <option key={s.id} value={s.id}>{s.nameAr || s.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <Input
               label={t('services.duration')}
               type="number"
@@ -380,6 +408,22 @@ export default function ServicesPage() {
           >
             {CATEGORIES.map((c) => (
               <option key={c.value || 'all'} value={c.value}>{c.label}</option>
+            ))}
+          </select>
+          <select
+            value={typeFilter}
+            onChange={(e) => {
+              const v = e.target.value;
+              setTypeFilter(v);
+              if (v) setSearchParams({ type: v }, { replace: true });
+              else setSearchParams({}, { replace: true });
+            }}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            aria-label="Filter by type"
+          >
+            <option value="">{t('common.all')}</option>
+            {TYPES.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
           <button
