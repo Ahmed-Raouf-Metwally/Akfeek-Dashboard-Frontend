@@ -44,15 +44,12 @@ import AutoPartDetailPage from './pages/AutoPartDetailPage';
 import AutoPartCategoriesPage from './pages/AutoPartCategoriesPage';
 import MarketplaceOrdersPage from './pages/MarketplaceOrdersPage';
 import MarketplaceOrderDetailPage from './pages/MarketplaceOrderDetailPage';
-<<<<<<< HEAD
 import MobileCarServicePage from './pages/MobileCarServicePage';
 import MobileCarSubServiceNewPage from './pages/MobileCarSubServiceNewPage';
 import MobileCarSubServiceDetailPage from './pages/MobileCarSubServiceDetailPage';
 import AnalyticsPage from './pages/AnalyticsPage';
-=======
 import WorkshopsPage from './pages/WorkshopsPage';
 import WorkshopDetailPage from './pages/WorkshopDetailPage';
->>>>>>> 862e62f702765d0de0815648d2f0d7fe41cfd758
 
 
 
