@@ -27,6 +27,7 @@ import {
   Store,
   ShoppingBag,
   Layers,
+  Building2,
 } from 'lucide-react';
 import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
 
@@ -47,6 +48,7 @@ const SECTIONS = [
     labelAr: 'الخدمات والمركبات',
     items: [
       { key: 'services', to: '/services', icon: Wrench, label: 'Services' },
+      { key: 'workshops', to: '/workshops', icon: Building2, label: 'Workshops' },
       { key: 'brands', to: '/brands', icon: Car, label: 'Vehicle Brands' },
       { key: 'models', to: '/models', icon: CircleDot, label: 'Vehicle Models' },
     ],

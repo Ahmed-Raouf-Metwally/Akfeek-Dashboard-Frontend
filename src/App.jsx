@@ -44,6 +44,8 @@ import AutoPartDetailPage from './pages/AutoPartDetailPage';
 import AutoPartCategoriesPage from './pages/AutoPartCategoriesPage';
 import MarketplaceOrdersPage from './pages/MarketplaceOrdersPage';
 import MarketplaceOrderDetailPage from './pages/MarketplaceOrderDetailPage';
+import WorkshopsPage from './pages/WorkshopsPage';
+import WorkshopDetailPage from './pages/WorkshopDetailPage';
 
 
 
@@ -129,6 +131,10 @@ function App() {
             <Route path="auto-part-categories" element={<AutoPartCategoriesPage />} />
             <Route path="marketplace-orders" element={<MarketplaceOrdersPage />} />
             <Route path="marketplace-orders/:id" element={<MarketplaceOrderDetailPage />} />
+            
+            {/* Workshops Routes */}
+            <Route path="workshops" element={<WorkshopsPage />} />
+            <Route path="workshops/:id" element={<WorkshopDetailPage />} />
           </Route>
         </Routes>
       </Router>
