@@ -3,13 +3,15 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Pencil, Trash2, Eye, LayoutGrid, List, MapPin, Phone, CheckCircle, XCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Search, Plus, Pencil, Trash2, Eye, MapPin, Phone, CheckCircle, XCircle, Building2, Star, ArrowRight } from 'lucide-react';
 import { workshopService } from '../services/workshopService';
 import { useConfirm } from '../hooks/useConfirm';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
 import Input from '../components/Input';
 import { Card } from '../components/ui/Card';
+import { ImageOrPlaceholder } from '../components/ui/ImageOrPlaceholder';
 
 const emptyForm = () => ({
   name: '',
@@ -20,7 +22,7 @@ const emptyForm = () => ({
   addressAr: '',
   city: '',
   cityAr: '',
-  locationUrl: '', // Always initialize with empty string
+  locationUrl: '',
   phone: '',
   email: '',
   services: '',
@@ -28,8 +30,10 @@ const emptyForm = () => ({
   isVerified: false,
 });
 
-function WorkshopRow({ workshop, onEdit, onDelete, onToggleVerification, openConfirm, t }) {
-  const handleDelete = async () => {
+function WorkshopCard({ workshop, onEdit, onDelete, onToggleVerification, openConfirm, t }) {
+  const handleDelete = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     const ok = await openConfirm({
       title: t('workshops.deleteWorkshop', 'Delete workshop'),
       message: t('common.confirmDelete', { name: workshop.name }),
@@ -39,7 +43,9 @@ function WorkshopRow({ workshop, onEdit, onDelete, onToggleVerification, openCon
     if (ok) await onDelete(workshop.id);
   };
 
-  const handleToggleVerification = async () => {
+  const handleToggleVerification = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     const ok = await openConfirm({
       title: workshop.isVerified ? t('workshops.unverifyWorkshop') : t('workshops.verifyWorkshop'),
       message: workshop.isVerified 
@@ -51,80 +57,121 @@ function WorkshopRow({ workshop, onEdit, onDelete, onToggleVerification, openCon
     if (ok) await onToggleVerification(workshop.id, !workshop.isVerified);
   };
 
-  const iconBtn =
-    'inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700';
+  const handleEdit = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onEdit(workshop);
+  };
+
+  const mainImage = workshop.logo 
+    ? `${import.meta.env.VITE_API_URL}${workshop.logo}`
+    : (workshop.images && workshop.images.length > 0 ? `${import.meta.env.VITE_API_URL}${workshop.images[0]}` : null);
 
   return (
-    <tr className="border-b border-slate-100 transition-colors hover:bg-slate-50/50">
-      <td className="px-4 py-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="font-medium text-slate-900">{workshop.name}</p>
-            {workshop.isVerified && (
-              <CheckCircle className="size-4 text-green-600" title={t('workshops.verified')} />
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+    >
+      <Link
+        to={`/workshops/${workshop.id}`}
+        className="group block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-500/10"
+      >
+        {/* Image Section */}
+        <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+          <ImageOrPlaceholder
+            src={mainImage}
+            alt={workshop.name}
+            className="size-full object-cover transition duration-300 group-hover:scale-105"
+            placeholder={<Building2 className="size-10 text-slate-300" />}
+          />
+          
+          {/* Status Badges - Overlay */}
+          <div className="absolute left-3 top-3 flex flex-col gap-2">
+            {workshop.isActive ? (
+              <span className="inline-flex items-center rounded-full bg-green-100/90 px-2 py-0.5 text-xs font-medium text-green-700 backdrop-blur-sm">
+                {t('common.active')}
+              </span>
+            ) : (
+              <span className="inline-flex items-center rounded-full bg-slate-100/90 px-2 py-0.5 text-xs font-medium text-slate-600 backdrop-blur-sm">
+                {t('common.inactive')}
+              </span>
             )}
           </div>
-          {workshop.nameAr && <p className="text-sm text-slate-500">{workshop.nameAr}</p>}
+          
+          <div className="absolute right-3 top-3">
+             {workshop.isVerified && (
+               <div className="rounded-full bg-white/90 p-1 backdrop-blur-sm" title={t('workshops.verified')}>
+                 <CheckCircle className="size-4 text-green-600" />
+               </div>
+             )}
+          </div>
+          
+          {/* Quick Actions Overlay on Hover */}
+          <div className="absolute inset-x-0 bottom-0 flex items-center justify-end gap-2 bg-gradient-to-t from-black/60 to-transparent p-3 opacity-0 transition-opacity group-hover:opacity-100">
+             <button
+                onClick={handleEdit}
+                className="rounded-lg bg-white/90 p-1.5 text-slate-700 hover:bg-white hover:text-indigo-600"
+                title={t('common.edit')}
+             >
+               <Pencil className="size-4" />
+             </button>
+             <button
+                onClick={handleToggleVerification}
+                className={`rounded-lg bg-white/90 p-1.5 hover:bg-white ${workshop.isVerified ? 'text-green-600 hover:text-yellow-600' : 'text-slate-400 hover:text-green-600'}`}
+                title={workshop.isVerified ? t('common.unverify') : t('common.verify')}
+             >
+               {workshop.isVerified ? <XCircle className="size-4" /> : <CheckCircle className="size-4" />}
+             </button>
+             <button
+                onClick={handleDelete}
+                className="rounded-lg bg-white/90 p-1.5 text-slate-700 hover:bg-white hover:text-red-600"
+                title={t('common.delete')}
+             >
+               <Trash2 className="size-4" />
+             </button>
+          </div>
         </div>
-      </td>
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-1.5 text-sm text-slate-600">
-          <MapPin className="size-4" />
-          <span>{workshop.city}</span>
+
+        {/* Content Section */}
+        <div className="p-5">
+          <div className="mb-2">
+            <h3 className="line-clamp-1 font-bold text-slate-900 group-hover:text-indigo-600">
+              {workshop.name}
+            </h3>
+            {workshop.nameAr && (
+              <p className="line-clamp-1 text-sm text-slate-500">{workshop.nameAr}</p>
+            )}
+          </div>
+
+          <div className="mb-4 flex flex-wrap gap-y-2 text-sm text-slate-600">
+            <div className="flex w-full items-center gap-1.5">
+               <MapPin className="size-3.5 shrink-0 text-slate-400" />
+               <span className="line-clamp-1">{workshop.city}</span>
+            </div>
+            {/* Rating */}
+            <div className="flex w-full items-center gap-1.5">
+               <Star className="size-3.5 shrink-0 fill-amber-400 text-amber-400" />
+               <span className="font-medium text-slate-900">{workshop.averageRating?.toFixed(1) || '0.0'}</span>
+               <span className="text-xs text-slate-400">
+                 ({workshop.totalReviews || 0} {t('workshops.reviews', 'reviews')})
+               </span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+             <span className="text-xs font-medium text-slate-500">
+                {workshop.phone}
+             </span>
+             <span className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 group-hover:gap-2">
+               {t('common.viewDetails')}
+               <ArrowRight className="size-4 transition-all group-hover:translate-x-0.5" />
+             </span>
+          </div>
         </div>
-      </td>
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-1.5 text-sm text-slate-600">
-          <Phone className="size-4" />
-          <span>{workshop.phone}</span>
-        </div>
-      </td>
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-2">
-          <span className={`text-sm ${workshop.isActive ? 'text-green-600' : 'text-slate-400'}`}>
-            {workshop.isActive ? t('common.active') : t('common.inactive')}
-          </span>
-        </div>
-      </td>
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-1">
-          <Link
-            to={`/workshops/${workshop.id}`}
-            className={iconBtn}
-            title={t('common.viewDetails')}
-            aria-label={t('common.viewDetails')}
-          >
-            <Eye className="size-5" />
-          </Link>
-          <button
-            type="button"
-            onClick={() => onEdit?.(workshop)}
-            className={iconBtn}
-            title={t('common.edit')}
-            aria-label={t('common.edit')}
-          >
-            <Pencil className="size-5" />
-          </button>
-          <button
-            type="button"
-            onClick={handleToggleVerification}
-            className={`${iconBtn} ${workshop.isVerified ? 'hover:bg-yellow-50 hover:text-yellow-600' : 'hover:bg-green-50 hover:text-green-600'}`}
-            title={workshop.isVerified ? t('common.unverify') : t('common.verify')}
-          >
-            {workshop.isVerified ? <XCircle className="size-5" /> : <CheckCircle className="size-5" />}
-          </button>
-          <button
-            type="button"
-            onClick={handleDelete}
-            className={`${iconBtn} hover:bg-red-50 hover:text-red-600`}
-            title={t('common.delete')}
-            aria-label={t('common.delete')}
-          >
-            <Trash2 className="size-5" />
-          </button>
-        </div>
-      </td>
-    </tr>
+      </Link>
+    </motion.div>
   );
 }
 
@@ -132,7 +179,7 @@ export default function WorkshopsPage() {
   const { t } = useTranslation();
   const [openConfirm, ConfirmModal] = useConfirm();
   const queryClient = useQueryClient();
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 12; // Increased page size for grid
   const [search, setSearch] = useState('');
   const [city, setCity] = useState('');
   const [verifiedFilter, setVerifiedFilter] = useState('');
@@ -271,27 +318,49 @@ export default function WorkshopsPage() {
     return { paginatedItems, totalPages, total };
   }, [workshops, page]);
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-  };
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <ConfirmModal />
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-slate-900">{t('workshops.title', 'Certified Workshops')}</h1>
-        <button
-          onClick={() => setShowAdd(true)}
-          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-500"
-        >
-          <Plus className="size-4" /> {t('workshops.addWorkshop', 'Add Workshop')}
-        </button>
-      </div>
+      
+      {/* Hero Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-8 shadow-xl shadow-indigo-500/20"
+      >
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-5">
+            <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
+              <Building2 className="size-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                {t('workshops.title', 'Certified Workshops')}
+              </h1>
+              <p className="mt-2 max-w-xl text-indigo-100/90">
+                {t('workshops.subtitle', 'Manage and monitor all certified workshops, verifications, and customer reviews.')}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              setEditWorkshop(null);
+              setForm(emptyForm());
+              setShowAdd(true);
+            }} // Fix: clear form when adding new
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-indigo-700 shadow-lg transition hover:bg-indigo-50"
+          >
+            <Plus className="size-5" />
+            {t('workshops.addWorkshop', 'Add Workshop')}
+          </button>
+        </div>
+      </motion.div>
 
+      {/* Form Section */}
       {showForm && (
         <Card className="p-6">
           <h3 className="mb-4 text-base font-semibold text-slate-900">{formTitle}</h3>
-          <form onSubmit={handleFormSubmit} className="flex flex-wrap gap-4">
+          <form onSubmit={handleFormSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Input
               label={t('workshops.name')}
               name="name"
@@ -299,7 +368,6 @@ export default function WorkshopsPage() {
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               placeholder="e.g. Al-Salam Auto Center"
               required
-              className="min-w-[180px] flex-1"
             />
             <Input
               label={t('common.nameAr')}
@@ -307,24 +375,6 @@ export default function WorkshopsPage() {
               value={form.nameAr}
               onChange={(e) => setForm((f) => ({ ...f, nameAr: e.target.value }))}
               placeholder="مركز السلام للسيارات"
-              className="min-w-[180px] flex-1"
-            />
-            <Input
-              label={t('common.description')}
-              name="description"
-              value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              placeholder="Brief description"
-              className="w-full"
-            />
-            <Input
-              label={t('workshops.address')}
-              name="address"
-              value={form.address}
-              onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-              placeholder="King Fahd Road"
-              required
-              className="min-w-[200px] flex-1"
             />
             <Input
               label={t('workshops.city')}
@@ -333,7 +383,14 @@ export default function WorkshopsPage() {
               onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
               placeholder="Riyadh"
               required
-              className="min-w-[140px] flex-1"
+            />
+            <Input
+              label={t('workshops.address')}
+              name="address"
+              value={form.address}
+              onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+              placeholder="King Fahd Road"
+              required
             />
             <Input
               label={t('workshops.phone')}
@@ -343,7 +400,6 @@ export default function WorkshopsPage() {
               onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
               placeholder="+966112345000"
               required
-              className="min-w-[160px] flex-1"
             />
             <Input
               label={t('workshops.email')}
@@ -352,7 +408,6 @@ export default function WorkshopsPage() {
               value={form.email}
               onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
               placeholder="info@workshop.sa"
-              className="min-w-[180px] flex-1"
             />
             <Input
               label={t('workshops.locationUrl')}
@@ -360,7 +415,6 @@ export default function WorkshopsPage() {
               value={form.locationUrl}
               onChange={(e) => setForm((f) => ({ ...f, locationUrl: e.target.value }))}
               placeholder={t('workshops.locationUrlPlaceholder')}
-              className="w-full"
             />
             <Input
               label={t('workshops.services')}
@@ -369,9 +423,17 @@ export default function WorkshopsPage() {
               onChange={(e) => setForm((f) => ({ ...f, services: e.target.value }))}
               placeholder='["Engine Repair", "Oil Change"]'
               required
-              className="w-full"
+              className="sm:col-span-2"
             />
-            <div className="flex w-full gap-3 pt-2">
+             <Input
+              label={t('common.description')}
+              name="description"
+              value={form.description}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              placeholder="Brief description"
+              className="sm:col-span-3"
+            />
+            <div className="flex w-full gap-3 pt-2 sm:col-span-1 lg:col-span-1">
               <button
                 type="submit"
                 disabled={createMutation.isPending || updateMutation.isPending}
@@ -391,24 +453,24 @@ export default function WorkshopsPage() {
         </Card>
       )}
 
-      <Card className="overflow-hidden p-0">
-        <form onSubmit={handleSearchSubmit} className="flex flex-wrap items-center gap-3 border-b border-slate-100 bg-slate-50/50 px-4 py-4">
-          <div className="relative min-w-[200px] flex-1">
+      {/* Main Content Area */}
+      <div className="space-y-6">
+        {/* Filters */}
+        <div className="flex flex-col gap-4 rounded-xl bg-white p-4 shadow-sm sm:flex-row sm:items-center">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
             <input
               type="search"
               placeholder={t('workshops.searchWorkshops', 'Search workshops...')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 py-2 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              aria-label={t('workshops.searchWorkshops')}
+              className="w-full rounded-lg border border-slate-200 py-2 pl-10 pr-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           </div>
           <select
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            aria-label="Filter by city"
+            className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
             {CITIES.map((c) => (
               <option key={c.value || 'all'} value={c.value}>{c.label}</option>
@@ -417,72 +479,56 @@ export default function WorkshopsPage() {
           <select
             value={verifiedFilter}
             onChange={(e) => setVerifiedFilter(e.target.value)}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            aria-label="Filter by verification"
+            className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
             {VERIFIED_FILTERS.map((f) => (
               <option key={f.value || 'all'} value={f.value}>{f.label}</option>
             ))}
           </select>
-        </form>
+        </div>
 
+        {/* Grid View */}
         {isLoading ? (
-          <TableSkeleton rows={6} cols={5} />
+           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="h-72 rounded-2xl bg-slate-100 animate-pulse" />
+              ))}
+           </div>
+        ) : paginatedWorkshops.length === 0 ? (
+           <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 py-16 text-center">
+             <Building2 className="mb-4 size-14 text-slate-300" />
+             <p className="text-slate-600">
+               {t('workshops.noWorkshops', 'No workshops found')}
+             </p>
+           </div>
         ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50/80">
-                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">
-                      {t('workshops.name')}
-                    </th>
-                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">
-                      {t('workshops.city')}
-                    </th>
-                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">
-                      {t('workshops.phone')}
-                    </th>
-                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">
-                      {t('common.status')}
-                    </th>
-                    <th className="w-40 px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.actions')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedWorkshops.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="px-4 py-12 text-center text-slate-500">
-                        {t('workshops.noWorkshops', 'No workshops found')}
-                      </td>
-                    </tr>
-                  ) : (
-                    paginatedWorkshops.map((w) => (
-                      <WorkshopRow
-                        key={w.id}
-                        workshop={w}
-                        onEdit={openEdit}
-                        onDelete={(id) => deleteMutation.mutateAsync(id)}
-                        onToggleVerification={(id, isVerified) => verifyMutation.mutateAsync({ id, isVerified })}
-                        openConfirm={openConfirm}
-                        t={t}
-                      />
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              total={total}
-              pageSize={PAGE_SIZE}
-              onPageChange={setPage}
-              disabled={isLoading}
-            />
-          </>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {paginatedWorkshops.map((w) => (
+              <WorkshopCard
+                key={w.id}
+                workshop={w}
+                onEdit={openEdit}
+                onDelete={(id) => deleteMutation.mutateAsync(id)}
+                onToggleVerification={(id, isVerified) => verifyMutation.mutateAsync({ id, isVerified })}
+                openConfirm={openConfirm}
+                t={t}
+              />
+            ))}
+          </div>
         )}
-      </Card>
+
+        {/* Pagination */}
+        <div className="mt-8">
+           <Pagination
+             page={page}
+             totalPages={totalPages}
+             total={total}
+             pageSize={PAGE_SIZE}
+             onPageChange={setPage}
+             disabled={isLoading}
+           />
+        </div>
+      </div>
     </div>
   );
 }
