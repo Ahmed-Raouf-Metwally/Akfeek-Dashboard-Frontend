@@ -15,6 +15,7 @@ function getTitleForPath(pathname, t) {
     '/roles': [t('nav.roles', 'Roles & Permissions'), t('common.rolesAndAccess', 'Roles and access control')],
     '/notifications': [t('nav.notifications', 'Notifications'), t('common.viewManageNotifications', 'View and manage notifications')],
     '/activity': [t('nav.activity', 'Activity / Logs'), t('common.auditLog', 'Audit and activity log')],
+    '/feedback': [t('nav.feedback', 'Complaints & Suggestions'), t('feedback.subtitle', 'Manage customer feedback')],
     '/services': [t('nav.services', 'Services'), t('common.serviceCatalog', 'Service catalog')],
     '/services/new': [t('common.createService', 'Create service'), t('common.addNewService', 'Add a new service')],
     '/brands': [t('nav.brands', 'Vehicle Brands'), t('common.manageBrands', 'Manage brands')],
@@ -29,7 +30,7 @@ function getTitleForPath(pathname, t) {
     '/auto-parts/new': [t('common.addAutoPart', 'Add Auto Part'), t('common.createPartListing', 'Create new part listing')],
     '/auto-part-categories': [t('nav.auto-part-categories', 'Categories'), t('common.manageCategories', 'Manage auto part categories')],
   };
-  
+
   if (ROUTE_TITLES[pathname]) return ROUTE_TITLES[pathname];
   if (pathname.startsWith('/services/') && pathname !== '/services/new') return [t('common.serviceDetails', 'Service details'), ''];
   if (pathname.startsWith('/users/')) return [t('common.userDetails', 'User details'), ''];
@@ -67,11 +68,10 @@ function AdminLayoutInner() {
         onCloseMobile={closeMobileMenu}
       />
       <div
-        className={`flex min-h-screen flex-1 flex-col transition-[margin] duration-200 ${
-          isRTL
+        className={`flex min-h-screen flex-1 flex-col transition-[margin] duration-200 ${isRTL
             ? (sidebarCollapsed ? 'lg:mr-[72px]' : 'lg:mr-64')
             : (sidebarCollapsed ? 'lg:ml-[72px]' : 'lg:ml-64')
-        }`}
+          }`}
       >
         <Header
           title={title}

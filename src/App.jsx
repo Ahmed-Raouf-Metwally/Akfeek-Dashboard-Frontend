@@ -50,6 +50,7 @@ import MobileCarSubServiceDetailPage from './pages/MobileCarSubServiceDetailPage
 import AnalyticsPage from './pages/AnalyticsPage';
 import WorkshopsPage from './pages/WorkshopsPage';
 import WorkshopDetailPage from './pages/WorkshopDetailPage';
+import FeedbackPage from './pages/FeedbackPage';
 
 
 
@@ -128,7 +129,8 @@ function App() {
             <Route path="ratings" element={<RatingsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="profile" element={<ProfilePage />} />
-            
+            <Route path="feedback" element={<FeedbackPage />} />
+
             {/* Marketplace Routes */}
             <Route path="vendors" element={<VendorsPage />} />
             <Route path="vendors/new" element={<CreateVendorPage />} />
@@ -139,7 +141,7 @@ function App() {
             <Route path="auto-part-categories" element={<AutoPartCategoriesPage />} />
             <Route path="marketplace-orders" element={<MarketplaceOrdersPage />} />
             <Route path="marketplace-orders/:id" element={<MarketplaceOrderDetailPage />} />
-            
+
             {/* Workshops Routes */}
             <Route path="workshops" element={<WorkshopsPage />} />
             <Route path="workshops/:id" element={<WorkshopDetailPage />} />

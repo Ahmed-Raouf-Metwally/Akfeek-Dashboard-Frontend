@@ -92,11 +92,10 @@ export default function AnalyticsPage() {
               key={r}
               type="button"
               onClick={() => setRange(r)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
-                range === r
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30'
-                  : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-indigo-200 hover:text-indigo-700'
-              }`}
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${range === r
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30'
+                : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-indigo-200 hover:text-indigo-700'
+                }`}
             >
               {r === '7d' ? '7 days' : r === '30d' ? '30 days' : '90 days'}
             </button>
@@ -126,17 +125,17 @@ export default function AnalyticsPage() {
         ].map((stat, i) => {
           const Icon = stat.icon;
           return (
-          <motion.div key={stat.title} variants={item}>
-            <AnimatedCard className="flex items-center gap-4 p-5">
-              <div className={`flex size-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${stat.color} shadow-lg`}>
-                <Icon className="size-6 text-white" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-slate-500">{stat.title}</p>
-                <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
-              </div>
-            </AnimatedCard>
-          </motion.div>
+            <motion.div key={stat.title} variants={item}>
+              <AnimatedCard className="flex items-center gap-4 p-5">
+                <div className={`flex size-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${stat.color} shadow-lg`}>
+                  <Icon className="size-6 text-white" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-slate-500">{stat.title}</p>
+                  <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
+                </div>
+              </AnimatedCard>
+            </motion.div>
           );
         })}
       </motion.section>
@@ -158,8 +157,8 @@ export default function AnalyticsPage() {
               }
             />
             <CardBody className="pt-0">
-              <div className="h-[280px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="relative h-[280px] w-full">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={50}>
                   <AreaChart data={MOCK_WEEKLY} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -197,8 +196,8 @@ export default function AnalyticsPage() {
               subtitle="Last 7 days"
             />
             <CardBody className="pt-0">
-              <div className="h-[280px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="relative h-[280px] w-full">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={50}>
                   <BarChart data={MOCK_WEEKLY} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="#94a3b8" />
@@ -231,8 +230,8 @@ export default function AnalyticsPage() {
             subtitle="Distribution by category"
           />
           <CardBody className="pt-0">
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="relative h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={50}>
                 <PieChart>
                   <Pie
                     data={MOCK_CATEGORY}

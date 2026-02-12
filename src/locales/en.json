@@ -132,7 +132,8 @@
     "marketplace-orders": "Marketplace Orders",
     "roles": "Roles & Permissions",
     "activity": "Activity / Logs",
-    "workshops": "Workshops"
+    "workshops": "Workshops",
+    "feedback": "Complaints & Suggestions"
   },
   "workshops": {
     "title": "Certified Workshops",
@@ -327,8 +328,7 @@
     "editService": "Edit service",
     "parentServiceHint": "None = parent service; select a parent to add a sub-service.",
     "noSubServices": "No sub-services yet.",
-    "noMobileCarService": "Mobile Car Service is not set up yet. Add it from the main Services list.",
-    "price": "Pricing"
+    "noMobileCarService": "Mobile Car Service is not set up yet. Add it from the main Services list."
   },
   "bookings": {
     "title": "Bookings",
@@ -668,5 +668,59 @@
     "english": "English",
     "switchLanguage": "Switch Language",
     "currentLanguage": "Current Language"
+  },
+  "feedback": {
+    "title": "Complaints & Suggestions",
+    "subtitle": "Manage customer feedback, complaints, and suggestions",
+    "feedbackItem": "Feedback",
+    "deletedSuccess": "Feedback deleted successfully",
+    "statusUpdated": "Status updated successfully",
+    "priorityUpdated": "Priority updated successfully",
+    "replySuccess": "Reply sent successfully",
+    "details": "Feedback Details",
+    "orderInfo": "Order Information",
+    "replies": "Replies",
+    "sendReply": "Send Reply",
+    "replyPlaceholder": "Write your reply here...",
+    "noReplies": "No replies yet.",
+    "searchPlaceholder": "Search subject or message...",
+    "allStatuses": "All Statuses",
+    "allTypes": "All Types",
+    "allCategories": "All Categories",
+    "allPriorities": "All Priorities",
+    "noFeedback": "No complaints or suggestions found",
+    "anonymous": "Anonymous",
+    "urgent": "Urgent",
+    "pending": "Pending",
+    "fields": {
+      "subject": "Subject",
+      "user": "User",
+      "type": "Type",
+      "priority": "Priority"
+    },
+    "status": {
+      "OPEN": "Open",
+      "IN_PROGRESS": "In Progress",
+      "RESOLVED": "Resolved",
+      "REJECTED": "Rejected",
+      "CLOSED": "Closed"
+    },
+    "types": {
+      "COMPLAINT": "Complaint",
+      "SUGGESTION": "Suggestion"
+    },
+    "categories": {
+      "DELIVERY": "Delivery",
+      "PAYMENT": "Payment",
+      "PRODUCT": "Product",
+      "UI_UX": "UI/UX",
+      "OTHER": "Other"
+    },
+    "priorities": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "URGENT": "Urgent"
+    }
   }
 }

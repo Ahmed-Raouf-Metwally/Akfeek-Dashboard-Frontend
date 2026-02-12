@@ -130,7 +130,8 @@
     "marketplace-orders": "طلبات المتجر",
     "roles": "الأدوار والصلاحيات",
     "activity": "سجل النشاط",
-    "workshops": "الورش المعتمدة"
+    "workshops": "الورش المعتمدة",
+    "feedback": "الشكاوي والاقتراحات"
   },
   "workshops": {
     "title": "الورش المعتمدة",
@@ -325,8 +326,7 @@
     "editService": "تعديل الخدمة",
     "parentServiceHint": "لا شيء = الخدمة الأم؛ اختر خدمة أم لإضافة خدمة فرعية.",
     "noSubServices": "لا توجد خدمات فرعية بعد.",
-    "noMobileCarService": "لم يتم إعداد خدمة الورش المتنقلة بعد. أضفها من قائمة الخدمات الرئيسية.",
-    "price": "الأسعار"
+    "noMobileCarService": "لم يتم إعداد خدمة الورش المتنقلة بعد. أضفها من قائمة الخدمات الرئيسية."
   },
   "bookings": {
     "title": "الحجوزات",
@@ -666,5 +666,59 @@
     "english": "English",
     "switchLanguage": "تبديل اللغة",
     "currentLanguage": "اللغة الحالية"
+  },
+  "feedback": {
+    "title": "الشكاوي والاقتراحات",
+    "subtitle": "إدارة ملاحظات العملاء والشكاوي والاقتراحات",
+    "feedbackItem": "ملاحظة",
+    "deletedSuccess": "تم حذف الملاحظة بنجاح",
+    "statusUpdated": "تم تحديث الحالة بنجاح",
+    "priorityUpdated": "تم تحديث الأهمية بنجاح",
+    "replySuccess": "تم إرسال الرد بنجاح",
+    "details": "تفاصيل الملاحظة",
+    "orderInfo": "معلومات الطلب",
+    "replies": "الردود",
+    "sendReply": "إرسال الرد",
+    "replyPlaceholder": "اكتب ردك هنا...",
+    "noReplies": "لا توجد ردود حتى الآن.",
+    "searchPlaceholder": "بحث في الموضوع أو الرسالة...",
+    "allStatuses": "جميع الحالات",
+    "allTypes": "جميع الأنواع",
+    "allCategories": "جميع الفئات",
+    "allPriorities": "جميع الأهميات",
+    "noFeedback": "لا توجد شكاوي أو اقتراحات حالياً",
+    "anonymous": "مجهول الهوية",
+    "urgent": "عاجل",
+    "pending": "قيد الانتظار",
+    "fields": {
+      "subject": "الموضوع",
+      "user": "المستخدم",
+      "type": "النوع",
+      "priority": "الأهمية"
+    },
+    "status": {
+      "OPEN": "مفتوح",
+      "IN_PROGRESS": "قيد المعالجة",
+      "RESOLVED": "تم الحل",
+      "REJECTED": "مرفوض",
+      "CLOSED": "مغلق"
+    },
+    "types": {
+      "COMPLAINT": "شكوى",
+      "SUGGESTION": "اقتراح"
+    },
+    "categories": {
+      "DELIVERY": "التوصيل",
+      "PAYMENT": "الدفع",
+      "PRODUCT": "المنتج",
+      "UI_UX": "واجهة المستخدم",
+      "OTHER": "أخرى"
+    },
+    "priorities": {
+      "LOW": "منخفضة",
+      "MEDIUM": "متوسطة",
+      "HIGH": "عالية",
+      "URGENT": "عاجل جداً"
+    }
   }
 }

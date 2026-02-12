@@ -45,13 +45,13 @@ const CHART_COLORS = [
 ];
 
 const MOCK_CHART = [
-    { name: 'Mon', count: 12 },
-    { name: 'Tue', count: 19 },
-    { name: 'Wed', count: 15 },
-    { name: 'Thu', count: 22 },
-    { name: 'Fri', count: 18 },
-    { name: 'Sat', count: 24 },
-    { name: 'Sun', count: 14 },
+  { name: 'Mon', count: 12 },
+  { name: 'Tue', count: 19 },
+  { name: 'Wed', count: 15 },
+  { name: 'Thu', count: 22 },
+  { name: 'Fri', count: 18 },
+  { name: 'Sat', count: 24 },
+  { name: 'Sun', count: 14 },
 ];
 
 const PAGE_SIZE = 5;
@@ -95,17 +95,17 @@ export default function DashboardHome() {
     queryFn: dashboardService.getStats,
     staleTime: 60_000,
   });
-  
+
   const { data: servicesData, isLoading: servicesLoading } = useQuery({
-      queryKey: ['dashboard', 'services'],
-      queryFn: () => serviceService.getServices(),
-      staleTime: 300_000, // Cache services longer
+    queryKey: ['dashboard', 'services'],
+    queryFn: () => serviceService.getServices(),
+    staleTime: 300_000, // Cache services longer
   });
 
   const stats = statsData?.data?.stats || {};
   const recentBookings = statsData?.data?.recentBookings || [];
   const recentActivity = statsData?.data?.recentActivity || [];
-  
+
   const services = Array.isArray(servicesData) ? servicesData : (servicesData?.length ? servicesData : []);
   const totalServices = services.length;
 
@@ -212,46 +212,46 @@ export default function DashboardHome() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Recent Activity */}
         <section aria-labelledby="activity-heading">
-           <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between">
             <h2 id="activity-heading" className="text-lg font-semibold text-slate-900">
-               {t('dashboard.recentActivity')}
+              {t('dashboard.recentActivity')}
             </h2>
-             <Link to="/activity" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
-               {t('dashboard.viewAll')}
+            <Link to="/activity" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
+              {t('dashboard.viewAll')}
             </Link>
-           </div>
-           <Card className="h-full overflow-hidden">
-             {statsLoading ? (
-               <div className="p-4 space-y-4">
-                 {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
-               </div>
-             ) : recentActivity.length === 0 ? (
-               <div className="flex h-40 items-center justify-center text-slate-500">
-                 {t('dashboard.noActivity')}
-               </div>
-             ) : (
-                <div className="divide-y divide-slate-100">
-                  {recentActivity.map((log) => (
-                    <div key={log.id} className="flex items-center gap-3 p-4 hover:bg-slate-50">
-                      <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500">
-                        <Activity className="size-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-slate-900">
-                           <span className="font-mono text-xs text-indigo-600 mr-2">{log.action}</span>
-                           {log.entity}
-                        </p>
-                        <div className="flex items-center text-xs text-slate-500 gap-2">
-                           <span>{log.user?.profile?.firstName || log.user?.email || 'System'}</span>
-                           <span>•</span>
-                           <span>{new Date(log.createdAt).toLocaleString(i18n.language)}</span>
-                        </div>
+          </div>
+          <Card className="h-full overflow-hidden">
+            {statsLoading ? (
+              <div className="p-4 space-y-4">
+                {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+              </div>
+            ) : recentActivity.length === 0 ? (
+              <div className="flex h-40 items-center justify-center text-slate-500">
+                {t('dashboard.noActivity')}
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {recentActivity.map((log) => (
+                  <div key={log.id} className="flex items-center gap-3 p-4 hover:bg-slate-50">
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                      <Activity className="size-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-slate-900">
+                        <span className="font-mono text-xs text-indigo-600 mr-2">{log.action}</span>
+                        {log.entity}
+                      </p>
+                      <div className="flex items-center text-xs text-slate-500 gap-2">
+                        <span>{log.user?.profile?.firstName || log.user?.email || 'System'}</span>
+                        <span>•</span>
+                        <span>{new Date(log.createdAt).toLocaleString(i18n.language)}</span>
                       </div>
                     </div>
-                  ))}
-                </div>
-             )}
-           </Card>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
         </section>
 
         {/* Recent Bookings */}
@@ -266,42 +266,42 @@ export default function DashboardHome() {
           </div>
           <Card className="h-full overflow-hidden">
             {statsLoading ? (
-               <div className="p-4 space-y-4">
-                 {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
-               </div>
+              <div className="p-4 space-y-4">
+                {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+              </div>
             ) : recentBookings.length === 0 ? (
               <div className="flex h-40 items-center justify-center text-slate-500">
                 {t('dashboard.noBookings')}
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
-                 {recentBookings.map((booking) => (
-                    <div key={booking.id} className="flex items-center gap-3 p-4 hover:bg-slate-50">
-                       <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-                         <CalendarCheck className="size-5" />
-                       </div>
-                       <div className="min-w-0 flex-1">
-                          <p className="font-medium text-slate-900 line-clamp-1">
-                             {booking.vehicle?.vehicleModel?.name || 'Unknown Vehicle'}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                             {booking.bookingNumber} • {booking.customer?.profile?.firstName || 'Customer'}
-                          </p>
-                       </div>
-                       <div className="text-right">
-                          <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
-                             {booking.status}
-                          </span>
-                       </div>
+                {recentBookings.map((booking) => (
+                  <div key={booking.id} className="flex items-center gap-3 p-4 hover:bg-slate-50">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                      <CalendarCheck className="size-5" />
                     </div>
-                 ))}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-slate-900 line-clamp-1">
+                        {booking.vehicle?.vehicleModel?.name || 'Unknown Vehicle'}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {booking.bookingNumber} • {booking.customer?.profile?.firstName || 'Customer'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                        {booking.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </Card>
         </section>
       </div>
-      
-       <section aria-labelledby="chart-heading">
+
+      <section aria-labelledby="chart-heading">
         <h2 id="chart-heading" className="mb-4 text-lg font-semibold text-slate-900">
           {t('dashboard.activityDistribution')}
         </h2>
@@ -309,8 +309,8 @@ export default function DashboardHome() {
           <Card className="overflow-hidden">
             <CardHeader title={t('dashboard.weeklyActivity')} />
             <CardBody className="pt-0">
-              <div className="h-[280px] w-full min-h-[280px] min-w-0">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="relative h-[280px] w-full min-h-[280px] min-w-0">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={50}>
                   <BarChart data={MOCK_CHART} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="#94a3b8" />
@@ -329,13 +329,13 @@ export default function DashboardHome() {
               </div>
             </CardBody>
           </Card>
-          
-           <Card className="overflow-hidden">
+
+          <Card className="overflow-hidden">
             <CardHeader title={t('dashboard.servicesByCategory')} />
             <CardBody className="pt-0">
-              <div className="h-[280px] w-full min-h-[280px] min-w-0">
+              <div className="relative h-[280px] w-full min-h-[280px] min-w-0">
                 {categoryData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={50}>
                     <PieChart>
                       <Pie
                         data={categoryData}
@@ -364,7 +364,7 @@ export default function DashboardHome() {
           </Card>
         </div>
       </section>
-      
+
       {/* Recent Services List from previous implementation or removed if not needed. Keeping charts instead. */}
     </div>
   );

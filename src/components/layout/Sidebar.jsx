@@ -30,6 +30,7 @@ import {
   Layers,
   Truck,
   Building2,
+  MessageSquare,
 } from 'lucide-react';
 import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
 
@@ -43,7 +44,7 @@ const SECTIONS = [
       { key: 'analytics', to: '/analytics', icon: BarChart3, label: 'Analytics' },
     ],
   },
-  
+
   {
     key: 'services-vehicles',
     labelEn: 'Services & Vehicles',
@@ -95,6 +96,7 @@ const SECTIONS = [
     items: [
       { key: 'users', to: '/users', icon: Users, label: 'Users' },
       { key: 'roles', to: '/roles', icon: Shield, label: 'Roles & Permissions' },
+      { key: 'feedback', to: '/feedback', icon: MessageSquare, label: 'Feedback' },
       { key: 'notifications', to: '/notifications', icon: Bell, label: 'Notifications' },
       { key: 'activity', to: '/activity', icon: Activity, label: 'Activity / Logs' },
     ],
@@ -104,9 +106,9 @@ const SECTIONS = [
     labelEn: 'System',
     labelAr: 'النظام',
     items: [{ key: 'settings', to: '/settings', icon: Settings, label: 'Settings' },
-      { key: 'profile', to: '/profile', icon: UserCircle, label: 'Profile' },
+    { key: 'profile', to: '/profile', icon: UserCircle, label: 'Profile' },
     ],
-    
+
   },
 ];
 
