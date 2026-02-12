@@ -683,6 +683,7 @@
     "sendReply": "Send Reply",
     "replyPlaceholder": "Write your reply here...",
     "noReplies": "No replies yet.",
+    "closedError": "Cannot reply to a closed feedback.",
     "searchPlaceholder": "Search subject or message...",
     "allStatuses": "All Statuses",
     "allTypes": "All Types",

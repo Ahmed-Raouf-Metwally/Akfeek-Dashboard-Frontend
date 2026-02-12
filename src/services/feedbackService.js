@@ -6,6 +6,18 @@ import api from './api';
  */
 const feedbackService = {
     /**
+     * Get feedback statistics (urgent, pending)
+     */
+    getStats: async () => {
+        try {
+            const response = await api.get('/admin/feedback/stats');
+            return response.data;
+        } catch (error) {
+            throw error.normalized || error;
+        }
+    },
+
+    /**
      * List all feedback entries with filters
      * @param {Object} params - Filter parameters (status, priority, type, userId, orderId, page, limit)
      */

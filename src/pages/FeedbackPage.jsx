@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
     Search,
@@ -21,6 +21,7 @@ import DetailModal from '../components/ui/DetailModal';
 import { useAuthStore } from '../store/authStore';
 import Pagination from '../components/ui/Pagination';
 import toast from 'react-hot-toast';
+import socketService from '../services/socketService';
 
 const PAGE_SIZE = 10;
 
@@ -57,7 +58,7 @@ function StatCard({ icon: Icon, count, label, color }) {
     );
 }
 
-function Header({ isLoading }) {
+function Header({ stats, isLoading }) {
     const { t } = useTranslation();
     return (
         <div className="flex items-center justify-between">
@@ -68,13 +69,13 @@ function Header({ isLoading }) {
             <div className="flex gap-2">
                 <StatCard
                     icon={AlertTriangle}
-                    count="5"
+                    count={stats?.urgentCount || 0}
                     label={t('feedback.urgent')}
                     color="rose"
                 />
                 <StatCard
                     icon={Clock}
-                    count="12"
+                    count={stats?.pendingCount || 0}
                     label={t('feedback.pending')}
                     color="blue"
                 />
@@ -86,6 +87,7 @@ function Header({ isLoading }) {
 
 export default function FeedbackPage() {
     const { t, i18n } = useTranslation();
+    const queryClient = useQueryClient();
     const isRTL = i18n.language === 'ar';
 
     const [page, setPage] = useState(1);
@@ -111,15 +113,58 @@ export default function FeedbackPage() {
         keepPreviousData: true
     });
 
+    const { data: statsData, refetch: refetchStats } = useQuery({
+        queryKey: ['feedback-stats'],
+        queryFn: () => feedbackService.getStats(),
+    });
+
+    const stats = statsData?.data || { urgentCount: 0, pendingCount: 0 };
+
     const { data: detailData, isLoading: detailLoading, refetch: refetchDetail } = useQuery({
         queryKey: ['feedback-detail', selectedId],
         queryFn: () => feedbackService.getById(selectedId),
         enabled: !!selectedId,
     });
-
     const list = data?.data ?? [];
     const pagination = data?.pagination ?? { total: 0, pages: 1, currentPage: 1 };
     const detail = detailData?.data;
+
+    // Socket.io Real-time Integration
+    useEffect(() => {
+        if (!selectedId) return;
+
+        // Join the feedback ticket room
+        socketService.joinFeedbackTicket(selectedId);
+
+        // Listen for new replies
+        socketService.onNewReply((newReply) => {
+            // Update the cache for the feedback details
+            queryClient.setQueryData(['feedback-detail', selectedId], (oldData) => {
+                if (!oldData?.data) return oldData;
+
+                // Avoid duplicates if the reply was already added by the manual mutation
+                const exists = oldData.data.replies?.some(r => r.id === newReply.id);
+                if (exists) return oldData;
+
+                return {
+                    ...oldData,
+                    data: {
+                        ...oldData.data,
+                        replies: [...(oldData.data.replies || []), newReply]
+                    }
+                };
+            });
+
+            // Refetch shared list to keep status updated
+            refetch();
+        });
+
+        // Cleanup: Leave room and remove listener
+        return () => {
+            socketService.leaveFeedbackTicket(selectedId);
+            socketService.offNewReply();
+        };
+    }, [selectedId, queryClient, refetch]);
 
     const handleFilterChange = (name, value) => {
         setFilters(prev => ({ ...prev, [name]: value }));
@@ -131,6 +176,7 @@ export default function FeedbackPage() {
             await feedbackService.updateStatus(id, { status });
             toast.success(t('feedback.statusUpdated'));
             refetch();
+            refetchStats();
             if (selectedId === id) refetchDetail();
         } catch (err) {
             toast.error(err.message || t('common.error'));
@@ -142,6 +188,7 @@ export default function FeedbackPage() {
             await feedbackService.updatePriority(id, priority);
             toast.success(t('feedback.priorityUpdated'));
             refetch();
+            refetchStats();
             if (selectedId === id) refetchDetail();
         } catch (err) {
             toast.error(err.message || t('common.error'));
@@ -157,6 +204,7 @@ export default function FeedbackPage() {
             toast.success(t('feedback.replySuccess'));
             setReplyMessage('');
             refetchDetail();
+            refetchStats();
             refetch(); // In case status changed to IN_PROGRESS
         } catch (err) {
             toast.error(err.message || t('common.error'));
@@ -171,6 +219,7 @@ export default function FeedbackPage() {
             await feedbackService.delete(id);
             toast.success(t('feedback.deletedSuccess'));
             refetch();
+            refetchStats();
             if (selectedId === id) setSelectedId(null);
         } catch (err) {
             toast.error(err.message || t('common.error'));
@@ -180,7 +229,7 @@ export default function FeedbackPage() {
     if (isLoading) {
         return (
             <div className="space-y-6">
-                <Header isLoading={true} />
+                <Header stats={stats} isLoading={true} />
                 <Card className="overflow-hidden p-0">
                     <TableSkeleton rows={8} cols={6} />
                 </Card>
@@ -190,7 +239,7 @@ export default function FeedbackPage() {
 
     return (
         <div className="space-y-6">
-            <Header />
+            <Header stats={stats} />
 
             {/* Filters Bar */}
             <Card className="p-4">
@@ -480,24 +529,31 @@ export default function FeedbackPage() {
                             </div>
 
                             {/* Reply Input */}
-                            <form onSubmit={handleReply} className="mt-6 flex items-end gap-2">
-                                <div className="relative flex-1">
-                                    <textarea
-                                        className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all"
-                                        rows="2"
-                                        placeholder={t('feedback.replyPlaceholder')}
-                                        value={replyMessage}
-                                        onChange={(e) => setReplyMessage(e.target.value)}
-                                    />
+                            {detail.status === 'CLOSED' ? (
+                                <div className="mt-6 rounded-xl bg-slate-100 p-4 text-center text-sm font-medium text-slate-500 border border-slate-200">
+                                    <AlertTriangle className="size-4 mx-auto mb-2 text-slate-400" />
+                                    {t('feedback.closedError')}
                                 </div>
-                                <button
-                                    type="submit"
-                                    disabled={!replyMessage.trim() || isSendingReply}
-                                    className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm transition-all hover:bg-indigo-700 disabled:opacity-50 disabled:grayscale"
-                                >
-                                    <Send className={`size-5 ${isRTL ? 'rotate-180' : ''}`} />
-                                </button>
-                            </form>
+                            ) : (
+                                <form onSubmit={handleReply} className="mt-6 flex items-end gap-2">
+                                    <div className="relative flex-1">
+                                        <textarea
+                                            className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all"
+                                            rows="2"
+                                            placeholder={t('feedback.replyPlaceholder')}
+                                            value={replyMessage}
+                                            onChange={(e) => setReplyMessage(e.target.value)}
+                                        />
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        disabled={!replyMessage.trim() || isSendingReply}
+                                        className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm transition-all hover:bg-indigo-700 disabled:opacity-50 disabled:grayscale"
+                                    >
+                                        <Send className={`size-5 ${isRTL ? 'rotate-180' : ''}`} />
+                                    </button>
+                                </form>
+                            )}
                         </div>
                     </div>
                 ) : null}

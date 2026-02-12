@@ -681,6 +681,7 @@
     "sendReply": "إرسال الرد",
     "replyPlaceholder": "اكتب ردك هنا...",
     "noReplies": "لا توجد ردود حتى الآن.",
+    "closedError": "لا يمكن الرد على شكوى مغلقة.",
     "searchPlaceholder": "بحث في الموضوع أو الرسالة...",
     "allStatuses": "جميع الحالات",
     "allTypes": "جميع الأنواع",
