@@ -69,6 +69,7 @@ const SECTIONS = [
       { key: 'invoices', to: '/invoices', icon: FileText, label: 'Invoices' },
       { key: 'payments', to: '/payments', icon: CreditCard, label: 'Payments' },
       { key: 'wallets', to: '/wallets', icon: Wallet, label: 'Wallets' },
+      { key: 'points', to: '/points', icon: Star, label: 'Points Audit' },
       { key: 'ratings', to: '/ratings', icon: Star, label: 'Ratings' },
     ],
   },

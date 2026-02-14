@@ -25,6 +25,7 @@ import InvoicesPage from './pages/InvoicesPage';
 import InvoiceDetailPage from './pages/InvoiceDetailPage';
 import PaymentsPage from './pages/PaymentsPage';
 import WalletsPage from './pages/WalletsPage';
+import PointsPage from './pages/PointsPage';
 import RatingsPage from './pages/RatingsPage';
 import JobBroadcastsPage from './pages/JobBroadcastsPage';
 import BroadcastDetailPage from './pages/BroadcastDetailPage';
@@ -125,7 +126,9 @@ function App() {
             <Route path="invoices" element={<InvoicesPage />} />
             <Route path="invoices/:id" element={<InvoiceDetailPage />} />
             <Route path="payments" element={<PaymentsPage />} />
+            <Route path="payments" element={<PaymentsPage />} />
             <Route path="wallets" element={<WalletsPage />} />
+            <Route path="points" element={<PointsPage />} />
             <Route path="ratings" element={<RatingsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="profile" element={<ProfilePage />} />

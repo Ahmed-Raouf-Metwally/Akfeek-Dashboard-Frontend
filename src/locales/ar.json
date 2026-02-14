@@ -124,6 +124,7 @@
     "invoices": "الفواتير",
     "payments": "المدفوعات",
     "wallets": "المحافظ",
+    "points": "سجل نقاط الولاء",
     "ratings": "التقييمات",
     "auto-part-categories": "فئات قطع الغيار",
     "auto-parts": "قطع غيار السيارات",
@@ -579,7 +580,23 @@
       "BANK_TRANSFER": "تحويل بنكي",
       "APPLE_PAY": "Apple Pay",
       "MADA": "مدى"
-    }
+    },
+    "wallets": "المحافظ",
+    "manageWallets": "إدارة محافظ المستخدمين",
+    "credit": "إيداع",
+    "debit": "خصم",
+    "reason": "السبب",
+    "creditWallet": "إيداع في المحفظة",
+    "debitWallet": "خصم من المحفظة",
+    "creditSuccess": "تم الإيداع في المحفظة بنجاح",
+    "debitSuccess": "تم الخصم من المحفظة بنجاح",
+    "searchUser": "البحث عن مستخدم (الاسم أو البريد)...",
+    "points": "نقاط الولاء",
+    "adjustPoints": "تعديل النقاط",
+    "pointsAdjustSuccess": "تم تعديل النقاط بنجاح",
+    "pointsAudit": "سجل عمليات النقاط",
+    "pointsAuditDesc": "عرض جميع عمليات نقاط الولاء",
+    "type": "النوع"
   },
   "inspections": {
     "title": "تقارير الفحص",

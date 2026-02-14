@@ -126,14 +126,14 @@
     "invoices": "Invoices",
     "payments": "Payments",
     "wallets": "Wallets",
+    "points": "Loyalty Points Audit",
     "ratings": "Ratings",
     "auto-part-categories": "Auto Part Categories",
     "auto-parts": "Auto Parts",
     "marketplace-orders": "Marketplace Orders",
     "roles": "Roles & Permissions",
     "activity": "Activity / Logs",
-    "workshops": "Workshops",
-    "feedback": "Complaints & Suggestions"
+    "workshops": "Workshops"
   },
   "workshops": {
     "title": "Certified Workshops",
@@ -300,7 +300,6 @@
     "name": "Name",
     "category": "Category",
     "type": "Type",
-    "price": "Price",
     "duration": "Duration",
     "active": "Active",
     "inactive": "Inactive",
@@ -328,7 +327,8 @@
     "editService": "Edit service",
     "parentServiceHint": "None = parent service; select a parent to add a sub-service.",
     "noSubServices": "No sub-services yet.",
-    "noMobileCarService": "Mobile Car Service is not set up yet. Add it from the main Services list."
+    "noMobileCarService": "Mobile Car Service is not set up yet. Add it from the main Services list.",
+    "price": "Pricing"
   },
   "bookings": {
     "title": "Bookings",
@@ -581,7 +581,23 @@
       "BANK_TRANSFER": "Bank Transfer",
       "APPLE_PAY": "Apple Pay",
       "MADA": "Mada"
-    }
+    },
+    "wallets": "Wallets",
+    "manageWallets": "Manage all user wallets",
+    "credit": "Credit",
+    "debit": "Debit",
+    "reason": "Reason",
+    "creditWallet": "Credit Wallet",
+    "debitWallet": "Debit Wallet",
+    "creditSuccess": "Wallet credited successfully",
+    "debitSuccess": "Wallet debited successfully",
+    "searchUser": "Search user (name or email)...",
+    "points": "Loyalty Points",
+    "adjustPoints": "Adjust Points",
+    "pointsAdjustSuccess": "Points adjusted successfully",
+    "pointsAudit": "Points Transaction Audit",
+    "pointsAuditDesc": "View all loyalty point transactions",
+    "type": "Type"
   },
   "inspections": {
     "title": "Inspection Reports",
@@ -670,15 +686,7 @@
     "currentLanguage": "Current Language"
   },
   "feedback": {
-    "title": "Complaints & Suggestions",
-    "subtitle": "Manage customer feedback, complaints, and suggestions",
-    "feedbackItem": "Feedback",
-    "deletedSuccess": "Feedback deleted successfully",
-    "statusUpdated": "Status updated successfully",
-    "priorityUpdated": "Priority updated successfully",
-    "replySuccess": "Reply sent successfully",
-    "details": "Feedback Details",
-    "orderInfo": "Order Information",
+    "title": "Feedback & Complaints",
     "replies": "Replies",
     "sendReply": "Send Reply",
     "replyPlaceholder": "Write your reply here...",
