@@ -60,6 +60,17 @@ export const walletService = {
     if (!data.success) throw new Error(data.error || data.message || 'Failed to load points audit');
     return data;
   },
+  async getPointsSettings() {
+    const { data } = await api.get('/admin/finance/points/settings');
+    if (!data.success) throw new Error(data.error || data.message || 'Failed to load points settings');
+    return data.data;
+  },
+
+  async updatePointsSettings(payload) {
+    const { data } = await api.post('/admin/finance/points/settings', payload);
+    if (!data.success) throw new Error(data.error || data.message || 'Failed to update points settings');
+    return data.data;
+  },
 };
 
 export default walletService;

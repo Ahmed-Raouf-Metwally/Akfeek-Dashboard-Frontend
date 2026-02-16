@@ -5,6 +5,10 @@ import { useTranslation } from 'react-i18next';
 import Sidebar from './layout/Sidebar';
 import Header from './layout/Header';
 import { LayoutProvider, useLayout } from '../contexts/LayoutContext';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
+import { useAuthStore } from '../store/authStore';
+import socketService from '../services/socketService';
 
 function getTitleForPath(pathname, t) {
   const ROUTE_TITLES = {
@@ -51,6 +55,39 @@ function AdminLayoutInner() {
   const [title, subtitle] = getTitleForPath(location.pathname, t);
   const isRTL = i18n.language === 'ar';
 
+  // Real-time notifications setup
+  const user = useAuthStore(state => state.user);
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (user?.id) {
+      socketService.connect();
+      socketService.joinUser(user.id);
+
+      const handleNotification = (notification) => {
+        toast(notification.title || t('notifications.newNotification') || 'New Notification', {
+          icon: '🔔',
+          duration: 4000
+        });
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+
+        // If notification is about wallet/points, refresh wallet data
+        if (notification.message?.includes('wallet') || notification.message?.includes('points')) {
+          queryClient.invalidateQueries({ queryKey: ['wallet'] });
+          queryClient.invalidateQueries({ queryKey: ['points-audit'] });
+        }
+      };
+
+      socketService.onNotification(handleNotification);
+
+      return () => {
+        socketService.offNotification();
+        // We don't disconnect here to avoid reconnecting on every route change if AdminLayout remounts (it shouldn't if used as Layout). 
+        // But if it does, it's fine.
+      };
+    }
+  }, [user, queryClient, t]);
+
   useEffect(() => {
     setHeader(title, subtitle);
   }, [title, subtitle, setHeader]);
@@ -69,8 +106,8 @@ function AdminLayoutInner() {
       />
       <div
         className={`flex min-h-screen flex-1 flex-col transition-[margin] duration-200 ${isRTL
-            ? (sidebarCollapsed ? 'lg:mr-[72px]' : 'lg:mr-64')
-            : (sidebarCollapsed ? 'lg:ml-[72px]' : 'lg:ml-64')
+          ? (sidebarCollapsed ? 'lg:mr-[72px]' : 'lg:mr-64')
+          : (sidebarCollapsed ? 'lg:ml-[72px]' : 'lg:ml-64')
           }`}
       >
         <Header

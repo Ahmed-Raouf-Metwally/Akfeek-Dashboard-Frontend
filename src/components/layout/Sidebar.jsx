@@ -85,6 +85,7 @@ const SECTIONS = [
     labelAr: 'المتجر',
     items: [
       { key: 'vendors', to: '/vendors', icon: Store, label: 'Vendors' },
+      { key: 'vendorRequests', to: '/vendors/onboarding', icon: ClipboardCheck, label: 'Vendor Requests' },
       { key: 'auto-part-categories', to: '/auto-part-categories', icon: Layers, label: 'Categories' },
       { key: 'auto-parts', to: '/auto-parts', icon: ShoppingBag, label: 'Auto Parts' },
       { key: 'marketplace-orders', to: '/marketplace-orders', icon: Package, label: 'Orders' },

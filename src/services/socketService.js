@@ -53,6 +53,29 @@ class SocketService {
         }
     }
 
+    joinUser(userId) {
+        if (!this.socket) this.connect();
+        this.socket.emit('user:join', userId);
+    }
+
+    leaveUser(userId) {
+        // Backend handles disconnect, but if we want explicit leave we need backend support.
+        // For now, we rely on disconnect or implicit room management.
+        // But if we switch user without disconnect, we might want to leave.
+        // Since backend doesn't have 'user:leave', we just omit it for now or implement if needed.
+    }
+
+    onNotification(callback) {
+        if (!this.socket) this.connect();
+        this.socket.on('notification:new', callback);
+    }
+
+    offNotification() {
+        if (this.socket) {
+            this.socket.off('notification:new');
+        }
+    }
+
     disconnect() {
         if (this.socket) {
             this.socket.disconnect();

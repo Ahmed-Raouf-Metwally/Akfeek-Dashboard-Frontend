@@ -10,6 +10,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import DashboardHome from './pages/DashboardHome';
 import UsersPage from './pages/UsersPage';
 import UserDetailPage from './pages/UserDetailPage';
+import EditUserPage from './pages/EditUserPage';
 import ServicesPage from './pages/ServicesPage';
 import CreateServicePage from './pages/CreateServicePage';
 import ServiceDetailPage from './pages/ServiceDetailPage';
@@ -39,6 +40,7 @@ import ActivityLogsPage from './pages/ActivityLogsPage';
 import VendorsPage from './pages/VendorsPage';
 import CreateVendorPage from './pages/CreateVendorPage';
 import VendorDetailPage from './pages/VendorDetailPage';
+import VendorOnboardingPage from './pages/VendorOnboardingPage';
 import AutoPartsPage from './pages/AutoPartsPage';
 import CreateAutoPartPage from './pages/CreateAutoPartPage';
 import AutoPartDetailPage from './pages/AutoPartDetailPage';
@@ -105,6 +107,7 @@ function App() {
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="activity" element={<ActivityLogsPage />} />
             <Route path="users/:id" element={<UserDetailPage />} />
+            <Route path="users/:id/edit" element={<EditUserPage />} />
             <Route path="services" element={<ServicesPage />} />
             <Route path="services/new" element={<CreateServicePage />} />
             <Route path="services/:id" element={<ServiceDetailPage />} />
@@ -136,6 +139,7 @@ function App() {
 
             {/* Marketplace Routes */}
             <Route path="vendors" element={<VendorsPage />} />
+            <Route path="vendors/onboarding" element={<VendorOnboardingPage />} />
             <Route path="vendors/new" element={<CreateVendorPage />} />
             <Route path="vendors/:id" element={<VendorDetailPage />} />
             <Route path="auto-parts" element={<AutoPartsPage />} />

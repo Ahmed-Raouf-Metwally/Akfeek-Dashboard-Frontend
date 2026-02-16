@@ -21,7 +21,7 @@ const VENDOR_STATUSES = (t) => [
 ];
 
 export default function VendorsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const PAGE_SIZE = 12;
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('ALL');
@@ -32,9 +32,9 @@ export default function VendorsPage() {
 
   const { data: vendors = [], isLoading } = useQuery({
     queryKey: ['vendors', { search, status }],
-    queryFn: () => vendorService.getVendors({ 
-      search: search || undefined, 
-      status: status !== 'ALL' ? status : undefined 
+    queryFn: () => vendorService.getVendors({
+      search: search || undefined,
+      status: status !== 'ALL' ? status : undefined
     }),
     staleTime: 60_000,
   });
@@ -42,7 +42,7 @@ export default function VendorsPage() {
 
 
   const filteredVendors = vendors; // Filtering happens in API in real app, simplified here
-  
+
   const { paginatedItems: paginatedVendors, totalPages, total } = useMemo(() => {
     const total = filteredVendors.length;
     const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -53,7 +53,7 @@ export default function VendorsPage() {
 
   return (
     <div className="space-y-6">
-      
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">{t('vendors.title')}</h1>
@@ -93,7 +93,7 @@ export default function VendorsPage() {
               </select>
             </div>
           </div>
-          
+
           <div className="flex rounded-lg border border-slate-200 bg-slate-50 p-1">
             <button
               onClick={() => setViewMode('grid')}
@@ -132,7 +132,7 @@ export default function VendorsPage() {
           {viewMode === 'grid' ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {paginatedVendors.map((vendor) => (
-                <VendorCard key={vendor.id} vendor={vendor} />
+                <VendorCard key={vendor.id} vendor={vendor} isArabic={i18n.language === 'ar'} />
               ))}
             </div>
           ) : (
@@ -155,19 +155,21 @@ export default function VendorsPage() {
                           <div className="flex items-center gap-3">
                             <img src={vendor.logo || '/placeholder-vendor.png'} alt="" className="size-10 rounded-lg object-cover bg-slate-100" />
                             <div>
-                              <p className="font-medium text-slate-900">{vendor.businessName}</p>
-                              <p className="text-xs text-slate-500">{vendor.type}</p>
+                              <p className="font-medium text-slate-900">{i18n.language === 'ar' ? vendor.businessNameAr || vendor.businessName : vendor.businessName}</p>
+                              <p className="text-xs text-slate-500 capitalize">{vendor.country}</p>
                             </div>
                           </div>
                         </td>
                         <td className="px-4 py-3">
                           <div className="text-sm">
-                            <p className="text-slate-900">{vendor.u_firstName} {vendor.u_lastName}</p>
-                            <p className="text-slate-500">{vendor.u_email}</p>
+                            <p className="text-slate-900">
+                              {vendor.user?.profile?.firstName} {vendor.user?.profile?.lastName}
+                            </p>
+                            <p className="text-slate-500">{vendor.user?.email}</p>
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <ApprovalStatusBadge status={vendor.approvalStatus} />
+                          <ApprovalStatusBadge status={vendor.status} isArabic={i18n.language === 'ar'} />
                         </td>
                         <td className="px-4 py-3 text-sm text-slate-600">
                           {vendor._count?.parts ?? 0} parts

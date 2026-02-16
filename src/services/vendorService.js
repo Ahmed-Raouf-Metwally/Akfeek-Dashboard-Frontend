@@ -79,6 +79,40 @@ export const vendorService = {
   },
 
   /**
+   * Vendor Onboarding: Register a new vendor (Public/System)
+   */
+  async registerVendor(payload) {
+    const { data } = await api.post('/vendor-onboarding/register', payload);
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to submit vendor registration');
+    }
+    return data.data;
+  },
+
+  /**
+   * Vendor Onboarding: List registration requests (Admin)
+   */
+  async getOnboardingRequests(status) {
+    const params = status && status !== 'ALL' ? { status } : {};
+    const { data } = await api.get('/vendor-onboarding/admin/list', { params });
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to load onboarding requests');
+    }
+    return data.data;
+  },
+
+  /**
+   * Vendor Onboarding: Update request status (Admin)
+   */
+  async updateOnboardingStatus(id, status) {
+    const { data } = await api.patch(`/vendor-onboarding/admin/${id}/status`, { status });
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to update request status');
+    }
+    return data.data;
+  },
+
+  /**
    * Delete vendor
    */
   async deleteVendor(id) {

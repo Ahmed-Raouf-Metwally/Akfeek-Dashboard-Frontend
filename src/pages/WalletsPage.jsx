@@ -360,6 +360,7 @@ export default function WalletsPage() {
         open={historyModal.open}
         onClose={closeHistoryModal}
         title={t('finance.transactionHistory') || 'Transaction History'}
+        className="max-w-7xl"
       >
         <div className="space-y-4">
           {isLoadingTransactions ? (
@@ -380,6 +381,7 @@ export default function WalletsPage() {
                     <th className="px-4 py-2">{t('finance.type')}</th>
                     <th className="px-4 py-2">{t('finance.amount')}</th>
                     <th className="px-4 py-2">{t('common.status')}</th>
+                    <th className="px-4 py-2">{t('finance.performedBy') || 'Performed By'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -402,6 +404,18 @@ export default function WalletsPage() {
                           }`}>
                           {txn.status}
                         </span>
+                      </td>
+                      <td className="px-4 py-2 text-xs">
+                        {txn.performedBy ? (
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-slate-700">
+                              {txn.performedBy.profile?.firstName} {txn.performedBy.profile?.lastName}
+                            </span>
+                            <span className="text-[10px] text-slate-400">{txn.performedBy.email}</span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
                       </td>
                     </tr>
                   ))}
