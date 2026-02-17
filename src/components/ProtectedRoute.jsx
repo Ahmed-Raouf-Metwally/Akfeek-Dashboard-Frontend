@@ -10,6 +10,8 @@ export default function ProtectedRoute({ children, requireAdmin = true }) {
   const token = useAuthStore((s) => s.token);
   const isHydrated = useAuthStore((s) => s.isHydrated);
   const isAdmin = user?.role === 'ADMIN';
+  const isVendor = user?.role === 'VENDOR';
+  const canAccessDashboard = isAdmin || isVendor;
 
   if (!isHydrated) {
     return (
@@ -24,7 +26,7 @@ export default function ProtectedRoute({ children, requireAdmin = true }) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (requireAdmin && !isAdmin) {
+  if (requireAdmin && !canAccessDashboard) {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center rounded-xl border border-slate-200 bg-white p-8 text-center">
         <p className="mb-4 text-slate-600">{t('error.permissionDenied')}</p>

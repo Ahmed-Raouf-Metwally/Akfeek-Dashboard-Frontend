@@ -33,6 +33,10 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
+import { useAuthStore } from '../../store/authStore';
+
+/** Menu keys that vendor role can see (dashboard, my parts, my orders, profile, settings) */
+const VENDOR_VISIBLE_KEYS = new Set(['dashboard', 'analytics', 'auto-parts', 'marketplace-orders', 'profile', 'settings']);
 
 const SECTIONS = [
   {
@@ -148,6 +152,8 @@ function SidebarLink({ to, icon: Icon, label, active, collapsed }) {
 export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile }) {
   const { t, i18n } = useTranslation();
   const location = useLocation();
+  const user = useAuthStore((s) => s.user);
+  const isVendor = user?.role === 'VENDOR';
   const navVisibility = useDashboardSettingsStore((s) => s.navVisibility);
   const isRTL = i18n.language === 'ar';
 
@@ -198,7 +204,10 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
 
       <nav className="flex-1 space-y-6 overflow-y-auto p-3">
         {SECTIONS.map((section) => {
-          const visibleItems = section.items.filter((item) => navVisibility[item.key] !== false);
+          let visibleItems = section.items.filter((item) => navVisibility[item.key] !== false);
+          if (isVendor) {
+            visibleItems = visibleItems.filter((item) => VENDOR_VISIBLE_KEYS.has(item.key));
+          }
           if (visibleItems.length === 0) return null;
           return (
             <div key={section.key} className="space-y-1">

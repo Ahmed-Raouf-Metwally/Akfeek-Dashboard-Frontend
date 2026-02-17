@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { ArrowLeft, CheckCircle, Trash2, Tag, Truck, Box, DollarSign, Layers } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { ArrowLeft, CheckCircle, Trash2, XCircle, Tag, Truck, Box } from 'lucide-react';
 import { autoPartService } from '../services/autoPartService';
+import { useAuthStore } from '../store/authStore';
 import { useConfirm } from '../hooks/useConfirm';
 import { Card } from '../components/ui/Card';
 import ApprovalStatusBadge from '../components/marketplace/ApprovalStatusBadge';
@@ -12,6 +14,9 @@ import VendorBadge from '../components/marketplace/VendorBadge';
 export default function AutoPartDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.role === 'ADMIN';
   const queryClient = useQueryClient();
   const [openConfirm, ConfirmModal] = useConfirm();
   const [activeImage, setActiveImage] = useState(0);
@@ -24,10 +29,10 @@ export default function AutoPartDetailPage() {
   const isPending = part && !part.isApproved;
 
   const updateApprovalMutation = useMutation({
-    mutationFn: (isApproved) => autoPartService.updatePartApproval(part.id, isApproved),
+    mutationFn: (isApproved) => autoPartService.updatePartApproval(part?.id, isApproved),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auto-part', id] });
-      toast.success('Approval status updated');
+      toast.success(t('common.success') || 'Approval status updated');
     },
     onError: (err) => toast.error(err?.message || 'Failed to update status'),
   });
@@ -62,26 +67,56 @@ export default function AutoPartDetailPage() {
           </div>
         </div>
         <div className="ml-auto flex items-center gap-2">
-           {isPending && (
+           {isAdmin && (
+             <>
+               {isPending ? (
+                 <>
+                   <button
+                     onClick={async () => {
+                       const ok = await openConfirm({ title: t('autoParts.approveTitle', 'Approve Part'), message: t('autoParts.approveMessage', 'Approve this part for listing?'), variant: 'primary' });
+                       if (ok) updateApprovalMutation.mutate(true);
+                     }}
+                     disabled={updateApprovalMutation.isPending}
+                     className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500 disabled:opacity-50"
+                   >
+                     <CheckCircle className="size-4" /> {t('autoParts.approve', 'Approve')}
+                   </button>
+                   <button
+                     onClick={async () => {
+                       const ok = await openConfirm({ title: t('autoParts.rejectTitle', 'Reject Part'), message: t('autoParts.rejectMessage', 'Reject this part? It will remain unlisted.'), variant: 'danger' });
+                       if (ok) updateApprovalMutation.mutate(false);
+                     }}
+                     disabled={updateApprovalMutation.isPending}
+                     className="flex items-center gap-2 rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-50"
+                   >
+                     <XCircle className="size-4" /> {t('autoParts.reject', 'Reject')}
+                   </button>
+                 </>
+               ) : (
+                 <button
+                   onClick={async () => {
+                     const ok = await openConfirm({ title: t('autoParts.revokeTitle', 'Revoke Approval'), message: t('autoParts.revokeMessage', 'Revoke approval? Part will no longer be listed.'), variant: 'danger' });
+                     if (ok) updateApprovalMutation.mutate(false);
+                   }}
+                   disabled={updateApprovalMutation.isPending}
+                   className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+                 >
+                   <XCircle className="size-4" /> {t('autoParts.revokeApproval', 'Revoke approval')}
+                 </button>
+               )}
+             </>
+           )}
+           {isAdmin && (
              <button
                onClick={async () => {
-                 const ok = await openConfirm({ title: 'Approve Part', message: 'Approve this part for listing?', variant: 'primary' });
-                 if (ok) updateApprovalMutation.mutate(true);
+                 const ok = await openConfirm({ title: t('common.delete') || 'Delete Part', message: t('autoParts.deleteMessage', 'Delete this part? This cannot be undone.'), variant: 'danger' });
+                 if (ok) deleteMutation.mutate();
                }}
-               className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500"
+               className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
              >
-               <CheckCircle className="size-4" /> Approve
+               <Trash2 className="size-4" /> {t('common.delete', 'Delete')}
              </button>
            )}
-           <button
-             onClick={async () => {
-               const ok = await openConfirm({ title: 'Delete Part', message: 'Delete this part? This cannot be undone.', variant: 'danger' });
-               if (ok) deleteMutation.mutate();
-             }}
-             className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
-           >
-             <Trash2 className="size-4" /> Delete
-           </button>
         </div>
       </div>
 
@@ -148,12 +183,59 @@ export default function AutoPartDetailPage() {
                 </div>
              </div>
 
+             {isAdmin && (
+               <div className="mt-8 border-t border-slate-100 pt-6">
+                 <h3 className="mb-3 font-semibold text-slate-900">{t('autoParts.approvalActions', 'Approval')}</h3>
+                 <div className="flex flex-wrap items-center gap-3">
+                   <ApprovalStatusBadge status={part.isApproved ? 'APPROVED' : 'PENDING_APPROVAL'} />
+                   {isPending ? (
+                     <>
+                       <button
+                         type="button"
+                         onClick={async () => {
+                           const ok = await openConfirm({ title: t('autoParts.approveTitle', 'Approve Part'), message: t('autoParts.approveMessage', 'Approve this part for listing?'), variant: 'primary' });
+                           if (ok) updateApprovalMutation.mutate(true);
+                         }}
+                         disabled={updateApprovalMutation.isPending}
+                         className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500 disabled:opacity-50"
+                       >
+                         {t('autoParts.approve', 'Approve')}
+                       </button>
+                       <button
+                         type="button"
+                         onClick={async () => {
+                           const ok = await openConfirm({ title: t('autoParts.rejectTitle', 'Reject Part'), message: t('autoParts.rejectMessage', 'Reject this part? It will remain unlisted.'), variant: 'danger' });
+                           if (ok) updateApprovalMutation.mutate(false);
+                         }}
+                         disabled={updateApprovalMutation.isPending}
+                         className="rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-50"
+                       >
+                         {t('autoParts.reject', 'Reject')}
+                       </button>
+                     </>
+                   ) : (
+                     <button
+                       type="button"
+                       onClick={async () => {
+                         const ok = await openConfirm({ title: t('autoParts.revokeTitle', 'Revoke Approval'), message: t('autoParts.revokeMessage', 'Revoke approval? Part will no longer be listed.'), variant: 'danger' });
+                         if (ok) updateApprovalMutation.mutate(false);
+                       }}
+                       disabled={updateApprovalMutation.isPending}
+                       className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+                     >
+                       {t('autoParts.revokeApproval', 'Revoke approval')}
+                     </button>
+                   )}
+                 </div>
+               </div>
+             )}
+
              <div className="mt-8">
                <h3 className="mb-2 font-semibold text-slate-900">Vendor</h3>
                <div className="rounded-lg bg-slate-50 p-4">
                  <div className="flex items-center justify-between">
                    <VendorBadge vendor={part.vendor} />
-                   <Link to={`/vendors/${part.vendorId}`} className="text-sm text-indigo-600 hover:underline">View Profile</Link>
+                   {part.vendorId && <Link to={`/vendors/${part.vendorId}`} className="text-sm text-indigo-600 hover:underline">View Profile</Link>}
                  </div>
                </div>
              </div>
