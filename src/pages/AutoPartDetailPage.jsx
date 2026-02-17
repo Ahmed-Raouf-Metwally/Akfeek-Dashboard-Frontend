@@ -3,12 +3,11 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, CheckCircle, Trash2, XCircle, Tag, Truck, Box } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Trash2, Tag, Truck, Box, Pencil } from 'lucide-react';
 import { autoPartService } from '../services/autoPartService';
 import { useAuthStore } from '../store/authStore';
 import { useConfirm } from '../hooks/useConfirm';
 import { Card } from '../components/ui/Card';
-import ApprovalStatusBadge from '../components/marketplace/ApprovalStatusBadge';
 import VendorBadge from '../components/marketplace/VendorBadge';
 
 export default function AutoPartDetailPage() {
@@ -17,6 +16,8 @@ export default function AutoPartDetailPage() {
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'ADMIN';
+  const isVendor = user?.role === 'VENDOR';
+  const canEditOrDelete = isAdmin || isVendor;
   const queryClient = useQueryClient();
   const [openConfirm, ConfirmModal] = useConfirm();
   const [activeImage, setActiveImage] = useState(0);
@@ -26,20 +27,11 @@ export default function AutoPartDetailPage() {
     queryFn: () => autoPartService.getAutoPartById(id),
   });
 
-  const isPending = part && !part.isApproved;
-
-  const updateApprovalMutation = useMutation({
-    mutationFn: (isApproved) => autoPartService.updatePartApproval(part?.id, isApproved),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['auto-part', id] });
-      toast.success(t('common.success') || 'Approval status updated');
-    },
-    onError: (err) => toast.error(err?.message || 'Failed to update status'),
-  });
-
   const deleteMutation = useMutation({
     mutationFn: () => autoPartService.deleteAutoPart(part.id),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auto-parts'] });
+      queryClient.invalidateQueries({ queryKey: ['auto-part', id] });
       toast.success('Part deleted');
       navigate('/auto-parts');
     },
@@ -67,55 +59,24 @@ export default function AutoPartDetailPage() {
           </div>
         </div>
         <div className="ml-auto flex items-center gap-2">
-           {isAdmin && (
+           {canEditOrDelete && (
              <>
-               {isPending ? (
-                 <>
-                   <button
-                     onClick={async () => {
-                       const ok = await openConfirm({ title: t('autoParts.approveTitle', 'Approve Part'), message: t('autoParts.approveMessage', 'Approve this part for listing?'), variant: 'primary' });
-                       if (ok) updateApprovalMutation.mutate(true);
-                     }}
-                     disabled={updateApprovalMutation.isPending}
-                     className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500 disabled:opacity-50"
-                   >
-                     <CheckCircle className="size-4" /> {t('autoParts.approve', 'Approve')}
-                   </button>
-                   <button
-                     onClick={async () => {
-                       const ok = await openConfirm({ title: t('autoParts.rejectTitle', 'Reject Part'), message: t('autoParts.rejectMessage', 'Reject this part? It will remain unlisted.'), variant: 'danger' });
-                       if (ok) updateApprovalMutation.mutate(false);
-                     }}
-                     disabled={updateApprovalMutation.isPending}
-                     className="flex items-center gap-2 rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-50"
-                   >
-                     <XCircle className="size-4" /> {t('autoParts.reject', 'Reject')}
-                   </button>
-                 </>
-               ) : (
-                 <button
-                   onClick={async () => {
-                     const ok = await openConfirm({ title: t('autoParts.revokeTitle', 'Revoke Approval'), message: t('autoParts.revokeMessage', 'Revoke approval? Part will no longer be listed.'), variant: 'danger' });
-                     if (ok) updateApprovalMutation.mutate(false);
-                   }}
-                   disabled={updateApprovalMutation.isPending}
-                   className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-100 disabled:opacity-50"
-                 >
-                   <XCircle className="size-4" /> {t('autoParts.revokeApproval', 'Revoke approval')}
-                 </button>
-               )}
+               <Link
+                 to={`/auto-parts/${part.id}/edit`}
+                 className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+               >
+                 <Pencil className="size-4" /> {t('common.edit', 'Edit')}
+               </Link>
+               <button
+                 onClick={async () => {
+                   const ok = await openConfirm({ title: t('common.delete') || 'Delete Part', message: t('autoParts.deleteMessage', 'Delete this part? This cannot be undone.'), variant: 'danger' });
+                   if (ok) deleteMutation.mutate();
+                 }}
+                 className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
+               >
+                 <Trash2 className="size-4" /> {t('common.delete', 'Delete')}
+               </button>
              </>
-           )}
-           {isAdmin && (
-             <button
-               onClick={async () => {
-                 const ok = await openConfirm({ title: t('common.delete') || 'Delete Part', message: t('autoParts.deleteMessage', 'Delete this part? This cannot be undone.'), variant: 'danger' });
-                 if (ok) deleteMutation.mutate();
-               }}
-               className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
-             >
-               <Trash2 className="size-4" /> {t('common.delete', 'Delete')}
-             </button>
            )}
         </div>
       </div>
@@ -157,7 +118,6 @@ export default function AutoPartDetailPage() {
                     <span className="text-sm text-slate-400 line-through">{parseFloat(part.compareAtPrice).toLocaleString()} SAR</span>
                   )}
                </div>
-               <ApprovalStatusBadge status={part.isApproved ? 'APPROVED' : 'PENDING_APPROVAL'} />
              </div>
 
              <div className="space-y-4 border-t border-slate-100 pt-6">
@@ -182,53 +142,6 @@ export default function AutoPartDetailPage() {
                    <span className="font-medium text-slate-900">{part.weight ? `${part.weight} kg` : 'N/A'}</span>
                 </div>
              </div>
-
-             {isAdmin && (
-               <div className="mt-8 border-t border-slate-100 pt-6">
-                 <h3 className="mb-3 font-semibold text-slate-900">{t('autoParts.approvalActions', 'Approval')}</h3>
-                 <div className="flex flex-wrap items-center gap-3">
-                   <ApprovalStatusBadge status={part.isApproved ? 'APPROVED' : 'PENDING_APPROVAL'} />
-                   {isPending ? (
-                     <>
-                       <button
-                         type="button"
-                         onClick={async () => {
-                           const ok = await openConfirm({ title: t('autoParts.approveTitle', 'Approve Part'), message: t('autoParts.approveMessage', 'Approve this part for listing?'), variant: 'primary' });
-                           if (ok) updateApprovalMutation.mutate(true);
-                         }}
-                         disabled={updateApprovalMutation.isPending}
-                         className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500 disabled:opacity-50"
-                       >
-                         {t('autoParts.approve', 'Approve')}
-                       </button>
-                       <button
-                         type="button"
-                         onClick={async () => {
-                           const ok = await openConfirm({ title: t('autoParts.rejectTitle', 'Reject Part'), message: t('autoParts.rejectMessage', 'Reject this part? It will remain unlisted.'), variant: 'danger' });
-                           if (ok) updateApprovalMutation.mutate(false);
-                         }}
-                         disabled={updateApprovalMutation.isPending}
-                         className="rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-50"
-                       >
-                         {t('autoParts.reject', 'Reject')}
-                       </button>
-                     </>
-                   ) : (
-                     <button
-                       type="button"
-                       onClick={async () => {
-                         const ok = await openConfirm({ title: t('autoParts.revokeTitle', 'Revoke Approval'), message: t('autoParts.revokeMessage', 'Revoke approval? Part will no longer be listed.'), variant: 'danger' });
-                         if (ok) updateApprovalMutation.mutate(false);
-                       }}
-                       disabled={updateApprovalMutation.isPending}
-                       className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-100 disabled:opacity-50"
-                     >
-                       {t('autoParts.revokeApproval', 'Revoke approval')}
-                     </button>
-                   )}
-                 </div>
-               </div>
-             )}
 
              <div className="mt-8">
                <h3 className="mb-2 font-semibold text-slate-900">Vendor</h3>

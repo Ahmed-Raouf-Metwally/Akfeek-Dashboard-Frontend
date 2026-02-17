@@ -107,12 +107,6 @@ export default function Login() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-slate-500">
-          {t('auth.dontHaveAccount', "Don't have an account?")}{' '}
-          <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-700">
-            {t('auth.register', 'Register')}
-          </Link>
-        </p>
       </div>
     </div>
   );

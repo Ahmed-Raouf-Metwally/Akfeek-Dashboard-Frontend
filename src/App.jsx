@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
 import Login from './pages/Login';
-import Register from './pages/Register';
 import AdminLayout from './components/AdminLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardHome from './pages/DashboardHome';
@@ -44,6 +43,7 @@ import VendorOnboardingPage from './pages/VendorOnboardingPage';
 import AutoPartsPage from './pages/AutoPartsPage';
 import CreateAutoPartPage from './pages/CreateAutoPartPage';
 import AutoPartDetailPage from './pages/AutoPartDetailPage';
+import EditAutoPartPage from './pages/EditAutoPartPage';
 import AutoPartCategoriesPage from './pages/AutoPartCategoriesPage';
 import MarketplaceOrdersPage from './pages/MarketplaceOrdersPage';
 import MarketplaceOrderDetailPage from './pages/MarketplaceOrderDetailPage';
@@ -89,7 +89,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/register" element={<Navigate to="/login" replace />} />
           <Route path="/forgot-password" element={<div className="mx-auto max-w-md p-6"><h1 className="text-xl font-semibold text-slate-900">Forgot password</h1><p className="mt-2 text-slate-500">Reset flow coming soon. Contact support or use the app.</p><Link to="/login" className="mt-4 inline-block font-semibold text-indigo-600 hover:text-indigo-700">Back to sign in</Link></div>} />
           <Route
             path="/"
@@ -145,6 +145,7 @@ function App() {
             <Route path="auto-parts" element={<AutoPartsPage />} />
             <Route path="auto-parts/new" element={<CreateAutoPartPage />} />
             <Route path="auto-parts/:id" element={<AutoPartDetailPage />} />
+            <Route path="auto-parts/:id/edit" element={<EditAutoPartPage />} />
             <Route path="auto-part-categories" element={<AutoPartCategoriesPage />} />
             <Route path="marketplace-orders" element={<MarketplaceOrdersPage />} />
             <Route path="marketplace-orders/:id" element={<MarketplaceOrderDetailPage />} />

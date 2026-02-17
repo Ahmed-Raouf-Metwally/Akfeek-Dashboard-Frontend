@@ -46,6 +46,18 @@ export const autoPartService = {
   },
 
   /**
+   * Upload image file(s) for auto part. Returns single URL string or array of URLs.
+   */
+  async uploadImages(files) {
+    const formData = new FormData();
+    const fileList = Array.isArray(files) ? files : [files];
+    fileList.forEach((file) => formData.append('files', file));
+    const { data } = await api.post('/auto-parts/upload-image', formData);
+    if (!data.success) throw new Error(data.error || 'Upload failed');
+    return data.data;
+  },
+
+  /**
    * Create auto part.
    */
   async createAutoPart(payload) {
@@ -79,23 +91,46 @@ export const autoPartService = {
   },
 
   /**
-   * Delete auto part.
+   * Delete auto part (soft delete on backend).
    */
   async deleteAutoPart(id) {
-    const { data } = await api.delete(`/auto-parts/${id}`);
-    if (!data.success) {
-      throw new Error(data.error || 'Failed to delete auto part');
+    const res = await api.delete(`/auto-parts/${id}`);
+    const data = res?.data ?? res;
+    if (data && data.success === false) {
+      throw new Error(data.error || data.message || 'Failed to delete auto part');
     }
     return data;
   },
 
   /**
-   * Add images to part.
+   * Add images to part. Each item: { url, isPrimary?, sortOrder? }.
    */
   async addPartImages(id, images) {
     const { data } = await api.post(`/auto-parts/${id}/images`, { images });
     if (!data.success) {
       throw new Error(data.error || 'Failed to add images');
+    }
+    return data.data;
+  },
+
+  /**
+   * Delete one image from part.
+   */
+  async deletePartImage(id, imageId) {
+    const { data } = await api.delete(`/auto-parts/${id}/images/${imageId}`);
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to delete image');
+    }
+    return data;
+  },
+
+  /**
+   * Set one image as primary (portfolio).
+   */
+  async setPrimaryPartImage(id, imageId) {
+    const { data } = await api.patch(`/auto-parts/${id}/images/${imageId}/primary`);
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to set primary image');
     }
     return data.data;
   },
