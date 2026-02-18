@@ -133,6 +133,7 @@ export default function ServicesPage() {
     { value: 'EMERGENCY', label: t('services.categories.EMERGENCY') },
     { value: 'INSPECTION', label: t('services.categories.INSPECTION') },
     { value: 'CUSTOMIZATION', label: t('services.categories.CUSTOMIZATION') },
+    { value: 'COMPREHENSIVE_CARE', label: t('services.categories.COMPREHENSIVE_CARE') },
   ];
 
   const TYPES = [

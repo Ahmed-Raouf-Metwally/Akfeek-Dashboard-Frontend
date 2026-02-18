@@ -14,7 +14,6 @@ import {
   Settings,
   UserCircle,
   PanelLeftClose,
-  PanelLeft,
   Bell,
   Shield,
   Activity,
@@ -35,8 +34,14 @@ import {
 import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
 import { useAuthStore } from '../../store/authStore';
 
-/** Menu keys that vendor role can see (dashboard, my parts, my orders, profile, settings) */
-const VENDOR_VISIBLE_KEYS = new Set(['dashboard', 'analytics', 'auto-parts', 'marketplace-orders', 'profile', 'settings']);
+/** ١ – فيندور قطع الغيار / المنتجات */
+const VENDOR_AUTO_PARTS_KEYS = new Set(['dashboard', 'analytics', 'auto-parts', 'marketplace-orders', 'wallets', 'points', 'invoices', 'payments', 'profile', 'settings']);
+/** ٢ – فيندور العناية الشاملة */
+const VENDOR_COMPREHENSIVE_CARE_KEYS = new Set(['dashboard', 'analytics', 'vendorMyServices', 'vendorBookings', 'wallets', 'points', 'invoices', 'payments', 'profile', 'settings']);
+/** ٣ – فيندور الورش المعتمدة */
+const VENDOR_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'vendorMyWorkshop', 'vendorWorkshopBookings', 'wallets', 'points', 'invoices', 'payments', 'profile', 'settings']);
+/** ٤ – فيندور خدمة الغسيل */
+const VENDOR_CAR_WASH_KEYS = new Set(['dashboard', 'analytics', 'vendorMyServices', 'vendorBookings', 'wallets', 'points', 'invoices', 'payments', 'profile', 'settings']);
 
 const SECTIONS = [
   {
@@ -78,10 +83,22 @@ const SECTIONS = [
     ],
   },
   {
-    key: 'catalog',
-    labelEn: 'Catalog',
-    labelAr: 'المنتجات',
-    items: [{ key: 'products', to: '/products', icon: Package, label: 'Products' }],
+    key: 'vendorServices',
+    labelEn: 'Services',
+    labelAr: 'الخدمات',
+    items: [
+      { key: 'vendorMyServices', to: '/vendor/comprehensive-care/services', icon: Wrench, label: 'My Services' },
+      { key: 'vendorBookings', to: '/vendor/comprehensive-care/bookings', icon: CalendarCheck, label: 'Appointments' },
+    ],
+  },
+  {
+    key: 'vendorWorkshop',
+    labelEn: 'Certified Workshop (Vendor)',
+    labelAr: 'الورش المعتمدة',
+    items: [
+      { key: 'vendorMyWorkshop', to: '/vendor/workshop', icon: Building2, label: 'My Workshop' },
+      { key: 'vendorWorkshopBookings', to: '/vendor/workshop/bookings', icon: CalendarCheck, label: 'Workshop Bookings' },
+    ],
   },
   {
     key: 'marketplace',
@@ -205,8 +222,28 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
       <nav className="flex-1 space-y-6 overflow-y-auto p-3">
         {SECTIONS.map((section) => {
           let visibleItems = section.items.filter((item) => navVisibility[item.key] !== false);
+          const vt = user?.vendorType;
+          if (section.key === 'services-vehicles' && isVendor && vt === 'CERTIFIED_WORKSHOP') {
+            // فيندور الورش المعتمدة يشوف قسم "الورش المعتمدة" فقط، مش "الخدمات والمركبات"
+            visibleItems = [];
+          }
+          if (section.key === 'vendorServices') {
+            // خدماتي ومواعيد الحجوزات لفيندور العناية الشاملة والغسيل فقط، مش للأدمن
+            const showServicesSection = isVendor && (vt === 'COMPREHENSIVE_CARE' || vt === 'CAR_WASH');
+            if (!showServicesSection) visibleItems = [];
+          }
+          if (section.key === 'vendorWorkshop') {
+            // للأدمن: الورش تظهر مرة واحدة تحت "الخدمات والمركبات" فقط. هذا القسم لفيندور الورش فقط.
+            if (!isVendor) visibleItems = [];
+            else if (isVendor && vt !== 'CERTIFIED_WORKSHOP') visibleItems = [];
+          }
           if (isVendor) {
-            visibleItems = visibleItems.filter((item) => VENDOR_VISIBLE_KEYS.has(item.key));
+            const vendorKeys =
+              vt === 'COMPREHENSIVE_CARE' ? VENDOR_COMPREHENSIVE_CARE_KEYS
+              : vt === 'CERTIFIED_WORKSHOP' ? VENDOR_WORKSHOP_KEYS
+              : vt === 'CAR_WASH' ? VENDOR_CAR_WASH_KEYS
+              : VENDOR_AUTO_PARTS_KEYS;
+            visibleItems = visibleItems.filter((item) => vendorKeys.has(item.key));
           }
           if (visibleItems.length === 0) return null;
           return (
@@ -239,19 +276,6 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
           );
         })}
       </nav>
-
-      {collapsed && (
-        <div className="border-t border-slate-200 p-2">
-          <button
-            type="button"
-            onClick={onToggleCollapse}
-            className="flex w-full items-center justify-center rounded-lg p-2.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
-            aria-label="Expand sidebar"
-          >
-            <PanelLeft className="size-5" />
-          </button>
-        </div>
-      )}
     </aside>
   );
 

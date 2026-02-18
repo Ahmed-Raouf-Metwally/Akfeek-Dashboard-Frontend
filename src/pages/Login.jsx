@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -20,8 +20,13 @@ export default function Login() {
 
   const from = location.state?.from?.pathname || '/dashboard';
 
+  useEffect(() => {
+    if (token && user) {
+      navigate(from, { replace: true });
+    }
+  }, [token, user, navigate, from]);
+
   if (token && user) {
-    navigate(from, { replace: true });
     return null;
   }
 

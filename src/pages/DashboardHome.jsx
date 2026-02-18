@@ -12,7 +12,6 @@ import {
   Plus,
   UserPlus,
   FileText,
-  Package,
   Activity,
 } from 'lucide-react';
 import { dashboardService } from '../services/dashboardService';
@@ -88,12 +87,18 @@ export default function DashboardHome() {
   const user = useAuthStore((s) => s.user);
   const firstName = user?.profile?.firstName || user?.email?.split('@')[0] || '';
   const greeting = firstName ? t('dashboard.welcomeBack', { name: firstName }) : t('dashboard.welcomeToDashboard');
+  const isVendor = user?.role === 'VENDOR';
+  const vt = user?.vendorType;
+  const isCareVendor = isVendor && vt === 'COMPREHENSIVE_CARE';
+  const isCarWashVendor = isVendor && vt === 'CAR_WASH';
+  const isWorkshopVendor = isVendor && vt === 'CERTIFIED_WORKSHOP';
   const [recentPage, setRecentPage] = useState(1);
 
-  const { data: statsData, isLoading: statsLoading } = useQuery({
+  const { data: statsData, isLoading: statsLoading, isError: statsError } = useQuery({
     queryKey: ['dashboard', 'stats'],
     queryFn: dashboardService.getStats,
     staleTime: 60_000,
+    retry: (failureCount, error) => error?.response?.status !== 403 && failureCount < 2,
   });
 
   const { data: servicesData, isLoading: servicesLoading } = useQuery({
@@ -102,9 +107,17 @@ export default function DashboardHome() {
     staleTime: 300_000, // Cache services longer
   });
 
-  const stats = statsData?.data?.stats || {};
-  const recentBookings = statsData?.data?.recentBookings || [];
-  const recentActivity = statsData?.data?.recentActivity || [];
+  const stats = statsError ? {} : (statsData?.data?.stats || {});
+  const rawBookings = statsError ? [] : (statsData?.data?.recentBookings || []);
+  const rawActivity = statsError ? [] : (statsData?.data?.recentActivity || []);
+  // Only treat as activity if it looks like ActivityLog (action/entity), not e.g. WorkshopReview
+  const recentActivity = Array.isArray(rawActivity)
+    ? rawActivity.filter((log) => log && (log.action != null || log.entity != null))
+    : [];
+  // Only treat as booking if it looks like Booking (bookingNumber or status), not other entities
+  const recentBookings = Array.isArray(rawBookings)
+    ? rawBookings.filter((b) => b && (b.bookingNumber != null || b.status != null))
+    : [];
 
   const services = Array.isArray(servicesData) ? servicesData : (servicesData?.length ? servicesData : []);
   const totalServices = services.length;
@@ -131,7 +144,6 @@ export default function DashboardHome() {
     { to: '/users', label: t('dashboard.manageUsers'), icon: UserPlus },
     { to: '/bookings', label: t('nav.bookings'), icon: CalendarCheck },
     { to: '/invoices', label: t('nav.invoices'), icon: FileText },
-    { to: '/products', label: t('nav.products'), icon: Package },
   ];
 
   const totalUsers = stats.totalUsers ?? 0;
@@ -148,8 +160,112 @@ export default function DashboardHome() {
         className="overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-br from-indigo-600 via-indigo-600 to-indigo-700 px-6 py-6 text-white shadow-lg"
       >
         <h2 className="text-xl font-semibold">{greeting}</h2>
-        <p className="mt-1.5 text-sm text-indigo-100/90">{t('dashboard.platformActivity')}</p>
+        <p className="mt-1.5 text-sm text-indigo-100/90">
+          {isCareVendor ? (i18n.language === 'ar' ? 'إدارة خدماتك وحجوزات العناية الشاملة' : 'Manage your services and comprehensive care appointments')
+            : isCarWashVendor ? (i18n.language === 'ar' ? 'إدارة خدمات الغسيل والحجوزات' : 'Manage your car wash services and appointments')
+            : isWorkshopVendor ? (i18n.language === 'ar' ? 'إدارة الورشة المعتمدة' : 'Manage your certified workshop')
+            : t('dashboard.platformActivity')}
+        </p>
       </motion.section>
+
+      {/* فيندور العناية الشاملة: قسمه الخاص */}
+      {isCareVendor && (
+        <motion.section
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+          aria-labelledby="vendor-section-heading"
+          className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-6"
+        >
+          <h2 id="vendor-section-heading" className="mb-4 text-lg font-semibold text-slate-900">
+            {i18n.language === 'ar' ? 'قسمك (العناية الشاملة)' : 'Your section (Comprehensive Care)'}
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Link to="/vendor/comprehensive-care/services" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-indigo-200 hover:shadow-md">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-indigo-100">
+                <Wrench className="size-6 text-indigo-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'خدماتي' : 'My services'}</p>
+                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? `عدد الخدمات: ${myServicesCount}` : `${myServicesCount} service(s)`}</p>
+              </div>
+              <ExternalLink className="size-5 shrink-0 text-slate-400" />
+            </Link>
+            <Link to="/vendor/comprehensive-care/bookings" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-indigo-200 hover:shadow-md">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-emerald-100">
+                <CalendarCheck className="size-6 text-emerald-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'الحجوزات' : 'Appointments'}</p>
+                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? 'عرض وإدارة المواعيد' : 'View and manage appointments'}</p>
+              </div>
+              <ExternalLink className="size-5 shrink-0 text-slate-400" />
+            </Link>
+          </div>
+        </motion.section>
+      )}
+
+      {/* فيندور خدمة الغسيل: قسمه الخاص */}
+      {isCarWashVendor && (
+        <motion.section
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+          aria-labelledby="carwash-section-heading"
+          className="rounded-2xl border border-sky-100 bg-sky-50/50 p-6"
+        >
+          <h2 id="carwash-section-heading" className="mb-4 text-lg font-semibold text-slate-900">
+            {i18n.language === 'ar' ? 'قسمك (خدمة الغسيل)' : 'Your section (Car Wash)'}
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Link to="/vendor/comprehensive-care/services" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-sky-200 hover:shadow-md">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-sky-100">
+                <Wrench className="size-6 text-sky-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'خدماتي' : 'My services'}</p>
+                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? 'إدارة خدمات الغسيل' : 'Manage car wash services'}</p>
+              </div>
+              <ExternalLink className="size-5 shrink-0 text-slate-400" />
+            </Link>
+            <Link to="/vendor/comprehensive-care/bookings" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-sky-200 hover:shadow-md">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-emerald-100">
+                <CalendarCheck className="size-6 text-emerald-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'الحجوزات' : 'Appointments'}</p>
+                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? 'عرض وإدارة المواعيد' : 'View and manage appointments'}</p>
+              </div>
+              <ExternalLink className="size-5 shrink-0 text-slate-400" />
+            </Link>
+          </div>
+        </motion.section>
+      )}
+
+      {/* فيندور الورش المعتمدة: قسمه الخاص */}
+      {isWorkshopVendor && (
+        <motion.section
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+          aria-labelledby="workshop-section-heading"
+          className="rounded-2xl border border-amber-100 bg-amber-50/50 p-6"
+        >
+          <h2 id="workshop-section-heading" className="mb-4 text-lg font-semibold text-slate-900">
+            {i18n.language === 'ar' ? 'قسمك (الورش المعتمدة)' : 'Your section (Certified Workshop)'}
+          </h2>
+          <Link to="/workshops" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-amber-200 hover:shadow-md">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-amber-100">
+              <Wrench className="size-6 text-amber-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'الورشة' : 'Workshop'}</p>
+              <p className="text-sm text-slate-500">{i18n.language === 'ar' ? 'عرض وإدارة الورشة المعتمدة' : 'View and manage your certified workshop'}</p>
+            </div>
+            <ExternalLink className="size-5 shrink-0 text-slate-400" />
+          </Link>
+        </motion.section>
+      )}
 
       {/* Quick actions */}
       <section aria-labelledby="quick-heading">
@@ -301,7 +417,7 @@ export default function DashboardHome() {
         </section>
       </div>
 
-      <section aria-labelledby="chart-heading">
+      <section aria-labelledby="chart-heading" className="min-h-[320px]">
         <h2 id="chart-heading" className="mb-4 text-lg font-semibold text-slate-900">
           {t('dashboard.activityDistribution')}
         </h2>
@@ -309,8 +425,8 @@ export default function DashboardHome() {
           <Card className="overflow-hidden">
             <CardHeader title={t('dashboard.weeklyActivity')} />
             <CardBody className="pt-0">
-              <div className="relative h-[280px] w-full min-h-[280px] min-w-0">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={50}>
+              <div className="relative w-full min-w-0" style={{ width: '100%', height: 280, minHeight: 280 }}>
+                <ResponsiveContainer width="100%" height={280} minWidth={0} minHeight={280} debounce={50}>
                   <BarChart data={MOCK_CHART} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="#94a3b8" />
@@ -333,9 +449,9 @@ export default function DashboardHome() {
           <Card className="overflow-hidden">
             <CardHeader title={t('dashboard.servicesByCategory')} />
             <CardBody className="pt-0">
-              <div className="relative h-[280px] w-full min-h-[280px] min-w-0">
+              <div className="relative w-full min-w-0" style={{ width: '100%', height: 280, minHeight: 280 }}>
                 {categoryData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={50}>
+                  <ResponsiveContainer width="100%" height={280} minWidth={0} minHeight={280} debounce={50}>
                     <PieChart>
                       <Pie
                         data={categoryData}

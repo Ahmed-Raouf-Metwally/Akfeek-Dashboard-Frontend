@@ -109,6 +109,7 @@
     "users": "المستخدمون",
     "bookings": "الحجوزات",
     "services": "الخدمات",
+    "comprehensiveCare": "العناية الشاملة",
     "mobileCarService": "خدمة الورش المتنقلة",
     "products": "المنتجات",
     "vendors": "الموردون",
@@ -134,7 +135,14 @@
     "roles": "الأدوار والصلاحيات",
     "activity": "سجل النشاط",
     "workshops": "الورش المعتمدة",
-    "feedback": "الشكاوي والاقتراحات"
+    "feedback": "الشكاوي والاقتراحات",
+    "vendorComprehensiveCare": "العناية الشاملة",
+    "vendorComprehensiveServices": "خدماتي",
+    "vendorComprehensiveBookings": "مواعيد الحجوزات",
+    "vendorMyServices": "خدماتي",
+    "vendorBookings": "مواعيد الحجوزات",
+    "vendorMyWorkshop": "الورشة",
+    "vendorWorkshopBookings": "حجوزات الورشة"
   },
   "workshops": {
     "title": "الورش المعتمدة",
@@ -160,6 +168,8 @@
     "services": "الخدمات المقدمة",
     "servicesOffered": "الخدمات المقدمة",
     "workingHours": "ساعات العمل",
+    "workingHoursJson": "ساعات العمل (JSON)",
+    "closed": "مغلق",
     "verified": "معتمدة",
     "unverified": "غير معتمدة",
     "active": "نشطة",
@@ -270,6 +280,13 @@
     "viewDetails": "عرض التفاصيل",
     "activityDistribution": "النشاط والتوزيع"
   },
+  "comprehensiveCare": {
+    "subtitle": "قدّف الخدمة واحجز موعد",
+    "vendorServicesSubtitle": "إدارة خدمات العناية الشاملة",
+    "vendorBookingsSubtitle": "حجوزات خدمات العناية الشاملة",
+    "myServices": "خدماتي",
+    "appointments": "مواعيد الحجوزات"
+  },
   "users": {
     "title": "المستخدمين",
     "addUser": "إضافة مستخدم",
@@ -313,7 +330,8 @@
       "REPAIR": "إصلاح",
       "EMERGENCY": "طوارئ",
       "INSPECTION": "فحص",
-      "CUSTOMIZATION": "تخصيص"
+      "CUSTOMIZATION": "تخصيص",
+      "COMPREHENSIVE_CARE": "العناية الشاملة"
     },
     "types": {
       "FIXED": "ثابت",
@@ -324,11 +342,14 @@
     },
     "parentService": "الخدمة الأم",
     "thisIsParent": "لا شيء – هذه الخدمة هي الأم",
+    "parentServiceHint": "لا شيء = الخدمة الأم؛ اختر خدمة أم لإضافة خدمة فرعية.",
+    "vendor": "الفيندور",
+    "noVendor": "بدون فيندور",
+    "vendorHint": "للعناية الشاملة، اختر الفيندور الذي يقدم هذه الخدمة.",
     "addSubService": "إضافة خدمة فرعية",
     "subServices": "الخدمات الفرعية",
     "newService": "خدمة جديدة",
     "editService": "تعديل الخدمة",
-    "parentServiceHint": "لا شيء = الخدمة الأم؛ اختر خدمة أم لإضافة خدمة فرعية.",
     "noSubServices": "لا توجد خدمات فرعية بعد.",
     "noMobileCarService": "لم يتم إعداد خدمة الورش المتنقلة بعد. أضفها من قائمة الخدمات الرئيسية."
   },

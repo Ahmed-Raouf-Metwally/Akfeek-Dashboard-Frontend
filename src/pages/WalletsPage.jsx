@@ -16,14 +16,17 @@ import {
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { walletService } from '../services/walletService';
+import { useAuthStore } from '../store/authStore';
 import { Card } from '../components/ui/Card';
 import Pagination from '../components/ui/Pagination';
 import DetailModal from '../components/ui/DetailModal';
 import ImageOrPlaceholder from '../components/ui/ImageOrPlaceholder';
 
 export default function WalletsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
+  const user = useAuthStore((s) => s.user);
+  const isVendor = user?.role === 'VENDOR';
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -54,12 +57,24 @@ export default function WalletsPage() {
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
 
-  // Fetch wallets
-  const { data, isLoading, isError } = useQuery({
+  // Vendor: only their wallet (read-only). Admin: all wallets.
+  const { data: myWalletData, isLoading: isLoadingMyWallet } = useQuery({
+    queryKey: ['wallet-me'],
+    queryFn: () => walletService.getMyWallet(),
+    enabled: !!isVendor && !!user?.id,
+  });
+
+  const { data, isLoading: isLoadingAll, isError } = useQuery({
     queryKey: ['wallets', page, limit, search],
     queryFn: () => walletService.getAllWallets({ page, limit, search }),
-    keepPreviousData: true
+    keepPreviousData: true,
+    enabled: !isVendor,
   });
+
+  const isLoading = isVendor ? isLoadingMyWallet : isLoadingAll;
+  const walletsForDisplay = isVendor && myWalletData
+    ? [{ id: myWalletData.id || 'me', user: { email: user?.email, role: user?.role, profile: user?.profile }, availableBalance: myWalletData.availableBalance ?? 0, pendingBalance: myWalletData.pendingBalance ?? 0, currency: myWalletData.currency ?? 'SAR', pointsBalance: myWalletData.pointsBalance ?? 0 }]
+    : data?.wallets ?? [];
 
   // Credit Mutation
   const creditMutation = useMutation({
@@ -136,28 +151,62 @@ export default function WalletsPage() {
     setAdjustmentModal({ open: false, type: 'credit', user: null });
   };
 
+  const isAr = i18n.language === 'ar';
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">{t('finance.wallets')}</h1>
-          <p className="text-sm text-slate-500">{t('finance.manageWallets')}</p>
+          <p className="text-sm text-slate-500">{isVendor ? (isAr ? 'رصيد المحفظة ونقاط الولاء الخاص بك' : 'Your wallet and loyalty points balance') : t('finance.manageWallets')}</p>
         </div>
       </div>
 
+      {isVendor && myWalletData && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Card className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="flex size-14 items-center justify-center rounded-xl bg-indigo-100">
+                <Wallet className="size-8 text-indigo-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-500">{isAr ? 'رصيد المحفظة' : 'Wallet balance'}</p>
+                <p className="text-2xl font-bold text-slate-900">{myWalletData.availableBalance ?? 0} {myWalletData.currency ?? 'SAR'}</p>
+                {(myWalletData.pendingBalance ?? 0) > 0 && (
+                  <p className="text-xs text-slate-500">{isAr ? 'معلق: ' : 'Pending: '}{myWalletData.pendingBalance} {myWalletData.currency ?? 'SAR'}</p>
+                )}
+              </div>
+            </div>
+          </Card>
+          <Card className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="flex size-14 items-center justify-center rounded-xl bg-amber-100">
+                <Star className="size-8 text-amber-600 fill-amber-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-500">{isAr ? 'رصيد نقاط الولاء' : 'Loyalty points'}</p>
+                <p className="text-2xl font-bold text-slate-900">{myWalletData.pointsBalance ?? 0} {isAr ? 'نقطة' : 'pts'}</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {!isVendor && (
       <Card className="p-0">
         <div className="border-b border-slate-100 p-4">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder={t('finance.searchUser')}
-              className="w-full rounded-lg border border-slate-200 py-2 pl-10 pr-4 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            <div className="relative max-w-sm">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder={t('finance.searchUser')}
+                className="w-full rounded-lg border border-slate-200 py-2 pl-10 pr-4 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -167,7 +216,7 @@ export default function WalletsPage() {
                 <th className="px-6 py-4 font-medium">{t('finance.availableBalance')}</th>
                 <th className="px-6 py-4 font-medium">{t('finance.pendingBalance')}</th>
                 <th className="px-6 py-4 font-medium">{t('finance.points')}</th>
-                <th className="px-6 py-4 font-medium text-right">{t('common.actions')}</th>
+                {!isVendor && <th className="px-6 py-4 font-medium text-right">{t('common.actions')}</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
@@ -180,22 +229,22 @@ export default function WalletsPage() {
                     <td className="px-6 py-4"><div className="ml-auto h-8 w-16 rounded bg-slate-100" /></td>
                   </tr>
                 ))
-              ) : isError ? (
+              ) : !isVendor && isError ? (
                 <tr>
-                  <td colSpan="4" className="px-6 py-12 text-center text-red-500">
+                  <td colSpan="5" className="px-6 py-12 text-center text-red-500">
                     <AlertCircle className="mx-auto mb-2 size-8" />
                     {t('common.error')}
                   </td>
                 </tr>
-              ) : data?.wallets?.length === 0 ? (
+              ) : walletsForDisplay.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={isVendor ? 4 : 5} className="px-6 py-12 text-center text-slate-500">
                     <Wallet className="mx-auto mb-2 size-8 text-slate-300" />
-                    {t('common.noUsers')}
+                    {isVendor ? (t('finance.noWalletYet') || 'No wallet data yet') : t('common.noUsers')}
                   </td>
                 </tr>
               ) : (
-                data?.wallets.map((wallet) => (
+                walletsForDisplay.map((wallet) => (
                   <tr key={wallet.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -223,42 +272,44 @@ export default function WalletsPage() {
                         {wallet.pointsBalance || 0}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => openHistoryModal(wallet.id)}
-                          className="flex items-center gap-1 rounded-lg bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors"
-                          title={t('finance.history')}
-                        >
-                          <History className="size-3" />
-                          {t('finance.history')}
-                        </button>
-                        <button
-                          onClick={() => openAdjustmentModal('credit', wallet.user)}
-                          className="flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-600 hover:bg-emerald-100 transition-colors"
-                          title={t('finance.credit')}
-                        >
-                          <Plus className="size-3" />
-                          {t('finance.credit')}
-                        </button>
-                        <button
-                          onClick={() => openAdjustmentModal('debit', wallet.user)}
-                          className="flex items-center gap-1 rounded-lg bg-rose-50 px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-100 transition-colors"
-                          title={t('finance.debit')}
-                        >
-                          <Minus className="size-3" />
-                          {t('finance.debit')}
-                        </button>
-                        <button
-                          onClick={() => openAdjustmentModal('points', wallet.user)}
-                          className="flex items-center gap-1 rounded-lg bg-amber-50 px-2 py-1 text-xs font-medium text-amber-600 hover:bg-amber-100 transition-colors"
-                          title={t('finance.adjustPoints')}
-                        >
-                          <Award className="size-3" />
-                          {t('finance.points')}
-                        </button>
-                      </div>
-                    </td>
+                    {!isVendor && (
+                      <td className="px-6 py-4">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => openHistoryModal(wallet.id)}
+                            className="flex items-center gap-1 rounded-lg bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors"
+                            title={t('finance.history')}
+                          >
+                            <History className="size-3" />
+                            {t('finance.history')}
+                          </button>
+                          <button
+                            onClick={() => openAdjustmentModal('credit', wallet.user)}
+                            className="flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-600 hover:bg-emerald-100 transition-colors"
+                            title={t('finance.credit')}
+                          >
+                            <Plus className="size-3" />
+                            {t('finance.credit')}
+                          </button>
+                          <button
+                            onClick={() => openAdjustmentModal('debit', wallet.user)}
+                            className="flex items-center gap-1 rounded-lg bg-rose-50 px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-100 transition-colors"
+                            title={t('finance.debit')}
+                          >
+                            <Minus className="size-3" />
+                            {t('finance.debit')}
+                          </button>
+                          <button
+                            onClick={() => openAdjustmentModal('points', wallet.user)}
+                            className="flex items-center gap-1 rounded-lg bg-amber-50 px-2 py-1 text-xs font-medium text-amber-600 hover:bg-amber-100 transition-colors"
+                            title={t('finance.adjustPoints')}
+                          >
+                            <Award className="size-3" />
+                            {t('finance.points')}
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}
@@ -276,6 +327,7 @@ export default function WalletsPage() {
           </div>
         )}
       </Card>
+      )}
 
       {/* Credit/Debit Modal */}
       <DetailModal

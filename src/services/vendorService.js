@@ -35,6 +35,15 @@ export const vendorService = {
   },
 
   /**
+   * Get comprehensive care bookings for current vendor (مواعيد الحجوزات)
+   */
+  async getMyComprehensiveCareBookings(params = {}) {
+    const { data } = await api.get('/vendors/profile/me/comprehensive-care-bookings', { params });
+    if (!data.success) throw new Error(data.error || 'Failed to load bookings');
+    return { list: data.data ?? [], pagination: data.pagination ?? { page: 1, limit: 10, total: 0, totalPages: 1 } };
+  },
+
+  /**
    * Create new vendor profile
    */
   async createVendor(payload) {

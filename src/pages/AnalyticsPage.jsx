@@ -157,8 +157,8 @@ export default function AnalyticsPage() {
               }
             />
             <CardBody className="pt-0">
-              <div className="relative h-[280px] w-full">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={50}>
+              <div className="relative w-full min-w-0" style={{ height: 280 }}>
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={280} debounce={50}>
                   <AreaChart data={MOCK_WEEKLY} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -196,8 +196,8 @@ export default function AnalyticsPage() {
               subtitle="Last 7 days"
             />
             <CardBody className="pt-0">
-              <div className="relative h-[280px] w-full">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={50}>
+              <div className="relative w-full min-w-0" style={{ height: 280 }}>
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={280} debounce={50}>
                   <BarChart data={MOCK_WEEKLY} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="#94a3b8" />
@@ -230,8 +230,8 @@ export default function AnalyticsPage() {
             subtitle="Distribution by category"
           />
           <CardBody className="pt-0">
-            <div className="relative h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={50}>
+            <div className="relative w-full min-w-0" style={{ height: 300 }}>
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300} debounce={50}>
                 <PieChart>
                   <Pie
                     data={MOCK_CATEGORY}

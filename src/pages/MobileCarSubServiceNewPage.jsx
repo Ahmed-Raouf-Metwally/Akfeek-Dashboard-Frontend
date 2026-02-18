@@ -16,6 +16,7 @@ const CATEGORIES = [
   { value: 'EMERGENCY', label: 'Emergency' },
   { value: 'INSPECTION', label: 'Inspection' },
   { value: 'CUSTOMIZATION', label: 'Customization' },
+  { value: 'COMPREHENSIVE_CARE', label: 'Comprehensive Care' },
 ];
 
 export default function MobileCarSubServiceNewPage() {

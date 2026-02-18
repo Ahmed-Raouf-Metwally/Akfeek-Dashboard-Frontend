@@ -15,7 +15,6 @@ const PERMISSIONS_MOCK = [
   { resource: 'services', actions: ['list', 'view', 'create', 'edit', 'delete'], roles: ['ADMIN'] },
   { resource: 'bookings', actions: ['list', 'view', 'create', 'update'], roles: ['ADMIN', 'TECHNICIAN', 'CUSTOMER'] },
   { resource: 'invoices', actions: ['list', 'view'], roles: ['ADMIN', 'CUSTOMER'] },
-  { resource: 'products', actions: ['list', 'view', 'create', 'edit'], roles: ['ADMIN', 'SUPPLIER'] },
   { resource: 'settings', actions: ['view', 'edit'], roles: ['ADMIN'] },
 ];
 

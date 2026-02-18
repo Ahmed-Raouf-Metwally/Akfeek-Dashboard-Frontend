@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { CalendarCheck, Eye } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
 import { bookingService } from '../services/bookingService';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
@@ -31,11 +32,16 @@ function technicianLabel(b) {
 
 export default function BookingsPage() {
   const { t, i18n } = useTranslation();
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.role === 'ADMIN';
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['bookings', page, statusFilter],
-    queryFn: () => bookingService.getBookings({ page, limit: PAGE_SIZE, status: statusFilter || undefined }),
+    queryKey: ['bookings', isAdmin ? 'all' : 'my', page, statusFilter],
+    queryFn: () =>
+      isAdmin
+        ? bookingService.getBookings({ page, limit: PAGE_SIZE, status: statusFilter || undefined })
+        : bookingService.getMyBookings({ page, limit: PAGE_SIZE, status: statusFilter || undefined }),
     staleTime: 60_000,
   });
 
@@ -99,8 +105,12 @@ export default function BookingsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">{t('bookings.title')}</h1>
-          <p className="text-sm text-slate-500">{t('bookings.manage') || 'Manage customer bookings.'}</p>
+          <h1 className="text-xl font-semibold text-slate-900">
+            {isAdmin ? t('bookings.title') : (i18n.language === 'ar' ? 'حجوزاتي' : 'My bookings')}
+          </h1>
+          <p className="text-sm text-slate-500">
+            {isAdmin ? (t('bookings.manage') || 'Manage customer bookings.') : (i18n.language === 'ar' ? 'عرض وإدارة حجوزاتك.' : 'View and manage your appointments.')}
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <label className="text-sm font-medium text-slate-700">{t('common.status')}</label>
@@ -130,9 +140,13 @@ export default function BookingsPage() {
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/80">
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.bookingId')}</th>
-                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.customer')}</th>
+                    {isAdmin && (
+                      <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.customer')}</th>
+                    )}
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.vehicle')}</th>
-                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.technician')}</th>
+                    {isAdmin && (
+                      <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.technician')}</th>
+                    )}
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.status')}</th>
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.date')}</th>
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.time')}</th>
@@ -144,13 +158,17 @@ export default function BookingsPage() {
                   {list.map((b) => (
                     <tr key={b.id} className="border-b border-slate-100 transition-colors hover:bg-slate-50/50">
                       <td className="px-4 py-3 text-sm font-medium text-slate-900">{b.bookingNumber ?? b.id}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{customerLabel(b)}</td>
+                      {isAdmin && (
+                        <td className="px-4 py-3 text-sm text-slate-600">{customerLabel(b)}</td>
+                      )}
                       <td className="px-4 py-3 text-sm text-slate-600">
                         {b.vehicle?.plateNumber ?? (b.vehicle?.vehicleModel?.brand?.name
                           ? `${b.vehicle.vehicleModel.brand.name} ${b.vehicle.vehicleModel?.name ?? ''}`.trim()
                           : '—')}
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{technicianLabel(b)}</td>
+                      {isAdmin && (
+                        <td className="px-4 py-3 text-sm text-slate-600">{technicianLabel(b)}</td>
+                      )}
                       <td className="px-4 py-3">
                         <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
                           {b.status ?? '—'}

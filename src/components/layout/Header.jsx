@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, Transition } from '@headlessui/react';
+import { Menu } from '@headlessui/react';
 import { Bell, User, Settings, LogOut, PanelLeft, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -31,6 +31,8 @@ export default function Header({ title, subtitle, onMenuClick, onToggleSidebar, 
     mutationFn: (id) => notificationService.markAsRead(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
   });
+
+  const isAr = i18n.language === 'ar';
 
   const handleLogout = () => {
     logout();
@@ -78,44 +80,43 @@ export default function Header({ title, subtitle, onMenuClick, onToggleSidebar, 
               </span>
             )}
           </Menu.Button>
-          <Transition
-            as={React.Fragment}
-            enter="transition ease-out duration-100"
-            enterFrom="transform opacity-0 scale-95"
-            enterTo="transform opacity-100 scale-100"
-            leave="transition ease-in duration-75"
-            leaveFrom="transform opacity-100 scale-100"
-            leaveTo="transform opacity-0 scale-95"
-          >
-            <Menu.Items className="absolute right-0 top-full z-50 mt-2 w-80 origin-top-right rounded-xl border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none overflow-hidden">
-              <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 bg-slate-50/50">
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">{t('nav.notifications')}</p>
-                  <p className="text-[11px] text-slate-500">
+            <Menu.Items
+              transition
+              dir={isAr ? 'rtl' : 'ltr'}
+              className={`absolute top-full z-50 mt-2 w-80 min-w-0 rounded-xl border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none overflow-hidden transition ease-out data-[closed]:scale-95 data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 ${isAr ? 'left-0 origin-top-left' : 'right-0 origin-top-right'}`}
+            >
+              <div className={`flex items-center justify-between border-b border-slate-100 px-4 py-3 bg-slate-50/50 ${isAr ? 'flex-row-reverse' : ''}`}>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-slate-900 truncate">{t('nav.notifications')}</p>
+                  <p className="text-[11px] text-slate-500 truncate">
                     {unreadCount > 0 ? t('notifications.youHaveUnread', { count: unreadCount }) : t('notifications.allCaughtUp')}
                   </p>
                 </div>
-                <Link to="/notifications" className="text-[11px] font-medium text-indigo-600 hover:text-indigo-700">
-                  {t('common.viewAll')}
-                </Link>
+                <Menu.Item>
+                  {({ close }) => (
+                    <Link to="/notifications" onClick={close} className="shrink-0 text-[11px] font-medium text-indigo-600 hover:text-indigo-700">
+                      {t('common.viewAll')}
+                    </Link>
+                  )}
+                </Menu.Item>
               </div>
 
               <div className="max-h-64 overflow-auto divide-y divide-slate-50">
                 {recentNotifications.length > 0 ? (
                   recentNotifications.map((notif) => (
-                    <div key={notif.id} className="group flex items-start gap-3 px-4 py-3 hover:bg-slate-50 transition-colors">
+                    <div key={notif.id} className={`group flex items-start gap-3 px-4 py-3 hover:bg-slate-50 transition-colors ${isAr ? 'flex-row-reverse' : ''}`}>
                       <div className="mt-1 flex size-2 shrink-0 rounded-full bg-indigo-500" />
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 overflow-hidden">
                         <p className="text-xs font-semibold text-slate-900 truncate">
-                          {i18n.language === 'ar' && notif.titleAr ? notif.titleAr : notif.title}
+                          {isAr && notif.titleAr ? notif.titleAr : notif.title}
                         </p>
-                        <p className="mt-0.5 text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
-                          {i18n.language === 'ar' && notif.messageAr ? notif.messageAr : notif.message}
+                        <p className="mt-0.5 text-[11px] text-slate-500 line-clamp-2 leading-relaxed break-words">
+                          {isAr && notif.messageAr ? notif.messageAr : notif.message}
                         </p>
                       </div>
                       <button
                         onClick={() => markRead.mutate(notif.id)}
-                        className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-indigo-600 transition-all"
+                        className="shrink-0 opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-indigo-600 transition-all"
                         title={t('notifications.markRead')}
                       >
                         <Check className="size-3.5" />
@@ -130,36 +131,35 @@ export default function Header({ title, subtitle, onMenuClick, onToggleSidebar, 
                 )}
               </div>
 
-              <Link
-                to="/notifications"
-                className="block border-t border-slate-100 px-4 py-2.5 text-center text-[11px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
-              >
-                {t('notifications.seeAllHistory')}
-              </Link>
+              <Menu.Item>
+                {({ close }) => (
+                  <Link
+                    to="/notifications"
+                    onClick={close}
+                    className="block border-t border-slate-100 px-4 py-2.5 text-center text-[11px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                  >
+                    {t('notifications.seeAllHistory')}
+                  </Link>
+                )}
+              </Menu.Item>
             </Menu.Items>
-          </Transition>
         </Menu>
 
         <Menu as="div" className="relative">
-          <Menu.Button className="flex items-center gap-2 rounded-lg py-1.5 pl-1.5 pr-2 text-left transition-colors hover:bg-slate-100">
+          <Menu.Button className={`flex items-center gap-2 rounded-lg py-1.5 pl-1.5 pr-2 transition-colors hover:bg-slate-100 ${isAr ? 'flex-row-reverse text-right' : 'text-left'}`}>
             <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-700">
               {initials}
             </div>
-            <div className="hidden min-w-0 text-left sm:block">
+            <div className={`hidden min-w-0 sm:block ${isAr ? 'text-right' : 'text-left'}`}>
               <p className="truncate text-sm font-medium text-slate-900">{name}</p>
               <p className="truncate text-xs text-slate-500">{user?.role ?? 'Admin'}</p>
             </div>
           </Menu.Button>
-          <Transition
-            as={React.Fragment}
-            enter="transition ease-out duration-100"
-            enterFrom="transform opacity-0 scale-95"
-            enterTo="transform opacity-100 scale-100"
-            leave="transition ease-in duration-75"
-            leaveFrom="transform opacity-100 scale-100"
-            leaveTo="transform opacity-0 scale-95"
-          >
-            <Menu.Items className="absolute right-0 top-full z-50 mt-2 w-56 origin-top-right rounded-xl border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none">
+            <Menu.Items
+              transition
+              dir={isAr ? 'rtl' : 'ltr'}
+              className={`absolute top-full z-50 mt-2 w-56 origin-top-right rounded-xl border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none transition ease-out data-[closed]:scale-95 data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 ${isAr ? 'left-0 origin-top-left' : 'right-0 origin-top-right'}`}
+            >
               <div className="border-b border-slate-100 px-3 py-2">
                 <p className="truncate text-sm font-medium text-slate-900">{name}</p>
                 <p className="truncate text-xs text-slate-500">{user?.email}</p>
@@ -167,28 +167,27 @@ export default function Header({ title, subtitle, onMenuClick, onToggleSidebar, 
               <div className="py-1">
                 <Menu.Item>
                   {({ close }) => (
-                    <Link to="/profile" onClick={close} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100">
+                    <Link to="/profile" onClick={close} className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 ${isAr ? 'flex-row-reverse' : ''}`}>
                       <User className="size-4 shrink-0 text-slate-500" /> {t('nav.profile')}
                     </Link>
                   )}
                 </Menu.Item>
                 <Menu.Item>
                   {({ close }) => (
-                    <Link to="/settings" onClick={close} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100">
+                    <Link to="/settings" onClick={close} className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 ${isAr ? 'flex-row-reverse' : ''}`}>
                       <Settings className="size-4 shrink-0 text-slate-500" /> {t('nav.settings')}
                     </Link>
                   )}
                 </Menu.Item>
                 <Menu.Item>
                   {({ close }) => (
-                    <button type="button" onClick={() => { close(); handleLogout(); }} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50">
+                    <button type="button" onClick={() => { close(); handleLogout(); }} className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 ${isAr ? 'flex-row-reverse' : ''}`}>
                       <LogOut className="size-4 shrink-0" /> {t('auth.logout')}
                     </button>
                   )}
                 </Menu.Item>
               </div>
             </Menu.Items>
-          </Transition>
         </Menu>
       </div>
     </header>

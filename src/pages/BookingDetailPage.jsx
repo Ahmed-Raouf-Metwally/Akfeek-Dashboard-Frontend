@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, CalendarCheck, Clock, Radio, ClipboardCheck, PackageSearch, FileText, Star, Wrench, Package } from 'lucide-react';
+import { ArrowLeft, CalendarCheck, Clock, Radio, ClipboardCheck, PackageSearch, FileText, Star, Wrench } from 'lucide-react';
 import { bookingService } from '../services/bookingService';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import { Card } from '../components/ui/Card';
@@ -284,26 +284,6 @@ export default function BookingDetailPage() {
                   <p className="text-xs text-slate-500">Qty: {bs.quantity} × {Number(bs.unitPrice).toFixed(2)} SAR</p>
                 </div>
                 <span className="text-sm font-semibold text-slate-900">{Number(bs.totalPrice).toFixed(2)} SAR</span>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {(booking.products && booking.products.length > 0) && (
-        <Card className="p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <Package className="size-5 text-slate-500" />
-            <h2 className="text-base font-semibold text-slate-900">Products</h2>
-          </div>
-          <div className="space-y-2">
-            {booking.products.map((bp) => (
-              <div key={bp.id} className="flex items-center justify-between rounded-lg border border-slate-200 p-3">
-                <div>
-                  <p className="text-sm font-medium text-slate-900">{bp.product.name}</p>
-                  <p className="text-xs text-slate-500">SKU: {bp.product.sku} · Qty: {bp.quantity} × {Number(bp.unitPrice).toFixed(2)} SAR</p>
-                </div>
-                <span className="text-sm font-semibold text-slate-900">{Number(bp.totalPrice).toFixed(2)} SAR</span>
               </div>
             ))}
           </div>

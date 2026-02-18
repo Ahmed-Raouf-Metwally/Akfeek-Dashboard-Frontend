@@ -21,7 +21,15 @@ export default function CreateVendorPage() {
     city: '',
     country: 'SA',
     userId: '', // Admin creates for a user
+    vendorType: 'AUTO_PARTS', // AUTO_PARTS | COMPREHENSIVE_CARE | CERTIFIED_WORKSHOP | CAR_WASH
   });
+
+  const VENDOR_TYPE_OPTIONS = [
+    { value: 'AUTO_PARTS', labelEn: 'Auto Parts / Products', labelAr: 'قطع الغيار / المنتجات' },
+    { value: 'COMPREHENSIVE_CARE', labelEn: 'Comprehensive Care', labelAr: 'العناية الشاملة' },
+    { value: 'CERTIFIED_WORKSHOP', labelEn: 'Certified Workshop', labelAr: 'الورش المعتمدة' },
+    { value: 'CAR_WASH', labelEn: 'Car Wash', labelAr: 'خدمة الغسيل' },
+  ];
 
   const createMutation = useMutation({
     mutationFn: (data) => vendorService.createVendor(data),
@@ -30,7 +38,11 @@ export default function CreateVendorPage() {
       toast.success('Vendor profile created successfully');
       navigate('/vendors');
     },
-    onError: (err) => toast.error(err?.message || 'Failed to create vendor'),
+    onError: (err) => {
+      const msg = err?.response?.data?.error || err?.normalized?.message || err?.message || 'Failed to create vendor';
+      const is409 = err?.response?.status === 409;
+      toast.error(is409 ? (msg || 'البريد أو رقم الهاتف مسجل مسبقاً. استخدم بريداً آخر أو اختر "ربط بمستخدم موجود".') : msg);
+    },
   });
 
   const handleSubmit = (e) => {
@@ -57,17 +69,71 @@ export default function CreateVendorPage() {
 
       <form onSubmit={handleSubmit}>
         <Card className="p-6 space-y-6">
+          <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+            <p className="mb-3 text-sm font-medium text-slate-700">طريقة إضافة الحساب / Account type</p>
+            <div className="flex flex-wrap gap-4">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="radio"
+                  name="accountType"
+                  checked={createNewAccount}
+                  onChange={() => setCreateNewAccount(true)}
+                  className="rounded-full border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <UserPlus className="size-4 text-indigo-600" />
+                <span className="text-sm font-medium text-slate-800">إنشاء حساب جديد للفيندور / Create new vendor account</span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="radio"
+                  name="accountType"
+                  checked={!createNewAccount}
+                  onChange={() => setCreateNewAccount(false)}
+                  className="rounded-full border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span className="text-sm font-medium text-slate-800">ربط بمستخدم موجود (User ID) / Link existing user</span>
+              </label>
+            </div>
+          </div>
+
+          {createNewAccount ? (
+            <div className="grid gap-6 sm:grid-cols-2 rounded-xl border border-indigo-100 bg-indigo-50/30 p-4">
+              <h3 className="sm:col-span-2 text-sm font-semibold text-indigo-900">بيانات تسجيل الدخول / Login credentials</h3>
+              <Input label="Email" name="email" type="email" value={accountData.email} onChange={handleAccountChange} required />
+              <Input label="Password" name="password" type="password" value={accountData.password} onChange={handleAccountChange} required />
+              <Input label="First Name" name="firstName" value={accountData.firstName} onChange={handleAccountChange} required />
+              <Input label="Last Name" name="lastName" value={accountData.lastName} onChange={handleAccountChange} required />
+            </div>
+          ) : (
+            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+              <Input
+                label="User ID (UUID)"
+                name="userId"
+                value={formData.userId}
+                onChange={handleChange}
+                placeholder="e.g. 550e8400-e29b-..."
+                required={!createNewAccount}
+                helperText="The existing user UUID (must already have role VENDOR)."
+              />
+            </div>
+          )}
+
           <div className="grid gap-6 sm:grid-cols-2">
-            <Input
-              label="User ID (UUID)"
-              name="userId"
-              value={formData.userId}
-              onChange={handleChange}
-              placeholder="e.g. 550e8400-e29b-..."
-              required
-              helperText="The existing user UUID to assign this vendor profile to."
-            />
-            <div className="hidden sm:block"></div>
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-slate-700">Vendor Type / نوع الفيندور</label>
+              <select
+                name="vendorType"
+                value={formData.vendorType}
+                onChange={handleChange}
+                className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              >
+                {VENDOR_TYPE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.labelEn} / {opt.labelAr}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             <Input
               label="Business Name (English)"

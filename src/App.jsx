@@ -19,8 +19,6 @@ import VehicleModelsPage from './pages/VehicleModelsPage';
 import ModelDetailPage from './pages/ModelDetailPage';
 import BookingsPage from './pages/BookingsPage';
 import BookingDetailPage from './pages/BookingDetailPage';
-import ProductsPage from './pages/ProductsPage';
-import ProductDetailPage from './pages/ProductDetailPage';
 import InvoicesPage from './pages/InvoicesPage';
 import InvoiceDetailPage from './pages/InvoiceDetailPage';
 import PaymentsPage from './pages/PaymentsPage';
@@ -54,7 +52,11 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import WorkshopsPage from './pages/WorkshopsPage';
 import WorkshopDetailPage from './pages/WorkshopDetailPage';
 import FeedbackPage from './pages/FeedbackPage';
-
+import VendorComprehensiveServicesPage from './pages/VendorComprehensiveServicesPage';
+import VendorComprehensiveBookingsPage from './pages/VendorComprehensiveBookingsPage';
+import VendorWorkshopPage from './pages/VendorWorkshopPage';
+import VendorWorkshopBookingsPage from './pages/VendorWorkshopBookingsPage';
+import VendorWorkshopEditPage from './pages/VendorWorkshopEditPage';
 
 
 const queryClient = new QueryClient({
@@ -124,8 +126,6 @@ function App() {
             <Route path="broadcasts/:id" element={<BroadcastDetailPage />} />
             <Route path="inspections" element={<InspectionsPage />} />
             <Route path="supply-requests" element={<SupplyRequestsPage />} />
-            <Route path="products" element={<ProductsPage />} />
-            <Route path="products/:id" element={<ProductDetailPage />} />
             <Route path="invoices" element={<InvoicesPage />} />
             <Route path="invoices/:id" element={<InvoiceDetailPage />} />
             <Route path="payments" element={<PaymentsPage />} />
@@ -153,6 +153,14 @@ function App() {
             {/* Workshops Routes */}
             <Route path="workshops" element={<WorkshopsPage />} />
             <Route path="workshops/:id" element={<WorkshopDetailPage />} />
+
+            {/* Vendor – Comprehensive Care (VENDOR only) */}
+            <Route path="vendor/comprehensive-care/services" element={<VendorComprehensiveServicesPage />} />
+            <Route path="vendor/comprehensive-care/bookings" element={<VendorComprehensiveBookingsPage />} />
+            {/* Vendor – Certified Workshop (VENDOR only) */}
+            <Route path="vendor/workshop" element={<VendorWorkshopPage />} />
+            <Route path="vendor/workshop/bookings" element={<VendorWorkshopBookingsPage />} />
+            <Route path="vendor/workshop/edit" element={<VendorWorkshopEditPage />} />
           </Route>
         </Routes>
       </Router>

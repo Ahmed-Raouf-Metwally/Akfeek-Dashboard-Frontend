@@ -10,7 +10,8 @@ import { toast } from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import socketService from '../services/socketService';
 
-function getTitleForPath(pathname, t) {
+function getTitleForPath(pathname, t, user) {
+  const isCarWash = user?.vendorType === 'CAR_WASH';
   const ROUTE_TITLES = {
     '/dashboard': [t('nav.dashboard', 'Dashboard'), t('dashboard.overview', 'Overview and stats')],
     '/analytics': [t('nav.analytics', 'Analytics'), t('dashboard.analyticsSubtitle', 'Platform metrics and performance')],
@@ -25,7 +26,6 @@ function getTitleForPath(pathname, t) {
     '/brands': [t('nav.brands', 'Vehicle Brands'), t('common.manageBrands', 'Manage brands')],
     '/models': [t('nav.models', 'Vehicle Models'), t('common.manageModels', 'Manage models')],
     '/bookings': [t('nav.bookings', 'Bookings'), t('common.manageBookings', 'Manage bookings')],
-    '/products': [t('nav.products', 'Products'), t('common.productCatalog', 'Product catalog')],
     '/invoices': [t('nav.invoices', 'Invoices'), t('common.viewInvoices', 'View invoices')],
     '/settings': [t('nav.settings', 'Settings'), t('common.appSettings', 'App settings')],
     '/vendors': [t('nav.vendors', 'Vendors'), t('common.manageVendors', 'Manage auto parts vendors')],
@@ -33,6 +33,16 @@ function getTitleForPath(pathname, t) {
     '/auto-parts': [t('nav.auto-parts', 'Auto Parts'), t('common.managePartsCatalog', 'Manage parts catalog')],
     '/auto-parts/new': [t('common.addAutoPart', 'Add Auto Part'), t('common.createPartListing', 'Create new part listing')],
     '/auto-part-categories': [t('nav.auto-part-categories', 'Categories'), t('common.manageCategories', 'Manage auto part categories')],
+    '/vendor/comprehensive-care/services': user?.role === 'ADMIN'
+      ? [t('nav.vendorMyServices', 'Services'), t('services.selectTypeToView', 'Select service type to view')]
+      : isCarWash
+        ? [t('nav.vendorCarWashServices', 'Car wash services'), t('carWash.vendorServicesSubtitle', 'Manage your car wash services')]
+        : [t('nav.vendorComprehensiveServices', 'My Services'), t('comprehensiveCare.vendorServicesSubtitle', 'Manage your comprehensive care services')],
+    '/vendor/comprehensive-care/bookings': user?.role === 'ADMIN'
+      ? [t('nav.vendorBookings', 'Appointments'), '']
+      : isCarWash
+        ? [t('nav.vendorCarWashBookings', 'Car wash appointments'), t('carWash.vendorBookingsSubtitle', 'Bookings for your car wash services')]
+        : [t('nav.vendorComprehensiveBookings', 'Appointments'), t('comprehensiveCare.vendorBookingsSubtitle', 'Bookings for your comprehensive care services')],
   };
 
   if (ROUTE_TITLES[pathname]) return ROUTE_TITLES[pathname];
@@ -41,7 +51,6 @@ function getTitleForPath(pathname, t) {
   if (pathname.startsWith('/bookings/')) return [t('common.bookingDetails', 'Booking details'), ''];
   if (pathname.startsWith('/brands/')) return [t('common.brandDetails', 'Brand details'), ''];
   if (pathname.startsWith('/models/')) return [t('common.modelDetails', 'Model details'), ''];
-  if (pathname.startsWith('/products/')) return [t('common.productDetails', 'Product details'), ''];
   if (pathname.startsWith('/invoices/')) return [t('common.invoiceDetails', 'Invoice details'), ''];
   if (pathname.startsWith('/vendors/')) return [t('common.vendorProfile', 'Vendor Profile'), t('common.manageVendorCatalog', 'Manage vendor and catalog')];
   if (pathname.startsWith('/auto-parts/')) return [t('common.autoPartDetails', 'Auto Part Details'), t('common.managePartListing', 'Manage part listing')];
@@ -51,12 +60,10 @@ function getTitleForPath(pathname, t) {
 function AdminLayoutInner() {
   const { i18n, t } = useTranslation();
   const location = useLocation();
-  const { setHeader, sidebarCollapsed, toggleSidebar, openMobileMenu, closeMobileMenu, mobileMenuOpen } = useLayout();
-  const [title, subtitle] = getTitleForPath(location.pathname, t);
-  const isRTL = i18n.language === 'ar';
-
-  // Real-time notifications setup
   const user = useAuthStore(state => state.user);
+  const { setHeader, sidebarCollapsed, toggleSidebar, openMobileMenu, closeMobileMenu, mobileMenuOpen } = useLayout();
+  const [title, subtitle] = getTitleForPath(location.pathname, t, user);
+  const isRTL = i18n.language === 'ar';
   const queryClient = useQueryClient();
 
   useEffect(() => {

@@ -7,11 +7,30 @@ import { motion } from 'framer-motion';
 import { Search, Plus, Pencil, Trash2, Eye, MapPin, Phone, CheckCircle, XCircle, Building2, Star, ArrowRight } from 'lucide-react';
 import { workshopService } from '../services/workshopService';
 import { useConfirm } from '../hooks/useConfirm';
+import { useAuthStore } from '../store/authStore';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
 import Input from '../components/Input';
 import { Card } from '../components/ui/Card';
 import { ImageOrPlaceholder } from '../components/ui/ImageOrPlaceholder';
+
+const WORKING_DAYS = [
+  { key: 'sunday', labelEn: 'Sunday', labelAr: 'الأحد' },
+  { key: 'monday', labelEn: 'Monday', labelAr: 'الإثنين' },
+  { key: 'tuesday', labelEn: 'Tuesday', labelAr: 'الثلاثاء' },
+  { key: 'wednesday', labelEn: 'Wednesday', labelAr: 'الأربعاء' },
+  { key: 'thursday', labelEn: 'Thursday', labelAr: 'الخميس' },
+  { key: 'friday', labelEn: 'Friday', labelAr: 'الجمعة' },
+  { key: 'saturday', labelEn: 'Saturday', labelAr: 'السبت' },
+];
+
+const defaultWorkingHoursByDay = () => {
+  const entries = WORKING_DAYS.map(({ key }) => {
+    const isWeekend = key === 'friday' || key === 'saturday';
+    return [key, { closed: isWeekend, open: isWeekend ? '' : '09:00', close: isWeekend ? '' : '18:00' }];
+  });
+  return Object.fromEntries(entries);
+};
 
 const emptyForm = () => ({
   name: '',
@@ -25,7 +44,8 @@ const emptyForm = () => ({
   locationUrl: '',
   phone: '',
   email: '',
-  services: '',
+  services: '["Engine Repair", "Oil Change"]',
+  workingHoursByDay: defaultWorkingHoursByDay(),
   isActive: true,
   isVerified: false,
 });
@@ -176,7 +196,9 @@ function WorkshopCard({ workshop, onEdit, onDelete, onToggleVerification, openCo
 }
 
 export default function WorkshopsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.role === 'ADMIN';
   const [openConfirm, ConfirmModal] = useConfirm();
   const queryClient = useQueryClient();
   const PAGE_SIZE = 12; // Increased page size for grid
@@ -205,12 +227,13 @@ export default function WorkshopsPage() {
 
   const { data: workshops = [], isLoading } = useQuery({
     queryKey: ['workshops-admin', { search, city, isVerified: verifiedFilter }],
-    queryFn: () => workshopService.getAllWorkshopsAdmin({ 
-      search: search || undefined, 
+    queryFn: () => workshopService.getAllWorkshopsAdmin({
+      search: search || undefined,
       city: city || undefined,
       isVerified: verifiedFilter || undefined,
     }),
     staleTime: 60_000,
+    enabled: isAdmin,
   });
 
   const createMutation = useMutation({
@@ -257,6 +280,16 @@ export default function WorkshopsPage() {
   const openEdit = (w) => {
     setShowAdd(false);
     setEditWorkshop(w);
+    const wh = w.workingHours && typeof w.workingHours === 'object' ? w.workingHours : {};
+    const workingHoursByDay = defaultWorkingHoursByDay();
+    WORKING_DAYS.forEach(({ key }) => {
+      const h = wh[key];
+      if (h && (h.closed === true || h === null)) {
+        workingHoursByDay[key] = { closed: true, open: '', close: '' };
+      } else if (h && h.open && h.close) {
+        workingHoursByDay[key] = { closed: false, open: h.open, close: h.close };
+      }
+    });
     setForm({
       name: w.name ?? '',
       nameAr: w.nameAr ?? '',
@@ -270,6 +303,7 @@ export default function WorkshopsPage() {
       phone: w.phone ?? '',
       email: w.email ?? '',
       services: typeof w.services === 'string' ? w.services : JSON.stringify(w.services || []),
+      workingHoursByDay,
       isActive: w.isActive ?? true,
       isVerified: w.isVerified ?? false,
     });
@@ -279,6 +313,20 @@ export default function WorkshopsPage() {
     setShowAdd(false);
     setEditWorkshop(null);
     setForm(emptyForm());
+  };
+
+  const buildWorkingHoursPayload = () => {
+    const byDay = form.workingHoursByDay || defaultWorkingHoursByDay();
+    const out = {};
+    WORKING_DAYS.forEach(({ key }) => {
+      const d = byDay[key];
+      if (d?.closed) {
+        out[key] = { closed: true };
+      } else if (d?.open && d?.close) {
+        out[key] = { open: d.open, close: d.close };
+      }
+    });
+    return Object.keys(out).length ? out : undefined;
   };
 
   const handleFormSubmit = (e) => {
@@ -296,6 +344,7 @@ export default function WorkshopsPage() {
       phone: form.phone.trim(),
       email: form.email.trim() || undefined,
       services: form.services.trim(),
+      workingHours: buildWorkingHoursPayload(),
       isActive: form.isActive,
       isVerified: form.isVerified,
     };
@@ -317,6 +366,33 @@ export default function WorkshopsPage() {
     const paginatedItems = workshops.slice(start, start + PAGE_SIZE);
     return { paginatedItems, totalPages, total };
   }, [workshops, page]);
+
+  if (!isAdmin) {
+    const isAr = i18n.language === 'ar';
+    const isWorkshopVendor = user?.role === 'VENDOR' && user?.vendorType === 'CERTIFIED_WORKSHOP';
+    return (
+      <div className="space-y-8">
+        <ConfirmModal />
+        <Card className="p-8 text-center">
+          <Building2 className="mx-auto size-12 text-slate-300" />
+          <h2 className="mt-4 text-lg font-semibold text-slate-900">{isAr ? 'صفحة إدارية' : 'Admin only'}</h2>
+          <p className="mt-2 text-slate-600">
+            {isAr ? 'هذه الصفحة متاحة للمسؤولين فقط. لإدارة ورشتك استخدم الرابط أدناه.' : 'This page is for administrators only. To manage your workshop, use the link below.'}
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            {isWorkshopVendor && (
+              <Link to="/vendor/workshop" className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500">
+                <Building2 className="size-4" /> {isAr ? 'الورشة' : 'My Workshop'}
+              </Link>
+            )}
+            <Link to="/dashboard" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+              {isAr ? 'لوحة التحكم' : 'Dashboard'}
+            </Link>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -385,12 +461,26 @@ export default function WorkshopsPage() {
               required
             />
             <Input
+              label={t('workshops.cityAr', 'City (Arabic)')}
+              name="cityAr"
+              value={form.cityAr}
+              onChange={(e) => setForm((f) => ({ ...f, cityAr: e.target.value }))}
+              placeholder="الرياض"
+            />
+            <Input
               label={t('workshops.address')}
               name="address"
               value={form.address}
               onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
               placeholder="King Fahd Road"
               required
+            />
+            <Input
+              label={t('workshops.addressAr', 'Address (Arabic)')}
+              name="addressAr"
+              value={form.addressAr}
+              onChange={(e) => setForm((f) => ({ ...f, addressAr: e.target.value }))}
+              placeholder="طريق الملك فهد"
             />
             <Input
               label={t('workshops.phone')}
@@ -414,7 +504,8 @@ export default function WorkshopsPage() {
               name="locationUrl"
               value={form.locationUrl}
               onChange={(e) => setForm((f) => ({ ...f, locationUrl: e.target.value }))}
-              placeholder={t('workshops.locationUrlPlaceholder')}
+              placeholder={t('workshops.locationUrlPlaceholder', 'Paste Google Maps share link (required for new workshop)')}
+              required={!editWorkshop}
             />
             <Input
               label={t('workshops.services')}
@@ -425,15 +516,84 @@ export default function WorkshopsPage() {
               required
               className="sm:col-span-2"
             />
-             <Input
+            <Input
               label={t('common.description')}
               name="description"
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               placeholder="Brief description"
-              className="sm:col-span-3"
+              className="sm:col-span-2"
             />
-            <div className="flex w-full gap-3 pt-2 sm:col-span-1 lg:col-span-1">
+            <Input
+              label={t('common.descriptionAr', 'Description (Arabic)')}
+              name="descriptionAr"
+              value={form.descriptionAr}
+              onChange={(e) => setForm((f) => ({ ...f, descriptionAr: e.target.value }))}
+              placeholder="وصف مختصر"
+              className="sm:col-span-2"
+            />
+            <div className="sm:col-span-2 lg:col-span-3">
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                {t('workshops.workingHours', 'ساعات العمل')}
+              </label>
+              <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50/50 p-3">
+                {WORKING_DAYS.map(({ key, labelEn, labelAr }) => {
+                  const isRTL = i18n.language === 'ar';
+                  const label = isRTL ? labelAr : labelEn;
+                  const day = (form.workingHoursByDay || defaultWorkingHoursByDay())[key] || { closed: false, open: '09:00', close: '18:00' };
+                  return (
+                    <div key={key} className="flex flex-wrap items-center gap-3 rounded-md bg-white px-3 py-2 shadow-sm">
+                      <span className="w-24 text-sm font-medium text-slate-700">{label}</span>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={!!day.closed}
+                          onChange={() => {
+                            setForm((f) => {
+                              const byDay = { ...(f.workingHoursByDay || defaultWorkingHoursByDay()) };
+                              byDay[key] = { closed: !day.closed, open: day.open || '09:00', close: day.close || '18:00' };
+                              return { ...f, workingHoursByDay: byDay };
+                            });
+                          }}
+                          className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <span className="text-sm text-slate-600">{t('workshops.closed', 'مغلق')}</span>
+                      </label>
+                      {!day.closed && (
+                        <>
+                          <input
+                            type="time"
+                            value={day.open || ''}
+                            onChange={(e) => {
+                              setForm((f) => {
+                                const byDay = { ...(f.workingHoursByDay || defaultWorkingHoursByDay()) };
+                                byDay[key] = { ...byDay[key], open: e.target.value, close: byDay[key].close || '18:00' };
+                                return { ...f, workingHoursByDay: byDay };
+                              });
+                            }}
+                            className="rounded border border-slate-300 px-2 py-1.5 text-sm"
+                          />
+                          <span className="text-slate-400">–</span>
+                          <input
+                            type="time"
+                            value={day.close || ''}
+                            onChange={(e) => {
+                              setForm((f) => {
+                                const byDay = { ...(f.workingHoursByDay || defaultWorkingHoursByDay()) };
+                                byDay[key] = { ...byDay[key], close: e.target.value };
+                                return { ...f, workingHoursByDay: byDay };
+                              });
+                            }}
+                            className="rounded border border-slate-300 px-2 py-1.5 text-sm"
+                          />
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="flex w-full gap-3 pt-2 sm:col-span-2 lg:col-span-3">
               <button
                 type="submit"
                 disabled={createMutation.isPending || updateMutation.isPending}

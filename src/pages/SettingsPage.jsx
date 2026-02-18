@@ -41,7 +41,6 @@ export default function SettingsPage() {
     brands: t('settings.navLabels.brands'),
     models: t('settings.navLabels.models'),
     bookings: t('settings.navLabels.bookings'),
-    products: t('settings.navLabels.products'),
     invoices: t('settings.navLabels.invoices'),
     settings: t('settings.navLabels.settings'),
   };

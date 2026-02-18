@@ -111,6 +111,7 @@
     "users": "Users",
     "bookings": "Bookings",
     "services": "Services",
+    "comprehensiveCare": "Comprehensive Care",
     "mobileCarService": "Mobile Car Service",
     "products": "Products",
     "vendors": "Vendors",
@@ -135,7 +136,14 @@
     "marketplace-orders": "Marketplace Orders",
     "roles": "Roles & Permissions",
     "activity": "Activity / Logs",
-    "workshops": "Workshops"
+    "workshops": "Workshops",
+    "vendorComprehensiveCare": "Comprehensive Care",
+    "vendorComprehensiveServices": "My Services",
+    "vendorComprehensiveBookings": "Appointments",
+    "vendorMyServices": "My Services",
+    "vendorBookings": "Appointments",
+    "vendorMyWorkshop": "My Workshop",
+    "vendorWorkshopBookings": "Workshop Bookings"
   },
   "workshops": {
     "title": "Certified Workshops",
@@ -161,6 +169,8 @@
     "services": "Services Offered",
     "servicesOffered": "Services Offered",
     "workingHours": "Working Hours",
+    "workingHoursJson": "Working hours (JSON)",
+    "closed": "Closed",
     "verified": "Verified",
     "unverified": "Unverified",
     "active": "Active",
@@ -271,6 +281,13 @@
     "viewDetails": "View details",
     "activityDistribution": "Activity & distribution"
   },
+  "comprehensiveCare": {
+    "subtitle": "Configure service and book appointment",
+    "vendorServicesSubtitle": "Manage your comprehensive care services",
+    "vendorBookingsSubtitle": "Bookings for your comprehensive care services",
+    "myServices": "My Services",
+    "appointments": "Appointments"
+  },
   "users": {
     "title": "Users",
     "addUser": "Add User",
@@ -313,7 +330,8 @@
       "REPAIR": "Repair",
       "EMERGENCY": "Emergency",
       "INSPECTION": "Inspection",
-      "CUSTOMIZATION": "Customization"
+      "CUSTOMIZATION": "Customization",
+      "COMPREHENSIVE_CARE": "Comprehensive Care"
     },
     "types": {
       "FIXED": "Fixed",
@@ -324,6 +342,10 @@
     },
     "parentService": "Parent service",
     "thisIsParent": "None – this is the parent",
+    "parentServiceHint": "Choose if this is a sub-service of an existing Mobile Car Service.",
+    "vendor": "Vendor",
+    "noVendor": "No vendor",
+    "vendorHint": "For Comprehensive Care, assign the vendor that offers this service.",
     "addSubService": "Add sub-service",
     "subServices": "Sub-services",
     "newService": "New service",
