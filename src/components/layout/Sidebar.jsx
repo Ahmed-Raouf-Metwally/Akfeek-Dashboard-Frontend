@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+// eslint-disable-next-line no-unused-vars -- motion.span used in JSX
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
@@ -34,14 +35,14 @@ import {
 import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
 import { useAuthStore } from '../../store/authStore';
 
-/** ١ – فيندور قطع الغيار / المنتجات */
-const VENDOR_AUTO_PARTS_KEYS = new Set(['dashboard', 'analytics', 'auto-parts', 'marketplace-orders', 'wallets', 'points', 'invoices', 'payments', 'profile', 'settings']);
+/** ١ – فيندور قطع الغيار / المنتجات (بدون تقييمات أو Points Audit) */
+const VENDOR_AUTO_PARTS_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'auto-parts', 'marketplace-orders', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
 /** ٢ – فيندور العناية الشاملة */
-const VENDOR_COMPREHENSIVE_CARE_KEYS = new Set(['dashboard', 'analytics', 'vendorMyServices', 'vendorBookings', 'wallets', 'points', 'invoices', 'payments', 'profile', 'settings']);
+const VENDOR_COMPREHENSIVE_CARE_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
 /** ٣ – فيندور الورش المعتمدة */
-const VENDOR_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'vendorMyWorkshop', 'vendorWorkshopBookings', 'wallets', 'points', 'invoices', 'payments', 'profile', 'settings']);
+const VENDOR_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorMyWorkshop', 'vendorWorkshopBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
 /** ٤ – فيندور خدمة الغسيل */
-const VENDOR_CAR_WASH_KEYS = new Set(['dashboard', 'analytics', 'vendorMyServices', 'vendorBookings', 'wallets', 'points', 'invoices', 'payments', 'profile', 'settings']);
+const VENDOR_CAR_WASH_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
 
 const SECTIONS = [
   {
@@ -51,6 +52,7 @@ const SECTIONS = [
     items: [
       { key: 'dashboard', to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
       { key: 'analytics', to: '/analytics', icon: BarChart3, label: 'Analytics' },
+      { key: 'myVendorDetail', to: '/my-vendor', icon: Store, label: 'My Store Page' },
     ],
   },
 
@@ -135,7 +137,8 @@ const SECTIONS = [
   },
 ];
 
-function SidebarLink({ to, icon: Icon, label, active, collapsed }) {
+function SidebarLink({ to, icon, label, active, collapsed }) {
+  const IconEl = icon;
   return (
     <Link
       to={to}
@@ -148,7 +151,7 @@ function SidebarLink({ to, icon: Icon, label, active, collapsed }) {
       `}
       title={collapsed ? label : undefined}
     >
-      <Icon className="size-5 shrink-0 text-slate-500" aria-hidden />
+      <IconEl className="size-5 shrink-0 text-slate-500" aria-hidden />
       <AnimatePresence initial={false}>
         {!collapsed && (
           <motion.span
@@ -190,7 +193,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
           to="/dashboard"
           className={`flex items-center gap-2 overflow-hidden rounded-md font-semibold text-slate-800 ${collapsed ? 'w-9 justify-center' : ''}`}
         >
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-500 text-sm font-bold text-white shadow-sm">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-indigo-600 to-indigo-500 text-sm font-bold text-white shadow-sm">
             A
           </span>
           <AnimatePresence initial={false}>
@@ -244,6 +247,9 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
               : vt === 'CAR_WASH' ? VENDOR_CAR_WASH_KEYS
               : VENDOR_AUTO_PARTS_KEYS;
             visibleItems = visibleItems.filter((item) => vendorKeys.has(item.key));
+          } else {
+            // إخفاء "صفحة متجري" عن الأدمن — للفيندور فقط
+            visibleItems = visibleItems.filter((item) => item.key !== 'myVendorDetail');
           }
           if (visibleItems.length === 0) return null;
           return (

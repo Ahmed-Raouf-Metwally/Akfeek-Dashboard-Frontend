@@ -50,9 +50,17 @@ export default function VendorWorkshopPage() {
           <h2 className="mt-4 text-lg font-semibold text-slate-900">{isAr ? 'الورشة' : 'My Workshop'}</h2>
           <p className="mt-2 text-slate-600">
             {is404
-              ? (isAr ? 'لا توجد ورشة مرتبطة بحسابك. تواصل مع الإدارة لربط ورشتك.' : 'No workshop linked to your account. Contact admin to link your workshop.')
+              ? (isAr ? 'لا توجد ورشة مرتبطة بحسابك. يمكنك إضافة ورشتك من هنا.' : 'No workshop linked to your account. You can add your workshop below.')
               : (error?.message || (isAr ? 'فشل تحميل البيانات' : 'Failed to load'))}
           </p>
+          {is404 && (
+            <Link
+              to="/vendor/workshop/edit"
+              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
+            >
+              <Building2 className="size-4" /> {isAr ? 'إضافة ورشتي' : 'Add my workshop'}
+            </Link>
+          )}
         </Card>
       </div>
     );

@@ -108,6 +108,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "analytics": "Analytics",
+    "myVendorDetail": "My Store Page",
     "users": "Users",
     "bookings": "Bookings",
     "services": "Services",

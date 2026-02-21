@@ -50,7 +50,13 @@ export const autoPartService = {
    */
   async uploadImages(files) {
     const formData = new FormData();
-    const fileList = Array.isArray(files) ? files : [files];
+    const fileList = Array.isArray(files)
+      ? files
+      : files && typeof files.length === 'number'
+        ? Array.from(files)
+        : files
+          ? [files]
+          : [];
     fileList.forEach((file) => formData.append('files', file));
     const { data } = await api.post('/auto-parts/upload-image', formData);
     if (!data.success) throw new Error(data.error || 'Upload failed');

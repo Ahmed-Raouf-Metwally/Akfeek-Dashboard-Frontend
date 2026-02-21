@@ -100,6 +100,14 @@ export const workshopService = {
         if (!data.success) throw new Error(data.error || 'Failed to load workshop');
         return data.data;
     },
+    /**
+     * Create my workshop (Vendor – certified workshop only). Workshop is created unverified until admin approves.
+     */
+    async createMyWorkshop(payload) {
+        const { data } = await api.post('/workshops/profile/me', payload);
+        if (!data.success) throw new Error(data.error || 'Failed to create workshop');
+        return data.data;
+    },
     async updateMyWorkshop(payload) {
         const { data } = await api.put('/workshops/profile/me', payload);
         if (!data.success) throw new Error(data.error || 'Failed to update workshop');

@@ -6,6 +6,13 @@ import { useAuthStore } from './store/authStore';
 import Login from './pages/Login';
 import AdminLayout from './components/AdminLayout';
 import ProtectedRoute from './components/ProtectedRoute';
+
+/** Redirect vendor away from admin-only pages (e.g. ratings, points / متوسط التقييم) */
+function AdminOnlyRoute({ children }) {
+  const user = useAuthStore((s) => s.user);
+  if (user?.role === 'VENDOR') return <Navigate to="/dashboard" replace />;
+  return children;
+}
 import DashboardHome from './pages/DashboardHome';
 import UsersPage from './pages/UsersPage';
 import UserDetailPage from './pages/UserDetailPage';
@@ -37,6 +44,7 @@ import ActivityLogsPage from './pages/ActivityLogsPage';
 import VendorsPage from './pages/VendorsPage';
 import CreateVendorPage from './pages/CreateVendorPage';
 import VendorDetailPage from './pages/VendorDetailPage';
+import MyVendorRedirectPage from './pages/MyVendorRedirectPage';
 import VendorOnboardingPage from './pages/VendorOnboardingPage';
 import AutoPartsPage from './pages/AutoPartsPage';
 import CreateAutoPartPage from './pages/CreateAutoPartPage';
@@ -131,13 +139,14 @@ function App() {
             <Route path="payments" element={<PaymentsPage />} />
             <Route path="payments" element={<PaymentsPage />} />
             <Route path="wallets" element={<WalletsPage />} />
-            <Route path="points" element={<PointsPage />} />
-            <Route path="ratings" element={<RatingsPage />} />
+            <Route path="points" element={<AdminOnlyRoute><PointsPage /></AdminOnlyRoute>} />
+            <Route path="ratings" element={<AdminOnlyRoute><RatingsPage /></AdminOnlyRoute>} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="feedback" element={<FeedbackPage />} />
 
             {/* Marketplace Routes */}
+            <Route path="my-vendor" element={<MyVendorRedirectPage />} />
             <Route path="vendors" element={<VendorsPage />} />
             <Route path="vendors/onboarding" element={<VendorOnboardingPage />} />
             <Route path="vendors/new" element={<CreateVendorPage />} />

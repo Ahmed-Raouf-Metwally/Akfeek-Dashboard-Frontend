@@ -88,6 +88,29 @@ export const vendorService = {
   },
 
   /**
+   * Get vendor reviews (تقييمات الفيندور)
+   */
+  async getVendorReviews(id, params = {}) {
+    const { data } = await api.get(`/vendors/${id}/reviews`, { params });
+    if (!data.success) throw new Error(data.error || 'Failed to load reviews');
+    return {
+      reviews: data.data ?? [],
+      pagination: data.pagination ?? { page: 1, limit: 10, total: 0, totalPages: 1 },
+      averageRating: data.averageRating ?? 0,
+      totalReviews: data.totalReviews ?? 0,
+    };
+  },
+
+  /**
+   * Submit or update my rating for a vendor (1-5 stars)
+   */
+  async submitVendorReview(id, payload) {
+    const { data } = await api.post(`/vendors/${id}/reviews`, payload);
+    if (!data.success) throw new Error(data.error || 'Failed to submit rating');
+    return data;
+  },
+
+  /**
    * Vendor Onboarding: Register a new vendor (Public/System)
    */
   async registerVendor(payload) {
