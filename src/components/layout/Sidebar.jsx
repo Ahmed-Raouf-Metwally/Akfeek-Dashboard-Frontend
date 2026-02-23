@@ -31,18 +31,20 @@ import {
   Truck,
   Building2,
   MessageSquare,
+  Headphones,
+  Tag,
 } from 'lucide-react';
 import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
 import { useAuthStore } from '../../store/authStore';
 
 /** ١ – فيندور قطع الغيار / المنتجات (بدون تقييمات أو Points Audit) */
-const VENDOR_AUTO_PARTS_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'auto-parts', 'marketplace-orders', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
+const VENDOR_AUTO_PARTS_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'auto-parts', 'marketplace-orders', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
 /** ٢ – فيندور العناية الشاملة */
-const VENDOR_COMPREHENSIVE_CARE_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
+const VENDOR_COMPREHENSIVE_CARE_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
 /** ٣ – فيندور الورش المعتمدة */
-const VENDOR_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorMyWorkshop', 'vendorWorkshopBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
+const VENDOR_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyWorkshop', 'vendorWorkshopBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
 /** ٤ – فيندور خدمة الغسيل */
-const VENDOR_CAR_WASH_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
+const VENDOR_CAR_WASH_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
 
 const SECTIONS = [
   {
@@ -53,6 +55,7 @@ const SECTIONS = [
       { key: 'dashboard', to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
       { key: 'analytics', to: '/analytics', icon: BarChart3, label: 'Analytics' },
       { key: 'myVendorDetail', to: '/my-vendor', icon: Store, label: 'My Store Page' },
+      { key: 'vendorCoupons', to: '/vendor/coupons', icon: Tag, label: 'Coupons', labelAr: 'الكوبونات' },
     ],
   },
 
@@ -122,6 +125,7 @@ const SECTIONS = [
       { key: 'users', to: '/users', icon: Users, label: 'Users' },
       { key: 'roles', to: '/roles', icon: Shield, label: 'Roles & Permissions' },
       { key: 'feedback', to: '/feedback', icon: MessageSquare, label: 'Feedback' },
+      { key: 'technicalSupportRequests', to: '/technical-support-requests', icon: Headphones, label: 'Technical Support Requests' },
       { key: 'notifications', to: '/notifications', icon: Bell, label: 'Notifications' },
       { key: 'activity', to: '/activity', icon: Activity, label: 'Activity / Logs' },
     ],
@@ -243,9 +247,9 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
           if (isVendor) {
             const vendorKeys =
               vt === 'COMPREHENSIVE_CARE' ? VENDOR_COMPREHENSIVE_CARE_KEYS
-              : vt === 'CERTIFIED_WORKSHOP' ? VENDOR_WORKSHOP_KEYS
-              : vt === 'CAR_WASH' ? VENDOR_CAR_WASH_KEYS
-              : VENDOR_AUTO_PARTS_KEYS;
+                : vt === 'CERTIFIED_WORKSHOP' ? VENDOR_WORKSHOP_KEYS
+                  : vt === 'CAR_WASH' ? VENDOR_CAR_WASH_KEYS
+                    : VENDOR_AUTO_PARTS_KEYS;
             visibleItems = visibleItems.filter((item) => vendorKeys.has(item.key));
           } else {
             // إخفاء "صفحة متجري" عن الأدمن — للفيندور فقط
@@ -262,13 +266,17 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
               <ul className="space-y-0.5">
                 {visibleItems.map((item) => {
                   const isMobileCar = item.key === 'mobileCarService';
+                  // ✅ توجيه حجوزات فيندور الغسيل لصفحتها المخصصة
+                  const resolvedTo = (item.key === 'vendorBookings' && isVendor && vt === 'CAR_WASH')
+                    ? '/vendor/car-wash/bookings'
+                    : item.to;
                   const active = isMobileCar
                     ? location.pathname.startsWith('/mobile-car-service')
-                    : (location.pathname === item.to || (item.to !== '/dashboard' && location.pathname.startsWith(item.to.split('?')[0])));
+                    : (location.pathname === resolvedTo || (resolvedTo !== '/dashboard' && location.pathname.startsWith(resolvedTo.split('?')[0])));
                   return (
-                    <li key={item.to}>
+                    <li key={resolvedTo}>
                       <SidebarLink
-                        to={item.to}
+                        to={resolvedTo}
                         icon={item.icon}
                         label={t(`nav.${item.key}`, item.label)}
                         active={active}

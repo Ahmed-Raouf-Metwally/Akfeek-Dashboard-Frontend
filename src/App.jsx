@@ -60,11 +60,14 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import WorkshopsPage from './pages/WorkshopsPage';
 import WorkshopDetailPage from './pages/WorkshopDetailPage';
 import FeedbackPage from './pages/FeedbackPage';
+import TechnicalSupportRequestsPage from './pages/TechnicalSupportRequestsPage';
 import VendorComprehensiveServicesPage from './pages/VendorComprehensiveServicesPage';
 import VendorComprehensiveBookingsPage from './pages/VendorComprehensiveBookingsPage';
 import VendorWorkshopPage from './pages/VendorWorkshopPage';
 import VendorWorkshopBookingsPage from './pages/VendorWorkshopBookingsPage';
 import VendorWorkshopEditPage from './pages/VendorWorkshopEditPage';
+import VendorCouponsPage from './pages/VendorCouponsPage';
+import VendorCarWashBookingsPage from './pages/VendorCarWashBookingsPage';
 
 
 const queryClient = new QueryClient({
@@ -144,6 +147,7 @@ function App() {
             <Route path="settings" element={<SettingsPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="feedback" element={<FeedbackPage />} />
+            <Route path="technical-support-requests" element={<TechnicalSupportRequestsPage />} />
 
             {/* Marketplace Routes */}
             <Route path="my-vendor" element={<MyVendorRedirectPage />} />
@@ -166,10 +170,14 @@ function App() {
             {/* Vendor – Comprehensive Care (VENDOR only) */}
             <Route path="vendor/comprehensive-care/services" element={<VendorComprehensiveServicesPage />} />
             <Route path="vendor/comprehensive-care/bookings" element={<VendorComprehensiveBookingsPage />} />
+            {/* Vendor – Coupons (كل فيندور) */}
+            <Route path="vendor/coupons" element={<VendorCouponsPage />} />
             {/* Vendor – Certified Workshop (VENDOR only) */}
             <Route path="vendor/workshop" element={<VendorWorkshopPage />} />
             <Route path="vendor/workshop/bookings" element={<VendorWorkshopBookingsPage />} />
             <Route path="vendor/workshop/edit" element={<VendorWorkshopEditPage />} />
+            {/* Vendor – Car Wash Bookings (CAR_WASH vendor) */}
+            <Route path="vendor/car-wash/bookings" element={<VendorCarWashBookingsPage />} />
           </Route>
         </Routes>
       </Router>

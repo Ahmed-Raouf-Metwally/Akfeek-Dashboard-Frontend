@@ -125,9 +125,17 @@ export default function DashboardHome() {
   const vendorRating = myVendorProfile?.averageRating != null ? Number(myVendorProfile.averageRating) : 0;
   const vendorReviewsCount = myVendorProfile?.totalReviews ?? 0;
 
+  const { data: vendorRealStats, isLoading: vendorStatsLoading } = useQuery({
+    queryKey: ['vendor-stats', myVendorProfile?.id],
+    queryFn: () => vendorService.getVendorStats(myVendorProfile.id),
+    enabled: !!myVendorProfile?.id,
+    staleTime: 60_000,
+  });
+
   const { data: statsData, isLoading: statsLoading, isError: statsError } = useQuery({
     queryKey: ['dashboard', 'stats'],
     queryFn: dashboardService.getStats,
+    enabled: !isVendor, // Only for admin
     staleTime: 60_000,
     retry: (failureCount, error) => error?.response?.status !== 403 && failureCount < 2,
   });
@@ -189,9 +197,9 @@ export default function DashboardHome() {
         <p className="mt-1.5 text-sm text-indigo-100/90">
           {isCareVendor ? (i18n.language === 'ar' ? 'إدارة خدماتك وحجوزات العناية الشاملة' : 'Manage your services and comprehensive care appointments')
             : isCarWashVendor ? (i18n.language === 'ar' ? 'إدارة خدمات الغسيل والحجوزات' : 'Manage your car wash services and appointments')
-            : isWorkshopVendor ? (i18n.language === 'ar' ? 'إدارة الورشة المعتمدة' : 'Manage your certified workshop')
-            : isAutoPartsVendor ? (i18n.language === 'ar' ? 'إدارة منتجاتك وطلبات المتجر' : 'Manage your products and store orders')
-            : t('dashboard.platformActivity')}
+              : isWorkshopVendor ? (i18n.language === 'ar' ? 'إدارة الورشة المعتمدة' : 'Manage your certified workshop')
+                : isAutoPartsVendor ? (i18n.language === 'ar' ? 'إدارة منتجاتك وطلبات المتجر' : 'Manage your products and store orders')
+                  : t('dashboard.platformActivity')}
         </p>
       </motion.section>
 
@@ -204,9 +212,17 @@ export default function DashboardHome() {
           aria-labelledby="vendor-section-heading"
           className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-6"
         >
-          <h2 id="vendor-section-heading" className="mb-4 text-lg font-semibold text-slate-900">
-            {i18n.language === 'ar' ? 'قسمك (العناية الشاملة)' : 'Your section (Comprehensive Care)'}
-          </h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 id="vendor-section-heading" className="text-lg font-semibold text-slate-900">
+              {i18n.language === 'ar' ? 'نظرة عامة (العناية الشاملة)' : 'Overview (Comprehensive Care)'}
+            </h2>
+            {vendorRealStats?.stats?.revenue != null && (
+              <div className="text-right">
+                <p className="text-xs font-medium text-slate-500 uppercase">{i18n.language === 'ar' ? 'إجمالي الإيرادات' : 'Total Revenue'}</p>
+                <p className="text-lg font-bold text-indigo-600">{vendorRealStats.stats.revenue.toLocaleString()} SAR</p>
+              </div>
+            )}
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Link to="/vendor/comprehensive-care/services" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-indigo-200 hover:shadow-md">
               <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-indigo-100">
@@ -214,7 +230,9 @@ export default function DashboardHome() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'خدماتي' : 'My services'}</p>
-                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? `عدد الخدمات: ${totalServices}` : `${totalServices} service(s)`}</p>
+                <p className="text-sm text-slate-500">
+                  {i18n.language === 'ar' ? `عدد الخدمات: ${totalServices}` : `${totalServices} service(s)`}
+                </p>
               </div>
               <ExternalLink className="size-5 shrink-0 text-slate-400" />
             </Link>
@@ -223,8 +241,10 @@ export default function DashboardHome() {
                 <CalendarCheck className="size-6 text-emerald-600" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'الحجوزات' : 'Appointments'}</p>
-                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? 'عرض وإدارة المواعيد' : 'View and manage appointments'}</p>
+                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'الحجوزات المحققة' : 'Completed Bookings'}</p>
+                <p className="text-sm text-slate-500">
+                  {vendorStatsLoading ? '...' : (i18n.language === 'ar' ? `${vendorRealStats?.stats?.completedBookings || 0} حجز مكتمل` : `${vendorRealStats?.stats?.completedBookings || 0} completed`)}
+                </p>
               </div>
               <ExternalLink className="size-5 shrink-0 text-slate-400" />
             </Link>
@@ -241,9 +261,17 @@ export default function DashboardHome() {
           aria-labelledby="carwash-section-heading"
           className="rounded-2xl border border-sky-100 bg-sky-50/50 p-6"
         >
-          <h2 id="carwash-section-heading" className="mb-4 text-lg font-semibold text-slate-900">
-            {i18n.language === 'ar' ? 'قسمك (خدمة الغسيل)' : 'Your section (Car Wash)'}
-          </h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 id="carwash-section-heading" className="text-lg font-semibold text-slate-900">
+              {i18n.language === 'ar' ? 'نظرة عامة (خدمة الغسيل)' : 'Overview (Car Wash)'}
+            </h2>
+            {vendorRealStats?.stats?.revenue != null && (
+              <div className="text-right">
+                <p className="text-xs font-medium text-slate-500 uppercase">{i18n.language === 'ar' ? 'إجمالي الإيرادات' : 'Total Revenue'}</p>
+                <p className="text-lg font-bold text-sky-600">{vendorRealStats.stats.revenue.toLocaleString()} SAR</p>
+              </div>
+            )}
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Link to="/vendor/comprehensive-care/services" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-sky-200 hover:shadow-md">
               <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-sky-100">
@@ -255,13 +283,15 @@ export default function DashboardHome() {
               </div>
               <ExternalLink className="size-5 shrink-0 text-slate-400" />
             </Link>
-            <Link to="/vendor/comprehensive-care/bookings" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-sky-200 hover:shadow-md">
+            <Link to="/vendor/car-wash/bookings" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-sky-200 hover:shadow-md">
               <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-emerald-100">
                 <CalendarCheck className="size-6 text-emerald-600" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'الحجوزات' : 'Appointments'}</p>
-                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? 'عرض وإدارة المواعيد' : 'View and manage appointments'}</p>
+                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'الحجوزات المحققة' : 'Completed Bookings'}</p>
+                <p className="text-sm text-slate-500">
+                  {vendorStatsLoading ? '...' : (i18n.language === 'ar' ? `${vendorRealStats?.stats?.completedBookings || 0} حجز مكتمل` : `${vendorRealStats?.stats?.completedBookings || 0} completed`)}
+                </p>
               </div>
               <ExternalLink className="size-5 shrink-0 text-slate-400" />
             </Link>

@@ -6,6 +6,8 @@ const DEFAULT_NAV = {
   profile: true,
   users: true,
   roles: true,
+  feedback: true,
+  technicalSupportRequests: true,
   notifications: true,
   activity: true,
   services: true,

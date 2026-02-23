@@ -21,6 +21,7 @@ function getTitleForPath(pathname, t, user) {
     '/notifications': [t('nav.notifications', 'Notifications'), t('common.viewManageNotifications', 'View and manage notifications')],
     '/activity': [t('nav.activity', 'Activity / Logs'), t('common.auditLog', 'Audit and activity log')],
     '/feedback': [t('nav.feedback', 'Complaints & Suggestions'), t('feedback.subtitle', 'Manage customer feedback')],
+    '/technical-support-requests': [t('nav.technicalSupportRequests', 'طلبات الدعم الفني'), t('technicalSupport.subtitle', 'عرض الطلبات وتعيين الفني')],
     '/services': [t('nav.services', 'Services'), t('common.serviceCatalog', 'Service catalog')],
     '/services/new': [t('common.createService', 'Create service'), t('common.addNewService', 'Add a new service')],
     '/brands': [t('nav.brands', 'Vehicle Brands'), t('common.manageBrands', 'Manage brands')],
@@ -43,6 +44,7 @@ function getTitleForPath(pathname, t, user) {
       : isCarWash
         ? [t('nav.vendorCarWashBookings', 'Car wash appointments'), t('carWash.vendorBookingsSubtitle', 'Bookings for your car wash services')]
         : [t('nav.vendorComprehensiveBookings', 'Appointments'), t('comprehensiveCare.vendorBookingsSubtitle', 'Bookings for your comprehensive care services')],
+    '/vendor/coupons': [t('nav.vendorCoupons', 'Coupons'), t('vendorCoupons.subtitle', 'Coupon applies only to your services')],
   };
 
   if (ROUTE_TITLES[pathname]) return ROUTE_TITLES[pathname];

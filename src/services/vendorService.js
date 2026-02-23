@@ -35,6 +35,33 @@ export const vendorService = {
   },
 
   /**
+   * كوبونات الفيندور — تظهر للعميل عند الحجز وتطبق على خدمات هذا الفيندور فقط
+   */
+  async getMyCoupons(params = {}) {
+    const { data } = await api.get('/vendors/profile/me/coupons', { params });
+    if (!data.success) throw new Error(data.error || 'Failed to load coupons');
+    return data.data ?? [];
+  },
+
+  async createCoupon(payload) {
+    const { data } = await api.post('/vendors/profile/me/coupons', payload);
+    if (!data.success) throw new Error(data.error || 'Failed to create coupon');
+    return data.data;
+  },
+
+  async updateCoupon(id, payload) {
+    const { data } = await api.patch(`/vendors/profile/me/coupons/${id}`, payload);
+    if (!data.success) throw new Error(data.error || 'Failed to update coupon');
+    return data.data;
+  },
+
+  async deleteCoupon(id) {
+    const { data } = await api.delete(`/vendors/profile/me/coupons/${id}`);
+    if (!data.success) throw new Error(data.error || 'Failed to delete coupon');
+    return data;
+  },
+
+  /**
    * Get comprehensive care bookings for current vendor (مواعيد الحجوزات)
    */
   async getMyComprehensiveCareBookings(params = {}) {
