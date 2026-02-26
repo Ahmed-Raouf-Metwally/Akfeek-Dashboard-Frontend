@@ -10,6 +10,7 @@ import { vendorService } from '../services/vendorService';
 import { useAuthStore } from '../store/authStore';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
+import { useDateFormat } from '../hooks/useDateFormat';
 
 // حالات الحجز مع ألوانها
 const STATUS_CONFIG = {
@@ -25,6 +26,7 @@ const STATUS_ALL = 'ALL';
 
 export default function VendorCarWashBookingsPage() {
     const { t, i18n } = useTranslation();
+    const { fmt } = useDateFormat();
     const user = useAuthStore((s) => s.user);
     const isAr = i18n.language === 'ar';
     const [statusFilter, setStatusFilter] = useState(STATUS_ALL);
@@ -137,9 +139,7 @@ export default function VendorCarWashBookingsPage() {
                     {bookings.map((booking) => {
                         const cfg = STATUS_CONFIG[booking.status] ?? STATUS_CONFIG.PENDING;
                         const scheduledDate = booking.scheduledDate
-                            ? new Date(booking.scheduledDate).toLocaleDateString(isAr ? 'ar-SA' : 'en-US', {
-                                weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
-                            })
+                            ? fmt(booking.scheduledDate)
                             : null;
                         const customerName = booking.customer?.profile
                             ? `${booking.customer.profile.firstName} ${booking.customer.profile.lastName}`

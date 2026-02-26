@@ -14,6 +14,7 @@ import {
     MessageCircle,
     Clock,
 } from 'lucide-react';
+import { useDateFormat } from '../hooks/useDateFormat';
 import feedbackService from '../services/feedbackService';
 import { Card } from '../components/ui/Card';
 import { Skeleton, TableSkeleton } from '../components/ui/Skeleton';
@@ -87,6 +88,7 @@ function Header({ stats, isLoading }) {
 
 export default function FeedbackPage() {
     const { t, i18n } = useTranslation();
+    const { fmt, fmtDT } = useDateFormat();
     const queryClient = useQueryClient();
     const isRTL = i18n.language === 'ar';
 
@@ -386,7 +388,7 @@ export default function FeedbackPage() {
                                             </select>
                                         </td>
                                         <td className="px-4 py-4 whitespace-nowrap text-xs text-slate-500">
-                                            {new Date(item.createdAt).toLocaleDateString(i18n.language, { dateStyle: 'medium' })}
+                                            {fmt(item.createdAt)}
                                         </td>
                                         <td className="px-4 py-4 text-end">
                                             <div className="flex items-center justify-end gap-1">
@@ -447,7 +449,7 @@ export default function FeedbackPage() {
                             <div className="space-y-1">
                                 <h3 className="text-base font-semibold text-slate-900">{detail.subject}</h3>
                                 <div className="flex items-center gap-2 text-xs text-slate-500">
-                                    <span>{new Date(detail.createdAt).toLocaleString(i18n.language)}</span>
+                                    <span>{fmtDT(detail.createdAt)}</span>
                                     <span>•</span>
                                     <span className="font-medium text-indigo-600">{t(`feedback.categories.${detail.category}`)}</span>
                                 </div>
@@ -488,7 +490,7 @@ export default function FeedbackPage() {
                                 <div className="mb-2 text-xs font-bold text-indigo-600 uppercase tracking-wider">{t('feedback.orderInfo')}</div>
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="font-medium text-slate-700">#{detail.order.orderNumber}</span>
-                                    <span className="text-slate-500">{new Date(detail.order.createdAt).toLocaleDateString()}</span>
+                                    <span className="text-slate-500">{fmt(detail.order.createdAt)}</span>
                                 </div>
                             </div>
                         )}

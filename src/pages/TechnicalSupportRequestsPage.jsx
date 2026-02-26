@@ -10,6 +10,7 @@ import {
   Wrench,
   AlertCircle,
 } from 'lucide-react';
+import { useDateFormat } from '../hooks/useDateFormat';
 import technicalSupportService from '../services/technicalSupportService';
 import socketService from '../services/socketService';
 import { Card } from '../components/ui/Card';
@@ -179,7 +180,8 @@ function AssignModal({ open, onClose, requestId, onSuccess }) {
 }
 
 export default function TechnicalSupportRequestsPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const { fmt, fmtDT } = useDateFormat();
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'ADMIN';
@@ -370,7 +372,7 @@ export default function TechnicalSupportRequestsPage() {
                         : item.technician?.email ?? '—'}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-xs text-slate-500">
-                      {new Date(item.createdAt).toLocaleDateString(i18n.language, { dateStyle: 'medium' })}
+                      {fmt(item.createdAt)}
                     </td>
                     <td className="px-4 py-3 text-end">
                       <div className="flex items-center justify-end gap-1">
@@ -598,7 +600,7 @@ export default function TechnicalSupportRequestsPage() {
             )}
 
             <div className="border-t border-slate-100 pt-3 text-xs text-slate-400">
-              {t('common.createdAt')}: {new Date(detail.createdAt).toLocaleString(i18n.language)}
+              {t('common.createdAt')}: {fmtDT(detail.createdAt)}
             </div>
           </div>
         ) : null}

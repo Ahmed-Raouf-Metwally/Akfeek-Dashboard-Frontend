@@ -7,14 +7,9 @@ import { vendorService } from '../services/vendorService';
 import { useAuthStore } from '../store/authStore';
 import { Card } from '../components/ui/Card';
 import { Skeleton, TableSkeleton } from '../components/ui/Skeleton';
+import { useDateFormat } from '../hooks/useDateFormat';
 import toast from 'react-hot-toast';
 import Modal from '../components/ui/Modal';
-
-function formatDate(d, locale = 'ar-SA') {
-  if (!d) return '—';
-  const x = typeof d === 'string' ? new Date(d) : d;
-  return Number.isNaN(x.getTime()) ? '—' : x.toLocaleDateString(locale, { dateStyle: 'short' });
-}
 
 const DISCOUNT_TYPES = [
   { value: 'PERCENT', labelEn: 'Percent %', labelAr: 'نسبة مئوية %' },
@@ -23,6 +18,7 @@ const DISCOUNT_TYPES = [
 
 export default function VendorCouponsPage() {
   const { t, i18n } = useTranslation();
+  const { fmt } = useDateFormat();
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
   const [modalOpen, setModalOpen] = useState(false);
@@ -158,7 +154,7 @@ export default function VendorCouponsPage() {
                       {c.minOrderAmount != null ? `${Number(c.minOrderAmount)} SAR` : '—'}
                     </td>
                     <td className="px-4 py-3 text-sm text-slate-600">
-                      {formatDate(c.validFrom, i18n.language)} – {formatDate(c.validUntil, i18n.language)}
+                      {fmt(c.validFrom)} – {fmt(c.validUntil)}
                     </td>
                     <td className="px-4 py-3 text-sm text-slate-600">
                       {c.usedCount}{c.maxUses != null ? ` / ${c.maxUses}` : ''}

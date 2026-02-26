@@ -43,6 +43,15 @@ export const vendorService = {
     return data.data ?? [];
   },
 
+  /**
+   * Get all coupons (Admin)
+   */
+  async getAllCoupons(params = {}) {
+    const { data } = await api.get('/vendors/coupons', { params });
+    if (!data.success) throw new Error(data.error || 'Failed to load all coupons');
+    return data.data ?? [];
+  },
+
   async createCoupon(payload) {
     const { data } = await api.post('/vendors/profile/me/coupons', payload);
     if (!data.success) throw new Error(data.error || 'Failed to create coupon');

@@ -322,7 +322,7 @@ export default function EditAutoPartPage() {
                 >
                   <option value="">Select Category</option>
                   {categories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+                    <option key={c.id} value={c.id}>{c.nameAr || c.name}</option>
                   ))}
                 </select>
               </div>

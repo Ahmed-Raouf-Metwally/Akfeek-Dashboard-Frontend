@@ -24,7 +24,6 @@ import {
   Star,
   Radio,
   ClipboardCheck,
-  PackageSearch,
   Store,
   ShoppingBag,
   Layers,
@@ -33,6 +32,8 @@ import {
   MessageSquare,
   Headphones,
   Tag,
+  Droplets,
+  ShieldCheck,
 } from 'lucide-react';
 import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
 import { useAuthStore } from '../../store/authStore';
@@ -67,6 +68,8 @@ const SECTIONS = [
       { key: 'services', to: '/services', icon: Wrench, label: 'Services' },
       { key: 'mobileCarService', to: '/mobile-car-service', icon: Truck, label: 'Mobile Car Service' },
       { key: 'workshops', to: '/workshops', icon: Building2, label: 'Workshops' },
+      { key: 'carWashWorkshops', to: '/car-wash', icon: Droplets, label: 'Car Wash Workshops', labelAr: 'ورش الغسيل' },
+      { key: 'comprehensiveCareWorkshops', to: '/comprehensive-care', icon: ShieldCheck, label: 'Comprehensive Care', labelAr: 'العناية الشاملة' },
       { key: 'brands', to: '/brands', icon: Car, label: 'Vehicle Brands' },
       { key: 'models', to: '/models', icon: CircleDot, label: 'Vehicle Models' },
     ],
@@ -78,8 +81,8 @@ const SECTIONS = [
     items: [
       { key: 'bookings', to: '/bookings', icon: CalendarCheck, label: 'Bookings' },
       { key: 'broadcasts', to: '/broadcasts', icon: Radio, label: 'Broadcasts' },
+      { key: 'towingRequests', to: '/towing-requests', icon: Truck, label: 'Towing Requests', labelAr: 'طلبات الونش' },
       { key: 'inspections', to: '/inspections', icon: ClipboardCheck, label: 'Inspections' },
-      { key: 'supply-requests', to: '/supply-requests', icon: PackageSearch, label: 'Supply Requests' },
       { key: 'invoices', to: '/invoices', icon: FileText, label: 'Invoices' },
       { key: 'payments', to: '/payments', icon: CreditCard, label: 'Payments' },
       { key: 'wallets', to: '/wallets', icon: Wallet, label: 'Wallets' },
@@ -115,6 +118,7 @@ const SECTIONS = [
       { key: 'auto-part-categories', to: '/auto-part-categories', icon: Layers, label: 'Categories' },
       { key: 'auto-parts', to: '/auto-parts', icon: ShoppingBag, label: 'Auto Parts' },
       { key: 'marketplace-orders', to: '/marketplace-orders', icon: Package, label: 'Orders' },
+      { key: 'allCoupons', to: '/coupons', icon: Tag, label: 'All Coupons', labelAr: 'كافة الكوبونات' },
     ],
   },
   {
@@ -149,13 +153,13 @@ function SidebarLink({ to, icon, label, active, collapsed }) {
       className={`
         flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200
         ${active
-          ? 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100'
-          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}
+          ? 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100 dark:bg-indigo-900/40 dark:text-indigo-300 dark:ring-indigo-800'
+          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-100'}
         ${collapsed ? 'justify-center px-2' : ''}
       `}
       title={collapsed ? label : undefined}
     >
-      <IconEl className="size-5 shrink-0 text-slate-500" aria-hidden />
+      <IconEl className="size-5 shrink-0 text-slate-500 dark:text-slate-400" aria-hidden />
       <AnimatePresence initial={false}>
         {!collapsed && (
           <motion.span
@@ -185,6 +189,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
     <aside
       className={`
         fixed inset-y-0 z-40 flex flex-col border-slate-200 bg-white
+        dark:border-slate-700 dark:bg-slate-800
         transition-[width,transform] duration-200 ease-in-out
         w-64
         ${collapsed ? 'lg:w-[72px]' : ''}
@@ -192,13 +197,13 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
         ${mobileOpen ? 'translate-x-0' : `${isRTL ? 'translate-x-full' : '-translate-x-full'} lg:translate-x-0`}
       `}
     >
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 px-3">
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 px-3 dark:border-slate-700">
         <Link
           to="/dashboard"
-          className={`flex items-center gap-2 overflow-hidden rounded-md font-semibold text-slate-800 ${collapsed ? 'w-9 justify-center' : ''}`}
+          className={`flex items-center gap-2 overflow-hidden rounded-md font-semibold text-slate-800 dark:text-slate-100 ${collapsed ? 'w-9 justify-center' : ''}`}
         >
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-indigo-600 to-indigo-500 text-sm font-bold text-white shadow-sm">
-            A
+            {isRTL ? 'أ' : 'A'}
           </span>
           <AnimatePresence initial={false}>
             {!collapsed && (
@@ -209,7 +214,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
                 transition={{ duration: 0.15 }}
                 className="truncate"
               >
-                Akfeek
+                {isRTL ? 'أكفيك' : 'Akfeek'}
               </motion.span>
             )}
           </AnimatePresence>
@@ -252,14 +257,14 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
                     : VENDOR_AUTO_PARTS_KEYS;
             visibleItems = visibleItems.filter((item) => vendorKeys.has(item.key));
           } else {
-            // إخفاء "صفحة متجري" عن الأدمن — للفيندور فقط
-            visibleItems = visibleItems.filter((item) => item.key !== 'myVendorDetail');
+            // إخفاء "صفحة متجري" وتدبير الكوبونات الخاصة عن الأدمن — للفيندور فقط
+            visibleItems = visibleItems.filter((item) => item.key !== 'myVendorDetail' && item.key !== 'vendorCoupons');
           }
           if (visibleItems.length === 0) return null;
           return (
             <div key={section.key} className="space-y-1">
               {!collapsed && (
-                <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                   {isRTL ? section.labelAr : section.labelEn}
                 </p>
               )}

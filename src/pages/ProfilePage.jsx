@@ -1,17 +1,91 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { User, Mail, Phone, Globe, Lock, Save, Camera } from 'lucide-react';
+import { User, Mail, Phone, Lock, Save, Camera, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { profileService } from '../services/profileService';
 import { Card } from '../components/ui/Card';
 import Input from '../components/Input';
 
-const LANGUAGES = [
-  { value: 'EN', label: 'English' },
-  { value: 'AR', label: 'العربية' },
-];
+
+function ChangePasswordCard({ t }) {
+  const [pw, setPw] = useState({ current: '', next: '', confirm: '' });
+  const [show, setShow] = useState({ current: false, next: false, confirm: false });
+
+  const mutation = useMutation({
+    mutationFn: () => profileService.changePassword(pw.current, pw.next),
+    onSuccess: () => {
+      toast.success(t('profile.passwordChanged', 'تم تغيير كلمة المرور بنجاح'));
+      setPw({ current: '', next: '', confirm: '' });
+    },
+    onError: (err) => toast.error(err?.message ?? t('common.error')),
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (pw.next !== pw.confirm) {
+      toast.error(t('profile.passwordMismatch', 'كلمتا المرور غير متطابقتين'));
+      return;
+    }
+    if (pw.next.length < 8) {
+      toast.error(t('profile.passwordTooShort', 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'));
+      return;
+    }
+    mutation.mutate();
+  };
+
+  const field = (id, label, value, key) => (
+    <div className="space-y-1.5">
+      <label className="block text-sm font-medium text-slate-700">{label}</label>
+      <div className="relative">
+        <input
+          type={show[key] ? 'text' : 'password'}
+          value={value}
+          onChange={(e) => setPw((p) => ({ ...p, [key]: e.target.value }))}
+          id={id}
+          autoComplete={key === 'current' ? 'current-password' : 'new-password'}
+          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 pe-10 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        />
+        <button
+          type="button"
+          tabIndex={-1}
+          onClick={() => setShow((s) => ({ ...s, [key]: !s[key] }))}
+          className="absolute inset-y-0 end-0 flex items-center px-3 text-slate-400 hover:text-slate-600"
+        >
+          {show[key] ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <Card className="p-6">
+      <h3 className="mb-5 flex items-center gap-2 text-base font-semibold text-slate-900">
+        <Lock className="size-5 text-indigo-600" /> {t('profile.changePassword')}
+      </h3>
+      <form onSubmit={handleSubmit} className="space-y-4 max-w-sm">
+        {field('cur-pw',  t('profile.currentPassword', 'كلمة المرور الحالية'),  pw.current,  'current')}
+        {field('new-pw',  t('profile.newPassword',     'كلمة المرور الجديدة'),  pw.next,     'next')}
+        {field('conf-pw', t('profile.confirmPassword', 'تأكيد كلمة المرور'),    pw.confirm,  'confirm')}
+        <p className="text-xs text-slate-400">{t('profile.passwordHint', 'على الأقل 8 أحرف')}</p>
+        <div className="pt-2">
+          <button
+            type="submit"
+            disabled={mutation.isPending || !pw.current || !pw.next || !pw.confirm}
+            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500 disabled:opacity-50"
+          >
+            {mutation.isPending
+              ? <Loader2 className="size-4 animate-spin" />
+              : <Save className="size-4" />
+            }
+            {t('profile.changePassword', 'تغيير كلمة المرور')}
+          </button>
+        </div>
+      </form>
+    </Card>
+  );
+}
 
 function DetailRow({ label, value, icon: Icon }) {
   return (
@@ -32,10 +106,11 @@ export default function ProfilePage() {
   const user = useAuthStore((s) => s.user);
   const setAuth = useAuthStore((s) => s.setAuth);
   const queryClient = useQueryClient();
+  const fileInputRef = useRef(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
-    avatar: '',
     bio: '',
     bioAr: '',
   });
@@ -55,7 +130,6 @@ export default function ProfilePage() {
         ...f,
         firstName: displayUser.profile.firstName ?? '',
         lastName: displayUser.profile.lastName ?? '',
-        avatar: displayUser.profile.avatar ?? '',
         bio: displayUser.profile.bio ?? '',
         bioAr: displayUser.profile.bioAr ?? '',
       }));
@@ -72,23 +146,30 @@ export default function ProfilePage() {
     onError: (err) => toast.error(err?.message ?? t('common.error')),
   });
 
-  const languageMutation = useMutation({
-    mutationFn: (lang) => profileService.updateLanguage(lang),
-    onSuccess: (_, lang) => {
+  const avatarMutation = useMutation({
+    mutationFn: (file) => profileService.uploadAvatar(file),
+    onSuccess: (updated) => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
-      const u = useAuthStore.getState().user;
-      if (u) setAuth({ ...u, preferredLanguage: lang }, useAuthStore.getState().token);
-      toast.success(t('common.success'));
+      setAuth(updated, useAuthStore.getState().token);
+      setAvatarPreview(null);
+      toast.success(t('profile.avatarUpdated', 'تم تحديث الصورة الشخصية'));
     },
-    onError: (err) => toast.error(err?.message ?? 'Failed to update language'),
+    onError: (err) => toast.error(err?.message ?? t('common.error')),
   });
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const preview = URL.createObjectURL(file);
+    setAvatarPreview(preview);
+    avatarMutation.mutate(file);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     updateMutation.mutate({
       firstName: form.firstName.trim() || undefined,
       lastName: form.lastName.trim() || undefined,
-      avatar: form.avatar.trim() || undefined,
       bio: form.bio.trim() || undefined,
       bioAr: form.bioAr.trim() || undefined,
     });
@@ -123,20 +204,42 @@ export default function ProfilePage() {
         <div className="h-24 bg-gradient-to-r from-indigo-600 to-indigo-500 sm:h-28" />
         <div className="relative px-6 pb-6">
           <div className="-mt-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:gap-6">
-            <div className="relative shrink-0">
-              {form.avatar ? (
+            <div className="relative shrink-0 group">
+              {(avatarPreview || displayUser?.profile?.avatar) ? (
                 <img
-                  src={form.avatar}
+                  src={avatarPreview || displayUser.profile.avatar}
                   alt=""
                   className="size-24 rounded-xl border-4 border-white object-cover shadow-lg sm:size-28"
-                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling?.classList.remove('hidden'); }}
+                  onError={(e) => { e.target.style.display = 'none'; }}
                 />
-              ) : null}
-              <div
-                className={`flex size-24 items-center justify-center rounded-xl border-4 border-white bg-indigo-100 text-3xl font-semibold text-indigo-700 shadow-lg sm:size-28 ${form.avatar ? 'hidden' : ''}`}
+              ) : (
+                <div className="flex size-24 items-center justify-center rounded-xl border-4 border-white bg-indigo-100 text-3xl font-semibold text-indigo-700 shadow-lg sm:size-28">
+                  {initials}
+                </div>
+              )}
+              {/* Upload overlay */}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={avatarMutation.isPending}
+                className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity disabled:cursor-wait"
+                title={t('profile.changeAvatar', 'تغيير الصورة')}
               >
-                {initials}
-              </div>
+                {avatarMutation.isPending
+                  ? <Loader2 className="size-6 animate-spin text-white" />
+                  : <Camera className="size-6 text-white" />
+                }
+                <span className="text-[11px] font-medium text-white">
+                  {t('profile.changeAvatar', 'تغيير')}
+                </span>
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleFileChange}
+              />
             </div>
             <div className="min-w-0 flex-1">
               <h2 className="text-lg font-semibold text-slate-900">{fullName}</h2>
@@ -183,13 +286,6 @@ export default function ProfilePage() {
             />
           </div>
           <Input
-            label={t('profile.avatarUrl')}
-            name="avatar"
-            value={form.avatar}
-            onChange={(e) => setForm((f) => ({ ...f, avatar: e.target.value }))}
-            placeholder="https://example.com/avatar.jpg"
-          />
-          <Input
             label={t('profile.bioEn')}
             name="bio"
             value={form.bio}
@@ -215,35 +311,8 @@ export default function ProfilePage() {
         </form>
       </Card>
 
-      {/* Language */}
-      <Card className="p-6">
-        <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-slate-900">
-          <Globe className="size-5 text-indigo-600" /> {t('common.language')}
-        </h3>
-        <div className="flex flex-wrap items-center gap-4">
-          <label className="text-sm font-medium text-slate-700">{t('common.language')}</label>
-          <select
-            value={displayUser?.preferredLanguage ?? 'AR'}
-            onChange={(e) => languageMutation.mutate(e.target.value)}
-            disabled={languageMutation.isPending}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
-          >
-            {LANGUAGES.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
-        </div>
-      </Card>
-
-      {/* Change password placeholder */}
-      <Card className="p-6">
-        <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-slate-900">
-          <Lock className="size-5 text-indigo-600" /> {t('profile.changePassword')}
-        </h3>
-        <p className="text-sm text-slate-500">
-          {t('profile.changePasswordDesc')}
-        </p>
-      </Card>
+      {/* Change password */}
+      <ChangePasswordCard t={t} />
     </div>
   );
 }

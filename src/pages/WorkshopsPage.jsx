@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
 import { Search, Plus, Pencil, Trash2, Eye, MapPin, Phone, CheckCircle, XCircle, Building2, Star, ArrowRight } from 'lucide-react';
 import { workshopService } from '../services/workshopService';
 import { useConfirm } from '../hooks/useConfirm';
@@ -71,12 +70,7 @@ function WorkshopCard({ workshop, onEdit, onDelete, onToggleVerification, openCo
     : (workshop.images && workshop.images.length > 0 ? `${import.meta.env.VITE_API_URL}${workshop.images[0]}` : null);
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-    >
+    <div>
       <Link
         to={`/workshops/${workshop.id}`}
         className="group block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-500/10"
@@ -174,7 +168,7 @@ function WorkshopCard({ workshop, onEdit, onDelete, onToggleVerification, openCo
           </div>
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
 }
 
@@ -215,7 +209,6 @@ export default function WorkshopsPage() {
       city: city || undefined,
       isVerified: verifiedFilter || undefined,
     }),
-    staleTime: 60_000,
     enabled: isAdmin,
   });
 
@@ -368,11 +361,7 @@ export default function WorkshopsPage() {
       <ConfirmModal />
       
       {/* Hero Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-8 shadow-xl shadow-indigo-500/20"
-      >
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-8 shadow-xl shadow-indigo-500/20">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-5">
             <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
@@ -399,7 +388,7 @@ export default function WorkshopsPage() {
             {t('workshops.addWorkshop', 'Add Workshop')}
           </button>
         </div>
-      </motion.div>
+      </div>
 
       {/* Form Section */}
       {showForm && (

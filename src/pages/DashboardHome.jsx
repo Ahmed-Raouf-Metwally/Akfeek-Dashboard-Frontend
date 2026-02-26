@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 // eslint-disable-next-line no-unused-vars -- motion.section used in JSX
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useDateFormat } from '../hooks/useDateFormat';
 import {
   Users,
   CalendarCheck,
@@ -91,6 +92,7 @@ function StatCard({ title, value, icon, colorClass, loading }) {
 
 export default function DashboardHome() {
   const { t, i18n } = useTranslation();
+  const { fmtDT } = useDateFormat();
   const user = useAuthStore((s) => s.user);
   const firstName = user?.profile?.firstName || user?.email?.split('@')[0] || '';
   const greeting = firstName ? t('dashboard.welcomeBack', { name: firstName }) : t('dashboard.welcomeToDashboard');
@@ -527,7 +529,7 @@ export default function DashboardHome() {
                       <div className="flex items-center text-xs text-slate-500 gap-2">
                         <span>{log.user?.profile?.firstName || log.user?.email || 'System'}</span>
                         <span>•</span>
-                        <span>{new Date(log.createdAt).toLocaleString(i18n.language)}</span>
+                        <span>{fmtDT(log.createdAt)}</span>
                       </div>
                     </div>
                   </div>

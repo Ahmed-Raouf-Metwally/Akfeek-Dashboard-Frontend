@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Mail, Phone, MapPin, Calendar, Award, Package, Ban, CheckCircle, Star } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, MapPin, Calendar, Award, Package, Ban, CheckCircle, Star, Pencil } from 'lucide-react';
 import { vendorService } from '../services/vendorService';
 import { useConfirm } from '../hooks/useConfirm';
 import { useAuthStore } from '../store/authStore';
@@ -11,8 +11,10 @@ import { Card } from '../components/ui/Card';
 import ApprovalStatusBadge from '../components/marketplace/ApprovalStatusBadge';
 import AutoPartCard from '../components/marketplace/AutoPartCard';
 import RatingStars from '../components/common/RatingStars';
+import { useDateFormat } from '../hooks/useDateFormat';
 
 export default function VendorDetailPage() {
+  const { fmt } = useDateFormat();
   const { id } = useParams();
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
@@ -76,6 +78,14 @@ export default function VendorDetailPage() {
           <p className="text-slate-500">Vendor Profile & Catalog</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
+          {user?.role === 'ADMIN' && (
+            <Link
+              to={`/vendors/${vendor.id}/edit`}
+              className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              <Pencil className="size-4" /> Edit
+            </Link>
+          )}
           <ApprovalStatusBadge status={vendor.status} />
           {vendor.status === 'PENDING_APPROVAL' && (
             <button
@@ -139,7 +149,7 @@ export default function VendorDetailPage() {
                 </div>
                 <div className="flex items-center gap-3 text-sm text-slate-600">
                   <Calendar className="size-4 text-slate-400" />
-                  Joined {new Date(vendor.createdAt).toLocaleDateString()}
+                  Joined {fmt(vendor.createdAt)}
                 </div>
               </div>
 
@@ -254,7 +264,7 @@ export default function VendorDetailPage() {
                         <RatingStars rating={r.rating} size={16} />
                         {r.comment && <p className="mt-1 text-sm text-slate-600">{r.comment}</p>}
                         <p className="mt-1 text-xs text-slate-400">
-                          {r.user?.profile?.firstName || r.user?.email || 'مستخدم'} — {new Date(r.createdAt).toLocaleDateString('ar-SA')}
+                          {r.user?.profile?.firstName || r.user?.email || 'مستخدم'} — {fmt(r.createdAt)}
                         </p>
                       </div>
                     </div>

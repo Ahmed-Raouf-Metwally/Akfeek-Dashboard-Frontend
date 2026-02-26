@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Eye, List, Filter, LayoutGrid } from 'lucide-react';
+import { Search, Plus, Eye, List, Filter, LayoutGrid, Trash2, Pencil } from 'lucide-react';
 import { vendorService } from '../services/vendorService';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
@@ -16,28 +17,56 @@ const VENDOR_STATUSES = (t) => [
   { value: 'ALL', label: t('common.all') },
   { value: 'PENDING_APPROVAL', label: t('autoParts.pending') },
   { value: 'ACTIVE', label: t('brands.active') },
-  { value: 'SUSPENDED', label: t('finance.status.FAILED') }, // Using FAILED as Suspended approximation or add new key
+  { value: 'SUSPENDED', label: t('finance.status.FAILED') },
   { value: 'REJECTED', label: t('finance.status.CANCELLED') },
+];
+
+const VENDOR_TYPES = [
+  { value: 'ALL', labelEn: 'All Types', labelAr: 'الكل' },
+  { value: 'AUTO_PARTS', labelEn: 'Auto Parts', labelAr: 'قطع غيار' },
+  { value: 'COMPREHENSIVE_CARE', labelEn: 'Comprehensive Care', labelAr: 'عناية شاملة' },
+  { value: 'CERTIFIED_WORKSHOP', labelEn: 'Certified Workshop', labelAr: 'ورش معتمدة' },
+  { value: 'CAR_WASH', labelEn: 'Car Wash', labelAr: 'غسيل سيارات' },
+  { value: 'ADHMN_AKFEEK', labelEn: 'Adhmn Akfeek', labelAr: 'أضمن أكفيك' },
 ];
 
 export default function VendorsPage() {
   const { t, i18n } = useTranslation();
+  const queryClient = useQueryClient();
   const PAGE_SIZE = 12;
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('ALL');
+  const [vendorType, setVendorType] = useState('ALL');
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState('grid'); // 'table' | 'grid'
 
   const statuses = VENDOR_STATUSES(t);
+  const isAr = i18n.language === 'ar';
 
   const { data: vendors = [], isLoading } = useQuery({
-    queryKey: ['vendors', { search, status }],
+    queryKey: ['vendors', { search, status, vendorType }],
     queryFn: () => vendorService.getVendors({
       search: search || undefined,
-      status: status !== 'ALL' ? status : undefined
+      status: status !== 'ALL' ? status : undefined,
+      vendorType: vendorType !== 'ALL' ? vendorType : undefined
     }),
     staleTime: 60_000,
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => vendorService.deleteVendor(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vendors'] });
+      toast.success('Vendor deleted successfully');
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to delete vendor'),
+  });
+
+  const handleDelete = async (id, name) => {
+    if (window.confirm(`Are you sure you want to delete vendor: ${name}?`)) {
+      deleteMutation.mutate(id);
+    }
+  };
 
 
 
@@ -84,11 +113,23 @@ export default function VendorsPage() {
               <Filter className="size-5 text-slate-400" />
               <select
                 value={status}
-                onChange={(e) => setStatus(e.target.value)}
+                onChange={(e) => { setStatus(e.target.value); setPage(1); }}
                 className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               >
-                {statuses.map((s) => (
+                <option value="ALL">{isAr ? 'كل الحالات' : 'All Statuses'}</option>
+                {statuses.slice(1).map((s) => (
                   <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
+              <select
+                value={vendorType}
+                onChange={(e) => { setVendorType(e.target.value); setPage(1); }}
+                className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              >
+                {VENDOR_TYPES.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {isAr ? type.labelAr : type.labelEn}
+                  </option>
                 ))}
               </select>
             </div>
@@ -132,7 +173,18 @@ export default function VendorsPage() {
           {viewMode === 'grid' ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {paginatedVendors.map((vendor) => (
-                <VendorCard key={vendor.id} vendor={vendor} isArabic={i18n.language === 'ar'} />
+                <div key={vendor.id} className="relative group">
+                  <VendorCard vendor={vendor} isArabic={i18n.language === 'ar'} />
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Link
+                      to={`/vendors/${vendor.id}/edit`}
+                      className="inline-flex size-8 items-center justify-center rounded-lg bg-white/90 shadow-sm border border-slate-200 text-indigo-600 hover:bg-white"
+                      title="Edit"
+                    >
+                      <Pencil className="size-4" />
+                    </Link>
+                  </div>
+                </div>
               ))}
             </div>
           ) : (
@@ -175,12 +227,29 @@ export default function VendorsPage() {
                           {vendor._count?.parts ?? 0} parts
                         </td>
                         <td className="px-4 py-3">
-                          <Link
-                            to={`/vendors/${vendor.id}`}
-                            className="inline-flex size-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                          >
-                            <Eye className="size-4" />
-                          </Link>
+                          <div className="flex items-center gap-1">
+                            <Link
+                              to={`/vendors/${vendor.id}`}
+                              className="inline-flex size-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                              title="View"
+                            >
+                              <Eye className="size-4" />
+                            </Link>
+                            <Link
+                              to={`/vendors/${vendor.id}/edit`}
+                              className="inline-flex size-8 items-center justify-center rounded-lg border border-slate-200 text-indigo-600 hover:bg-slate-50 hover:text-indigo-700"
+                              title="Edit"
+                            >
+                              <Pencil className="size-4" />
+                            </Link>
+                            <button
+                              onClick={() => handleDelete(vendor.id, vendor.businessName)}
+                              className="inline-flex size-8 items-center justify-center rounded-lg border border-slate-200 text-red-500 hover:bg-red-50 hover:text-red-700"
+                              title="Delete"
+                            >
+                              <Trash2 className="size-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

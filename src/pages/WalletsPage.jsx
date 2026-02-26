@@ -21,9 +21,11 @@ import { Card } from '../components/ui/Card';
 import Pagination from '../components/ui/Pagination';
 import DetailModal from '../components/ui/DetailModal';
 import ImageOrPlaceholder from '../components/ui/ImageOrPlaceholder';
+import { useDateFormat } from '../hooks/useDateFormat';
 
 export default function WalletsPage() {
   const { t, i18n } = useTranslation();
+  const { fmt } = useDateFormat();
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
   const isVendor = user?.role === 'VENDOR';
@@ -439,7 +441,7 @@ export default function WalletsPage() {
                   {transactionsData?.transactions?.map((txn) => (
                     <tr key={txn.id}>
                       <td className="px-4 py-2 text-slate-600">
-                        {new Date(txn.createdAt).toLocaleDateString()}
+                        {fmt(txn.createdAt)}
                       </td>
                       <td className="px-4 py-2 font-medium text-slate-900">
                         {txn.type}

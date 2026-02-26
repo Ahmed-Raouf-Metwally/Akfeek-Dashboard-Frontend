@@ -6,14 +6,9 @@ import { broadcastService } from '../services/broadcastService';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
 import { Card } from '../components/ui/Card';
+import { useDateFormat } from '../hooks/useDateFormat';
 
 const PAGE_SIZE = 10;
-
-function formatDate(d, locale = 'en-SA') {
-  if (!d) return '—';
-  const x = typeof d === 'string' ? new Date(d) : d;
-  return Number.isNaN(x.getTime()) ? '—' : x.toLocaleDateString(locale, { dateStyle: 'short' });
-}
 
 function customerLabel(b) {
   const p = b.customer?.profile;
@@ -51,7 +46,8 @@ function UrgencyBadge({ urgency, t }) {
 }
 
 export default function JobBroadcastsPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const { fmt } = useDateFormat();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
   const { data, isLoading, isError, error } = useQuery({
@@ -152,7 +148,7 @@ export default function JobBroadcastsPage() {
                       <td className="px-4 py-3">
                         <UrgencyBadge urgency={b.urgency} t={t} />
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{formatDate(b.createdAt, i18n.language)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{fmt(b.createdAt)}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">
                         {b._count?.offers ?? 0}
                       </td>
