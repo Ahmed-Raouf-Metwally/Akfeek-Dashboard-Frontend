@@ -2,23 +2,12 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle, MessageSquare } from 'lucide-react';
 import RatingStars from '../common/RatingStars';
+import { useDateFormat } from '../../hooks/useDateFormat';
 
-/**
- * ReviewCard Component
- * Display individual workshop review
- */
 const ReviewCard = ({ review, showWorkshopResponse = true }) => {
   const { t, i18n } = useTranslation();
+  const { fmt } = useDateFormat();
   const isArabic = i18n.language === 'ar';
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(isArabic ? 'ar-SA' : 'en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
 
   const userName = review.user?.profile
     ? `${review.user.profile.firstName} ${review.user.profile.lastName}`
@@ -53,7 +42,7 @@ const ReviewCard = ({ review, showWorkshopResponse = true }) => {
               )}
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {formatDate(review.createdAt)}
+              {fmt(review.createdAt)}
             </p>
           </div>
         </div>
@@ -83,7 +72,7 @@ const ReviewCard = ({ review, showWorkshopResponse = true }) => {
               </p>
               {review.respondedAt && (
                 <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-                  {formatDate(review.respondedAt)}
+                  {fmt(review.respondedAt)}
                 </p>
               )}
             </div>

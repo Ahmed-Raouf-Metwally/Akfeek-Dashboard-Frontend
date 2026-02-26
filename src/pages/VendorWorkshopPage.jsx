@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Building2, MapPin, Phone, Mail, CalendarCheck, Pencil } from 'lucide-react';
+import { ArrowLeft, Building2, MapPin, Phone, Mail, CalendarCheck, Pencil, Wrench } from 'lucide-react';
 import { workshopService } from '../services/workshopService';
 import { useAuthStore } from '../store/authStore';
 import { Card } from '../components/ui/Card';
@@ -50,9 +50,17 @@ export default function VendorWorkshopPage() {
           <h2 className="mt-4 text-lg font-semibold text-slate-900">{isAr ? 'الورشة' : 'My Workshop'}</h2>
           <p className="mt-2 text-slate-600">
             {is404
-              ? (isAr ? 'لا توجد ورشة مرتبطة بحسابك. تواصل مع الإدارة لربط ورشتك.' : 'No workshop linked to your account. Contact admin to link your workshop.')
+              ? (isAr ? 'لا توجد ورشة مرتبطة بحسابك. يمكنك إضافة ورشتك من هنا.' : 'No workshop linked to your account. You can add your workshop below.')
               : (error?.message || (isAr ? 'فشل تحميل البيانات' : 'Failed to load'))}
           </p>
+          {is404 && (
+            <Link
+              to="/vendor/workshop/edit"
+              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
+            >
+              <Building2 className="size-4" /> {isAr ? 'إضافة ورشتي' : 'Add my workshop'}
+            </Link>
+          )}
         </Card>
       </div>
     );
@@ -60,13 +68,13 @@ export default function VendorWorkshopPage() {
 
   const services = typeof workshop.services === 'string'
     ? (() => {
-        try {
-          const p = JSON.parse(workshop.services);
-          return Array.isArray(p) ? p : [workshop.services];
-        } catch {
-          return workshop.services.split(',').map((s) => s.trim()).filter(Boolean);
-        }
-      })()
+      try {
+        const p = JSON.parse(workshop.services);
+        return Array.isArray(p) ? p : [workshop.services];
+      } catch {
+        return workshop.services.split(',').map((s) => s.trim()).filter(Boolean);
+      }
+    })()
     : [];
 
   return (
@@ -103,6 +111,12 @@ export default function VendorWorkshopPage() {
             className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-semibold text-indigo-700 hover:bg-indigo-100"
           >
             <CalendarCheck className="size-4" /> {isAr ? 'حجوزات الورشة' : 'Bookings'}
+          </Link>
+          <Link
+            to="/vendor/workshop/services"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            <Wrench className="size-4" /> {isAr ? 'إدارة الخدمات' : 'Manage Services'}
           </Link>
         </div>
       </div>

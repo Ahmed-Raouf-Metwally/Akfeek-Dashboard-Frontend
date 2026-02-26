@@ -8,14 +8,9 @@ import { bookingService } from '../services/bookingService';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
 import { Card } from '../components/ui/Card';
+import { useDateFormat } from '../hooks/useDateFormat';
 
 const PAGE_SIZE = 10;
-
-function formatDate(d, locale = 'en-SA') {
-  if (!d) return '—';
-  const x = typeof d === 'string' ? new Date(d) : d;
-  return Number.isNaN(x.getTime()) ? '—' : x.toLocaleDateString(locale, { dateStyle: 'short' });
-}
 
 function customerLabel(b) {
   const p = b.customer?.profile;
@@ -31,7 +26,8 @@ function technicianLabel(b) {
 }
 
 export default function BookingsPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const { fmt } = useDateFormat();
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'ADMIN';
   const [page, setPage] = useState(1);
@@ -174,7 +170,7 @@ export default function BookingsPage() {
                           {b.status ?? '—'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{formatDate(b.scheduledDate, i18n.language)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{fmt(b.scheduledDate)}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{b.scheduledTime ?? '—'}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">
                         {b.totalPrice != null ? Number(b.totalPrice).toFixed(2) : '—'}

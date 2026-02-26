@@ -5,6 +5,7 @@ import { ArrowLeft, Radio, MapPin, Clock, DollarSign, User, CalendarCheck } from
 import { broadcastService } from '../services/broadcastService';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import { Card } from '../components/ui/Card';
+import { useDateFormat } from '../hooks/useDateFormat';
 
 function DetailRow({ label, value }) {
   return (
@@ -13,18 +14,6 @@ function DetailRow({ label, value }) {
       <span className="text-sm font-medium text-slate-900">{value != null ? value : '—'}</span>
     </div>
   );
-}
-
-function formatDate(d) {
-  if (!d) return '—';
-  const x = typeof d === 'string' ? new Date(d) : d;
-  return Number.isNaN(x.getTime()) ? '—' : x.toLocaleDateString('en-SA', { dateStyle: 'medium' });
-}
-
-function formatDateTime(d) {
-  if (!d) return '—';
-  const x = typeof d === 'string' ? new Date(d) : d;
-  return Number.isNaN(x.getTime()) ? '—' : x.toLocaleString('en-SA', { dateStyle: 'short', timeStyle: 'short' });
 }
 
 function customerLabel(b) {
@@ -49,6 +38,7 @@ function statusBadge(status) {
 }
 
 export default function BroadcastDetailPage() {
+  const { fmt, fmtDT } = useDateFormat();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -134,8 +124,8 @@ export default function BroadcastDetailPage() {
               value={broadcast.estimatedBudget != null ? `${Number(broadcast.estimatedBudget).toFixed(2)} SAR` : '—'}
             />
             <DetailRow label="Radius" value={broadcast.radiusKm != null ? `${broadcast.radiusKm} km` : '—'} />
-            <DetailRow label="Broadcast until" value={formatDateTime(broadcast.broadcastUntil)} />
-            <DetailRow label="Created" value={formatDateTime(broadcast.createdAt)} />
+            <DetailRow label="Broadcast until" value={fmtDT(broadcast.broadcastUntil)} />
+            <DetailRow label="Created" value={fmtDT(broadcast.createdAt)} />
           </div>
         </Card>
 
@@ -203,7 +193,7 @@ export default function BroadcastDetailPage() {
                       </div>
                       {offer.message && <p className="mt-2 text-sm text-slate-500">{offer.message}</p>}
                     </div>
-                    <span className="text-xs text-slate-400">{formatDate(offer.createdAt)}</span>
+                    <span className="text-xs text-slate-400">{fmt(offer.createdAt)}</span>
                   </div>
                 </div>
               );

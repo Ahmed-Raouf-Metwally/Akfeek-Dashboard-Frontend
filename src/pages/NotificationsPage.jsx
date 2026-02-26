@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import { useDateFormat } from '../hooks/useDateFormat';
 import { Bell, Check, CheckCheck, Loader2, Info, AlertTriangle, Wallet, Calendar, Star, Users } from 'lucide-react';
 import { notificationService } from '../services/notificationService';
 import { Card } from '../components/ui/Card';
@@ -28,7 +29,7 @@ function getTypeConfig(type) {
   }
 }
 
-function NotificationRow({ item, onMarkRead, t, i18n, isAdminView }) {
+function NotificationRow({ item, onMarkRead, t, i18n, isAdminView, fmtDT }) {
   const isRead = item.isRead ?? false;
   const type = item.type || 'SYSTEM';
   const { icon: Icon, color, bg } = getTypeConfig(type);
@@ -37,7 +38,7 @@ function NotificationRow({ item, onMarkRead, t, i18n, isAdminView }) {
   const message = (i18n.language === 'ar' && item.messageAr) ? item.messageAr : (item.message || '');
 
   const createdAt = item.createdAt
-    ? new Date(item.createdAt).toLocaleString(i18n.language, { dateStyle: 'medium', timeStyle: 'short' })
+    ? fmtDT(item.createdAt)
     : '—';
 
   return (
@@ -97,6 +98,7 @@ function NotificationRow({ item, onMarkRead, t, i18n, isAdminView }) {
 
 export default function NotificationsPage() {
   const { t, i18n } = useTranslation();
+  const { fmtDT } = useDateFormat();
   const [page, setPage] = useState(1);
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [viewMode, setViewMode] = useState('personal'); // 'personal' or 'all'
@@ -246,6 +248,7 @@ export default function NotificationsPage() {
                         onMarkRead={(id) => markRead.mutate(id)}
                         t={t}
                         i18n={i18n}
+                        fmtDT={fmtDT}
                       />
                     ))}
                   </tbody>

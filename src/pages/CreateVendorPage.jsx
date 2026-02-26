@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, UserPlus, Search } from 'lucide-react';
 import { vendorService } from '../services/vendorService';
+import { userService } from '../services/userService';
 import { Card } from '../components/ui/Card';
 import Input from '../components/Input';
 
 export default function CreateVendorPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
+
   const [formData, setFormData] = useState({
     businessName: '',
     businessNameAr: '',
@@ -24,12 +25,31 @@ export default function CreateVendorPage() {
     vendorType: 'AUTO_PARTS', // AUTO_PARTS | COMPREHENSIVE_CARE | CERTIFIED_WORKSHOP | CAR_WASH
   });
 
+  const [createNewAccount, setCreateNewAccount] = useState(false);
+  const [accountData, setAccountData] = useState({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+  });
+
   const VENDOR_TYPE_OPTIONS = [
     { value: 'AUTO_PARTS', labelEn: 'Auto Parts / Products', labelAr: 'قطع الغيار / المنتجات' },
     { value: 'COMPREHENSIVE_CARE', labelEn: 'Comprehensive Care', labelAr: 'العناية الشاملة' },
     { value: 'CERTIFIED_WORKSHOP', labelEn: 'Certified Workshop', labelAr: 'الورش المعتمدة' },
     { value: 'CAR_WASH', labelEn: 'Car Wash', labelAr: 'خدمة الغسيل' },
   ];
+
+  const [userSearch, setUserSearch] = useState('');
+
+  // Fetch users for linking
+  const { data: usersData, isLoading: isLoadingUsers } = useQuery({
+    queryKey: ['users', { search: userSearch }],
+    queryFn: () => userService.getUsers({ search: userSearch, limit: 50 }),
+    enabled: !createNewAccount,
+  });
+
+  const users = usersData?.users || [];
 
   const createMutation = useMutation({
     mutationFn: (data) => vendorService.createVendor(data),
@@ -53,6 +73,11 @@ export default function CreateVendorPage() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAccountChange = (e) => {
+    const { name, value } = e.target;
+    setAccountData(prev => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -105,16 +130,43 @@ export default function CreateVendorPage() {
               <Input label="Last Name" name="lastName" value={accountData.lastName} onChange={handleAccountChange} required />
             </div>
           ) : (
-            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
-              <Input
-                label="User ID (UUID)"
-                name="userId"
-                value={formData.userId}
-                onChange={handleChange}
-                placeholder="e.g. 550e8400-e29b-..."
-                required={!createNewAccount}
-                helperText="The existing user UUID (must already have role VENDOR)."
-              />
+            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-4">
+              <div className="relative">
+                <Input
+                  label="Search User (Name, Email or Phone)"
+                  placeholder="Type to search..."
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  icon={<Search className="size-4 text-slate-400" />}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-slate-700">Select User / اختر المستخدم</label>
+                <select
+                  name="userId"
+                  value={formData.userId}
+                  onChange={handleChange}
+                  className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  required={!createNewAccount}
+                >
+                  <option value="">-- Choose a user --</option>
+                  {isLoadingUsers ? (
+                    <option disabled>Loading users...</option>
+                  ) : users.length === 0 ? (
+                    <option disabled>No users found</option>
+                  ) : (
+                    users.map(user => (
+                      <option key={user.id} value={user.id}>
+                        {user.profile?.firstName} {user.profile?.lastName} ({user.email}) - {user.role}
+                      </option>
+                    ))
+                  )}
+                </select>
+                <p className="text-xs text-slate-500">
+                  {formData.userId ? `Selected ID: ${formData.userId}` : 'Please select a user to link with the vendor profile.'}
+                </p>
+              </div>
             </div>
           )}
 
@@ -150,7 +202,7 @@ export default function CreateVendorPage() {
               required
               dir="rtl"
             />
-            
+
             <Input
               label="Contact Email"
               name="contactEmail"
@@ -167,7 +219,7 @@ export default function CreateVendorPage() {
               onChange={handleChange}
               required
             />
-            
+
             <div className="sm:col-span-2">
               <Input
                 label="Address"
@@ -177,7 +229,7 @@ export default function CreateVendorPage() {
                 required
               />
             </div>
-            
+
             <Input
               label="City"
               name="city"
@@ -193,7 +245,7 @@ export default function CreateVendorPage() {
               required
               maxLength={2}
             />
-            
+
             <div className="sm:col-span-2">
               <label className="mb-1.5 block text-sm font-medium text-slate-700">Description</label>
               <textarea

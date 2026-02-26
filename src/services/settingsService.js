@@ -17,6 +17,13 @@ export const settingsService = {
     if (!data.success) throw new Error(data.error || data.message || 'Failed to update setting');
     return data.data ?? { key, value };
   },
+
+  /** Create VAT_RATE and PLATFORM_COMMISSION_PERCENT in backend if missing. POST /api/admin/settings/pricing/init */
+  async initPricingSettings() {
+    const { data } = await api.post('/admin/settings/pricing/init');
+    if (!data.success) throw new Error(data.error || data.message || 'Failed to init pricing settings');
+    return data.data ?? [];
+  },
 };
 
 export default settingsService;

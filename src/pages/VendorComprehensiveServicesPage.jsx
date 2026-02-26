@@ -254,7 +254,7 @@ export default function VendorComprehensiveServicesPage() {
           )}
           {!isAdmin && (
             <Link
-              to="/vendor/comprehensive-care/bookings"
+              to={isCarWash ? '/vendor/car-wash/bookings' : '/vendor/comprehensive-care/bookings'}
               className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
             >
               <CalendarCheck className="size-4" />

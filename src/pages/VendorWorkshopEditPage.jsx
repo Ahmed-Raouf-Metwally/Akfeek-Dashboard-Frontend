@@ -7,7 +7,9 @@ import { workshopService } from '../services/workshopService';
 import { useAuthStore } from '../store/authStore';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
-import Input from '../components/Input';
+import { defaultWorkingHoursByDay, buildWorkingHoursPayload } from '../utils/workshopFormShared';
+import WorkshopFormFields from '../components/workshops/WorkshopFormFields';
+import ImageUploader from '../components/workshops/ImageUploader';
 import toast from 'react-hot-toast';
 
 function emptyForm() {
@@ -23,7 +25,8 @@ function emptyForm() {
     locationUrl: '',
     phone: '',
     email: '',
-    services: '[]',
+    services: '["Engine Repair", "Oil Change"]',
+    workingHoursByDay: defaultWorkingHoursByDay(),
   };
 }
 
@@ -35,14 +38,26 @@ export default function VendorWorkshopEditPage() {
   const isAr = i18n.language === 'ar';
   const [form, setForm] = useState(emptyForm());
 
-  const { data: workshop, isLoading, isError } = useQuery({
+  const { data: workshop, isLoading, isError, error } = useQuery({
     queryKey: ['workshop', 'me'],
     queryFn: () => workshopService.getMyWorkshop(),
     retry: (_, err) => err?.response?.status !== 403 && err?.response?.status !== 404,
   });
 
+  const isCreateMode = isError && error?.response?.status === 404;
+
   useEffect(() => {
     if (workshop) {
+      const wh = workshop.workingHours && typeof workshop.workingHours === 'object' ? workshop.workingHours : {};
+      const workingHoursByDay = defaultWorkingHoursByDay();
+      Object.keys(workingHoursByDay).forEach((key) => {
+        const h = wh[key];
+        if (h && h.closed) {
+          workingHoursByDay[key] = { closed: true, open: '', close: '' };
+        } else if (h && (h.open || h.close)) {
+          workingHoursByDay[key] = { closed: false, open: h.open || '09:00', close: h.close || '18:00' };
+        }
+      });
       setForm({
         name: workshop.name ?? '',
         nameAr: workshop.nameAr ?? '',
@@ -55,9 +70,8 @@ export default function VendorWorkshopEditPage() {
         locationUrl: '',
         phone: workshop.phone ?? '',
         email: workshop.email ?? '',
-        services: typeof workshop.services === 'string'
-          ? workshop.services
-          : JSON.stringify(workshop.services || []),
+        services: typeof workshop.services === 'string' ? workshop.services : JSON.stringify(workshop.services || []),
+        workingHoursByDay,
       });
     }
   }, [workshop]);
@@ -71,6 +85,18 @@ export default function VendorWorkshopEditPage() {
     },
     onError: (err) => {
       toast.error(err?.message || (isAr ? 'فشل التحديث' : 'Update failed'));
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (payload) => workshopService.createMyWorkshop(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workshop', 'me'] });
+      toast.success(isAr ? 'تم إنشاء الورشة بنجاح. ستظهر بعد التحقق من الإدارة.' : 'Workshop created. It will appear after admin verification.');
+      navigate('/vendor/workshop');
+    },
+    onError: (err) => {
+      toast.error(err?.message || (isAr ? 'فشل الإنشاء' : 'Create failed'));
     },
   });
 
@@ -89,8 +115,10 @@ export default function VendorWorkshopEditPage() {
       phone: form.phone.trim(),
       email: form.email.trim() || undefined,
       services: form.services.trim(),
+      workingHours: buildWorkingHoursPayload(form.workingHoursByDay || defaultWorkingHoursByDay()),
     };
-    updateMutation.mutate(payload);
+    if (isCreateMode) createMutation.mutate(payload);
+    else updateMutation.mutate(payload);
   };
 
   if (user?.role !== 'VENDOR' || user?.vendorType !== 'CERTIFIED_WORKSHOP') {
@@ -103,7 +131,7 @@ export default function VendorWorkshopEditPage() {
     );
   }
 
-  if (isLoading || !workshop) {
+  if (isLoading && !isCreateMode) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-48" />
@@ -112,7 +140,7 @@ export default function VendorWorkshopEditPage() {
     );
   }
 
-  if (isError) {
+  if (isError && !isCreateMode) {
     return (
       <div className="space-y-6">
         <Link to="/vendor/workshop" className="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-700">
@@ -125,6 +153,8 @@ export default function VendorWorkshopEditPage() {
     );
   }
 
+  const pending = isCreateMode ? createMutation.isPending : updateMutation.isPending;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -136,100 +166,28 @@ export default function VendorWorkshopEditPage() {
           <ArrowLeft className="size-5" />
         </Link>
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">{isAr ? 'تعديل الورشة' : 'Edit Workshop'}</h1>
-          <p className="text-sm text-slate-500">{workshop.nameAr || workshop.name}</p>
+          <h1 className="text-xl font-semibold text-slate-900">
+            {isCreateMode ? (isAr ? 'إضافة ورشتي' : 'Add my workshop') : (isAr ? 'تعديل الورشة' : 'Edit Workshop')}
+          </h1>
+          <p className="text-sm text-slate-500">{workshop ? (workshop.nameAr || workshop.name) : (isAr ? 'أدخل بيانات الورشة' : 'Enter workshop details')}</p>
         </div>
       </div>
 
       <Card className="p-6">
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Input
-            label={t('workshops.name', 'Name')}
-            name="name"
-            value={form.name}
-            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            placeholder="e.g. Al-Salam Auto Center"
-            required
-          />
-          <Input
-            label={t('common.nameAr', 'Name (Arabic)')}
-            name="nameAr"
-            value={form.nameAr}
-            onChange={(e) => setForm((f) => ({ ...f, nameAr: e.target.value }))}
-            placeholder="مركز السلام للسيارات"
-          />
-          <Input
-            label={t('workshops.city', 'City')}
-            name="city"
-            value={form.city}
-            onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
-            placeholder="Riyadh"
-            required
-          />
-          <Input
-            label={t('workshops.address', 'Address')}
-            name="address"
-            value={form.address}
-            onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-            placeholder="King Fahd Road"
-            required
-          />
-          <Input
-            label={t('workshops.phone', 'Phone')}
-            name="phone"
-            type="tel"
-            value={form.phone}
-            onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-            placeholder="+966112345000"
-            required
-          />
-          <Input
-            label={t('workshops.email', 'Email')}
-            name="email"
-            type="email"
-            value={form.email}
-            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-            placeholder="info@workshop.sa"
-          />
-          <Input
-            label={t('workshops.locationUrl', 'Location URL')}
-            name="locationUrl"
-            value={form.locationUrl}
-            onChange={(e) => setForm((f) => ({ ...f, locationUrl: e.target.value }))}
-            placeholder={t('workshops.locationUrlPlaceholder', 'Google Maps link to update coordinates')}
-          />
-          <Input
-            label={t('workshops.services', 'Services')}
-            name="services"
-            value={form.services}
-            onChange={(e) => setForm((f) => ({ ...f, services: e.target.value }))}
-            placeholder='["Engine Repair", "Oil Change"]'
-            required
-            className="sm:col-span-2"
-          />
-          <Input
-            label={t('common.description', 'Description')}
-            name="description"
-            value={form.description}
-            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-            placeholder="Brief description"
-            className="sm:col-span-2"
-          />
-          <Input
-            label={t('common.descriptionAr', 'Description (Arabic)')}
-            name="descriptionAr"
-            value={form.descriptionAr}
-            onChange={(e) => setForm((f) => ({ ...f, descriptionAr: e.target.value }))}
-            placeholder="وصف مختصر"
-            className="sm:col-span-2"
+          <WorkshopFormFields
+            form={form}
+            setForm={setForm}
+            requireLocationUrl={isCreateMode}
+            showAdminFields={false}
           />
           <div className="flex w-full gap-3 pt-2 sm:col-span-2 lg:col-span-3">
             <button
               type="submit"
-              disabled={updateMutation.isPending}
+              disabled={pending}
               className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
             >
-              {updateMutation.isPending ? (isAr ? 'جاري الحفظ...' : 'Saving...') : (isAr ? 'حفظ التعديلات' : 'Save changes')}
+              {pending ? (isAr ? 'جاري الحفظ...' : 'Saving...') : isCreateMode ? (isAr ? 'إنشاء الورشة' : 'Create workshop') : (isAr ? 'حفظ التعديلات' : 'Save changes')}
             </button>
             <Link
               to="/vendor/workshop"
@@ -240,6 +198,32 @@ export default function VendorWorkshopEditPage() {
           </div>
         </form>
       </Card>
+
+      {workshop && (
+        <Card className="p-6">
+          <h3 className="mb-4 text-base font-semibold text-slate-900">{t('workshops.logoAndImages', 'الشعار والصور')}</h3>
+          <div className="space-y-8">
+            <div>
+              <p className="mb-2 text-sm font-medium text-slate-700">{t('workshops.logo', 'الشعار')}</p>
+              <ImageUploader
+                useProfileMe
+                currentLogo={workshop.logo}
+                type="logo"
+                onUploadSuccess={() => queryClient.invalidateQueries({ queryKey: ['workshop', 'me'] })}
+              />
+            </div>
+            <div>
+              <p className="mb-2 text-sm font-medium text-slate-700">{t('workshops.images', 'صور الورشة')}</p>
+              <ImageUploader
+                useProfileMe
+                currentImages={Array.isArray(workshop.images) ? workshop.images : (workshop.images ? [workshop.images] : [])}
+                type="images"
+                onUploadSuccess={() => queryClient.invalidateQueries({ queryKey: ['workshop', 'me'] })}
+              />
+            </div>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

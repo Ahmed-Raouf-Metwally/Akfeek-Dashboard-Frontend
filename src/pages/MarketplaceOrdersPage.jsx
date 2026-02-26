@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useDateFormat } from '../hooks/useDateFormat';
 import { marketplaceOrderService } from '../services/marketplaceOrderService';
 import { useAuthStore } from '../store/authStore';
 import { 
@@ -12,6 +13,7 @@ import { Link } from 'react-router-dom';
 
 export default function MarketplaceOrdersPage() {
   const { t } = useTranslation();
+  const { fmt } = useDateFormat();
   const user = useAuthStore((state) => state.user);
   const isAdmin = user?.role === 'ADMIN';
   const isVendor = user?.role === 'VENDOR';
@@ -124,7 +126,7 @@ export default function MarketplaceOrdersPage() {
                       <div className="text-xs text-slate-400">{order.customer?.phone}</div>
                     </td>
                     <td className="px-6 py-4">
-                      {new Date(order.createdAt).toLocaleDateString()}
+                      {fmt(order.createdAt)}
                     </td>
                     <td className="px-6 py-4 font-medium">
                       {order.totalAmount} SAR

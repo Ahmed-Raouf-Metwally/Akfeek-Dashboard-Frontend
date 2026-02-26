@@ -47,6 +47,8 @@ export default function VendorOnboardingPage() {
         mutationFn: ({ id, status }) => vendorService.updateOnboardingStatus(id, status),
         onSuccess: () => {
             queryClient.invalidateQueries(['vendor-onboarding']);
+            queryClient.invalidateQueries(['workshops-admin']);
+            queryClient.invalidateQueries(['vendors']);
             toast.success(t('common.success'));
             setIsDetailModalOpen(false);
         },

@@ -30,6 +30,7 @@ const validateFile = (file, maxSizeMB, t) => {
  */
 const ImageUploader = ({
   workshopId,
+  useProfileMe = false,
   currentImages = [],
   currentLogo = null,
   type = 'images', // 'images' or 'logo'
@@ -40,6 +41,8 @@ const ImageUploader = ({
   const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+
+  const basePath = useProfileMe ? '/api/workshops/profile/me' : `/api/workshops/${workshopId}`;
 
   const handleUpload = useCallback(async (files) => {
     if (!files || files.length === 0) return;
@@ -74,11 +77,9 @@ const ImageUploader = ({
         });
       }
 
-      const endpoint = type === 'logo' 
-        ? `/api/workshops/${workshopId}/logo`
-        : `/api/workshops/${workshopId}/images`;
+      const endpoint = type === 'logo' ? `${basePath}/logo` : `${basePath}/images`;
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}${endpoint}`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`
@@ -102,7 +103,7 @@ const ImageUploader = ({
     } finally {
       setUploading(false);
     }
-  }, [workshopId, type, currentImages, maxImages, maxSizeMB, onUploadSuccess, t]);
+  }, [basePath, type, currentImages, maxImages, maxSizeMB, onUploadSuccess, t]);
 
   const handleDrag = useCallback((e) => {
     e.preventDefault();
@@ -133,12 +134,8 @@ const ImageUploader = ({
   const handleDelete = async (imageUrl, index) => {
     try {
       const token = localStorage.getItem('token');
-      
-      const endpoint = type === 'logo'
-        ? `/api/workshops/${workshopId}/logo`
-        : `/api/workshops/${workshopId}/images/${index}`;
-
-      const response = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, {
+      const endpoint = type === 'logo' ? `${basePath}/logo` : `${basePath}/images/${index}`;
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}${endpoint}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`

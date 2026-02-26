@@ -106,6 +106,7 @@
   "nav": {
     "dashboard": "لوحة التحكم",
     "analytics": "التحليلات",
+    "myVendorDetail": "صفحة تفاصيل متجري",
     "users": "المستخدمون",
     "bookings": "الحجوزات",
     "services": "الخدمات",
@@ -122,6 +123,7 @@
     "brands": "ماركات السيارات",
     "models": "موديلات السيارات",
     "broadcasts": "البث المباشر",
+    "towingRequests": "طلبات الونش",
     "inspections": "الفحوصات",
     "supply-requests": "طلبات التوريد",
     "invoices": "الفواتير",
@@ -142,7 +144,12 @@
     "vendorMyServices": "خدماتي",
     "vendorBookings": "مواعيد الحجوزات",
     "vendorMyWorkshop": "الورشة",
-    "vendorWorkshopBookings": "حجوزات الورشة"
+    "vendorWorkshopBookings": "حجوزات الورشة",
+    "vendorCoupons": "الكوبونات",
+    "allCoupons": "كافة الكوبونات",
+    "carWashWorkshops": "ورش الغسيل",
+    "comprehensiveCareWorkshops": "العناية الشاملة",
+    "technicalSupportRequests": "طلبات الدعم الفني"
   },
   "workshops": {
     "title": "الورش المعتمدة",
@@ -399,12 +406,17 @@
     "perPage": "صف لكل صفحة",
     "resetAll": "إعادة تعيين جميع الإعدادات",
     "appearance": "المظهر",
+    "language": "اللغة",
+    "languageSubtitle": "لغة واجهة الداشبورد. يمكنك أيضاً التبديل من أيقونة اللغة في الهيدر.",
     "theme": "السمة",
     "dateFormat": "تنسيق التاريخ",
     "compactMode": "الوضع المضغوط",
     "compactModeDesc": "تقليل المسافات في الجداول والقوائم",
     "businessSettings": "العمولات والضرائب",
     "businessSettingsSubtitle": "التحكم الكامل في عمولة المنصة وحصة الفني والضريبة",
+    "noPricingSettings": "لا توجد إعدادات عمولات/ضريبة. شغّل seed في الباكند لإنشاء VAT_RATE و PLATFORM_COMMISSION_PERCENT.",
+    "initPricingInBackend": "تهيئة إعدادات التسعير في الباكند",
+    "pricingInitSuccess": "تم تهيئة إعدادات التسعير في الباكند",
     "systemSettings": "إعدادات النظام",
     "systemSettingsSubtitle": "تكوين الواجهة الخلفية حسب الفئة",
     "saveChanges": "حفظ التغييرات",
@@ -434,6 +446,7 @@
       "PLATFORM_COMMISSION_PERCENT": "نسبة عمولة المنصة",
       "TECHNICIAN_COMMISSION_PERCENT": "نسبة حصة الفني",
       "VAT_PERCENT": "نسبة الضريبة",
+      "VAT_RATE": "ضريبة القيمة المضافة (٪)",
       "TAX_INCLUDED_IN_PRICE": "الأسعار تشمل الضريبة",
       "SERVICE_DEFAULT_MARKUP_PERCENT": "نسبة الزيادة الافتراضية",
       "MIN_BOOKING_AMOUNT_SAR": "الحد الأدنى للحجز",
@@ -585,6 +598,9 @@
       "MEDIUM": "متوسطة",
       "HIGH": "عالية"
     }
+  },
+  "towingRequests": {
+    "subtitle": "جميع طلبات الونش وسائق الونش المعيّن"
   },
   "finance": {
     "invoicesTitle": "الفواتير",
@@ -786,5 +802,14 @@
       "HIGH": "عالية",
       "URGENT": "عاجل جداً"
     }
+  },
+  "vendorCoupons": {
+    "subtitle": "كوبونات الخصم المطبقة على خدماتك فقط"
+  },
+  "allCoupons": {
+    "subtitle": "إدارة ومراقبة كافة كوبونات الخصم في المنصة"
+  },
+  "technicalSupport": {
+    "subtitle": "إدارة طلبات الدعم المرفوعة من المستخدمين"
   }
 }

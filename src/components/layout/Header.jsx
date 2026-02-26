@@ -1,10 +1,11 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu } from '@headlessui/react';
-import { Bell, User, Settings, LogOut, PanelLeft, Check } from 'lucide-react';
+import { Bell, User, Settings, LogOut, PanelLeft, Check, Sun, Moon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
+import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
 import LanguageSwitcher from '../LanguageSwitcher';
 import { notificationService } from '../../services/notificationService';
 
@@ -33,6 +34,9 @@ export default function Header({ title, subtitle, onMenuClick, onToggleSidebar, 
   });
 
   const isAr = i18n.language === 'ar';
+  const theme = useDashboardSettingsStore((s) => s.theme);
+  const setTheme = useDashboardSettingsStore((s) => s.setTheme);
+  const isDark = theme === 'dark';
 
   const handleLogout = () => {
     logout();
@@ -40,7 +44,7 @@ export default function Header({ title, subtitle, onMenuClick, onToggleSidebar, 
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 transition-[padding] duration-200 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 transition-[padding] duration-200 sm:px-6 dark:border-slate-700 dark:bg-slate-800">
       <div className="flex min-w-0 flex-1 items-center gap-4">
         <button
           type="button"
@@ -67,6 +71,20 @@ export default function Header({ title, subtitle, onMenuClick, onToggleSidebar, 
       <div className="flex shrink-0 items-center gap-2">
         {/* Language Switcher */}
         <LanguageSwitcher />
+
+        {/* Theme toggle */}
+        <button
+          type="button"
+          onClick={() => setTheme(isDark ? 'light' : 'dark')}
+          className="flex size-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-700 dark:hover:text-slate-100"
+          aria-label={isDark ? t('settings.themes.light', 'وضع نهاري') : t('settings.themes.dark', 'وضع ليلي')}
+          title={isDark ? t('settings.themes.light', 'وضع نهاري') : t('settings.themes.dark', 'وضع ليلي')}
+        >
+          {isDark
+            ? <Sun  className="size-5 text-amber-400" />
+            : <Moon className="size-5" />
+          }
+        </button>
 
         <Menu as="div" className="relative">
           <Menu.Button

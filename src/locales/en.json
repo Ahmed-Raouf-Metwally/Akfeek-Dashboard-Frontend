@@ -108,6 +108,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "analytics": "Analytics",
+    "myVendorDetail": "My Store Page",
     "users": "Users",
     "bookings": "Bookings",
     "services": "Services",
@@ -124,6 +125,7 @@
     "brands": "Vehicle Brands",
     "models": "Vehicle Models",
     "broadcasts": "Broadcasts",
+    "towingRequests": "Towing Requests",
     "inspections": "Inspections",
     "supply-requests": "Supply Requests",
     "invoices": "Invoices",
@@ -143,7 +145,9 @@
     "vendorMyServices": "My Services",
     "vendorBookings": "Appointments",
     "vendorMyWorkshop": "My Workshop",
-    "vendorWorkshopBookings": "Workshop Bookings"
+    "vendorWorkshopBookings": "Workshop Bookings",
+    "vendorCoupons": "Coupons",
+    "allCoupons": "All Coupons"
   },
   "workshops": {
     "title": "Certified Workshops",
@@ -342,7 +346,6 @@
     },
     "parentService": "Parent service",
     "thisIsParent": "None – this is the parent",
-    "parentServiceHint": "Choose if this is a sub-service of an existing Mobile Car Service.",
     "vendor": "Vendor",
     "noVendor": "No vendor",
     "vendorHint": "For Comprehensive Care, assign the vendor that offers this service.",
@@ -401,12 +404,17 @@
     "perPage": "per page",
     "resetAll": "Reset all settings",
     "appearance": "Appearance",
+    "language": "Language",
+    "languageSubtitle": "Dashboard interface language. You can also switch from the language icon in the header.",
     "theme": "Theme",
     "dateFormat": "Date format",
     "compactMode": "Compact mode",
     "compactModeDesc": "Tighter spacing in tables and lists",
     "businessSettings": "Commissions, Tax & Pricing",
     "businessSettingsSubtitle": "Full control over platform commission, technician share, VAT, and pricing",
+    "noPricingSettings": "No commission/tax/pricing settings found. Run backend seed to create VAT_RATE and PLATFORM_COMMISSION_PERCENT.",
+    "initPricingInBackend": "Initialize pricing settings in backend",
+    "pricingInitSuccess": "Pricing settings initialized in backend",
     "systemSettings": "System Settings",
     "systemSettingsSubtitle": "Backend configuration by category",
     "saveChanges": "Save Changes",
@@ -436,6 +444,7 @@
       "PLATFORM_COMMISSION_PERCENT": "Platform Commission %",
       "TECHNICIAN_COMMISSION_PERCENT": "Technician Share %",
       "VAT_PERCENT": "VAT %",
+      "VAT_RATE": "VAT (Value Added Tax) %",
       "TAX_INCLUDED_IN_PRICE": "Prices include tax",
       "SERVICE_DEFAULT_MARKUP_PERCENT": "Default Service Markup %",
       "MIN_BOOKING_AMOUNT_SAR": "Min Booking Amount",
@@ -587,6 +596,9 @@
       "MEDIUM": "Medium",
       "HIGH": "High"
     }
+  },
+  "towingRequests": {
+    "subtitle": "All towing requests and assigned driver"
   },
   "finance": {
     "invoicesTitle": "Invoices",

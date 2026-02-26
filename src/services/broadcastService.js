@@ -2,7 +2,7 @@ import api from './api';
 
 /**
  * Broadcasts API. Admin list with server-side pagination.
- * Backend: GET /api/broadcasts?page&limit&status
+ * Backend: GET /api/broadcasts?page&limit&status&type (type=towing لطلبات الونش فقط)
  * Returns { success, data, pagination: { page, limit, total, totalPages } }
  */
 export const broadcastService = {

@@ -1,8 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+// eslint-disable-next-line no-unused-vars -- motion.section used in JSX
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useDateFormat } from '../hooks/useDateFormat';
 import {
   Users,
   CalendarCheck,
@@ -13,9 +15,16 @@ import {
   UserPlus,
   FileText,
   Activity,
+  ShoppingBag,
+  Package,
+  UserCircle,
+  Star,
 } from 'lucide-react';
 import { dashboardService } from '../services/dashboardService';
 import { serviceService } from '../services/serviceService';
+import { autoPartService } from '../services/autoPartService';
+import { marketplaceOrderService } from '../services/marketplaceOrderService';
+import { vendorService } from '../services/vendorService';
 import { useAuthStore } from '../store/authStore';
 import { Card, CardHeader, CardBody } from '../components/ui/Card';
 import { Skeleton, TableSkeleton } from '../components/ui/Skeleton';
@@ -53,14 +62,13 @@ const MOCK_CHART = [
   { name: 'Sun', count: 14 },
 ];
 
-const PAGE_SIZE = 5;
-
-function StatCard({ title, value, icon: Icon, colorClass, loading }) {
+function StatCard({ title, value, icon, colorClass, loading }) {
+  const IconEl = icon;
   if (loading) {
     return (
       <Card className="flex items-center gap-4 p-5">
         <div className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${colorClass}`} aria-hidden>
-          <Icon className="size-6 text-white/90" />
+          <IconEl className="size-6 text-white/90" />
         </div>
         <div className="min-w-0 flex-1">
           <Skeleton className="mb-2 h-4 w-24" />
@@ -72,7 +80,7 @@ function StatCard({ title, value, icon: Icon, colorClass, loading }) {
   return (
     <Card className="flex items-center gap-4 p-5 transition-shadow hover:shadow-md">
       <div className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${colorClass}`} aria-hidden>
-        <Icon className="size-6 text-white/90" />
+        <IconEl className="size-6 text-white/90" />
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-slate-500">{title}</p>
@@ -84,6 +92,7 @@ function StatCard({ title, value, icon: Icon, colorClass, loading }) {
 
 export default function DashboardHome() {
   const { t, i18n } = useTranslation();
+  const { fmtDT } = useDateFormat();
   const user = useAuthStore((s) => s.user);
   const firstName = user?.profile?.firstName || user?.email?.split('@')[0] || '';
   const greeting = firstName ? t('dashboard.welcomeBack', { name: firstName }) : t('dashboard.welcomeToDashboard');
@@ -92,11 +101,43 @@ export default function DashboardHome() {
   const isCareVendor = isVendor && vt === 'COMPREHENSIVE_CARE';
   const isCarWashVendor = isVendor && vt === 'CAR_WASH';
   const isWorkshopVendor = isVendor && vt === 'CERTIFIED_WORKSHOP';
-  const [recentPage, setRecentPage] = useState(1);
+  const isAutoPartsVendor = isVendor && !isCareVendor && !isCarWashVendor && !isWorkshopVendor;
+
+  const { data: vendorParts = [], isLoading: partsLoading } = useQuery({
+    queryKey: ['auto-parts', 'dashboard-count'],
+    queryFn: () => autoPartService.getAutoParts({ limit: 1 }),
+    enabled: isAutoPartsVendor,
+    staleTime: 60_000,
+  });
+  const { data: vendorOrdersData, isLoading: ordersLoading } = useQuery({
+    queryKey: ['marketplace-orders', 'vendor-dashboard'],
+    queryFn: () => marketplaceOrderService.getVendorOrders({ page: 1, limit: 1 }),
+    enabled: isAutoPartsVendor,
+    staleTime: 60_000,
+  });
+  const myPartsCount = Array.isArray(vendorParts) ? vendorParts.length : (vendorParts?.length ?? 0);
+  const myOrdersCount = vendorOrdersData?.pagination?.total ?? 0;
+
+  const { data: myVendorProfile, isLoading: vendorProfileLoading } = useQuery({
+    queryKey: ['vendor-profile-me'],
+    queryFn: () => vendorService.getMyVendorProfile(),
+    enabled: isVendor,
+    staleTime: 60_000,
+  });
+  const vendorRating = myVendorProfile?.averageRating != null ? Number(myVendorProfile.averageRating) : 0;
+  const vendorReviewsCount = myVendorProfile?.totalReviews ?? 0;
+
+  const { data: vendorRealStats, isLoading: vendorStatsLoading } = useQuery({
+    queryKey: ['vendor-stats', myVendorProfile?.id],
+    queryFn: () => vendorService.getVendorStats(myVendorProfile.id),
+    enabled: !!myVendorProfile?.id,
+    staleTime: 60_000,
+  });
 
   const { data: statsData, isLoading: statsLoading, isError: statsError } = useQuery({
     queryKey: ['dashboard', 'stats'],
     queryFn: dashboardService.getStats,
+    enabled: !isVendor, // Only for admin
     staleTime: 60_000,
     retry: (failureCount, error) => error?.response?.status !== 403 && failureCount < 2,
   });
@@ -119,7 +160,10 @@ export default function DashboardHome() {
     ? rawBookings.filter((b) => b && (b.bookingNumber != null || b.status != null))
     : [];
 
-  const services = Array.isArray(servicesData) ? servicesData : (servicesData?.length ? servicesData : []);
+  const services = useMemo(
+    () => (Array.isArray(servicesData) ? servicesData : servicesData?.length ? servicesData : []),
+    [servicesData]
+  );
   const totalServices = services.length;
 
   const categoryData = useMemo(() => {
@@ -130,14 +174,6 @@ export default function DashboardHome() {
     });
     return Object.entries(byCat).map(([name, value]) => ({ name, value })).slice(0, 6);
   }, [services]);
-
-  const { paginatedItems: recentServices, totalPages, total } = useMemo(() => {
-    const total = services.length;
-    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-    const start = (recentPage - 1) * PAGE_SIZE;
-    const paginatedItems = services.slice(start, start + PAGE_SIZE);
-    return { paginatedItems, totalPages, total };
-  }, [services, recentPage]);
 
   const quickLinks = [
     { to: '/services/new', label: t('dashboard.newService'), icon: Plus },
@@ -157,14 +193,15 @@ export default function DashboardHome() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
-        className="overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-br from-indigo-600 via-indigo-600 to-indigo-700 px-6 py-6 text-white shadow-lg"
+        className="overflow-hidden rounded-2xl border border-slate-200/80 bg-linear-to-br from-indigo-600 via-indigo-600 to-indigo-700 px-6 py-6 text-white shadow-lg"
       >
         <h2 className="text-xl font-semibold">{greeting}</h2>
         <p className="mt-1.5 text-sm text-indigo-100/90">
           {isCareVendor ? (i18n.language === 'ar' ? 'إدارة خدماتك وحجوزات العناية الشاملة' : 'Manage your services and comprehensive care appointments')
             : isCarWashVendor ? (i18n.language === 'ar' ? 'إدارة خدمات الغسيل والحجوزات' : 'Manage your car wash services and appointments')
-            : isWorkshopVendor ? (i18n.language === 'ar' ? 'إدارة الورشة المعتمدة' : 'Manage your certified workshop')
-            : t('dashboard.platformActivity')}
+              : isWorkshopVendor ? (i18n.language === 'ar' ? 'إدارة الورشة المعتمدة' : 'Manage your certified workshop')
+                : isAutoPartsVendor ? (i18n.language === 'ar' ? 'إدارة منتجاتك وطلبات المتجر' : 'Manage your products and store orders')
+                  : t('dashboard.platformActivity')}
         </p>
       </motion.section>
 
@@ -177,9 +214,17 @@ export default function DashboardHome() {
           aria-labelledby="vendor-section-heading"
           className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-6"
         >
-          <h2 id="vendor-section-heading" className="mb-4 text-lg font-semibold text-slate-900">
-            {i18n.language === 'ar' ? 'قسمك (العناية الشاملة)' : 'Your section (Comprehensive Care)'}
-          </h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 id="vendor-section-heading" className="text-lg font-semibold text-slate-900">
+              {i18n.language === 'ar' ? 'نظرة عامة (العناية الشاملة)' : 'Overview (Comprehensive Care)'}
+            </h2>
+            {vendorRealStats?.stats?.revenue != null && (
+              <div className="text-right">
+                <p className="text-xs font-medium text-slate-500 uppercase">{i18n.language === 'ar' ? 'إجمالي الإيرادات' : 'Total Revenue'}</p>
+                <p className="text-lg font-bold text-indigo-600">{vendorRealStats.stats.revenue.toLocaleString()} SAR</p>
+              </div>
+            )}
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Link to="/vendor/comprehensive-care/services" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-indigo-200 hover:shadow-md">
               <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-indigo-100">
@@ -187,7 +232,9 @@ export default function DashboardHome() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'خدماتي' : 'My services'}</p>
-                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? `عدد الخدمات: ${myServicesCount}` : `${myServicesCount} service(s)`}</p>
+                <p className="text-sm text-slate-500">
+                  {i18n.language === 'ar' ? `عدد الخدمات: ${totalServices}` : `${totalServices} service(s)`}
+                </p>
               </div>
               <ExternalLink className="size-5 shrink-0 text-slate-400" />
             </Link>
@@ -196,8 +243,10 @@ export default function DashboardHome() {
                 <CalendarCheck className="size-6 text-emerald-600" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'الحجوزات' : 'Appointments'}</p>
-                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? 'عرض وإدارة المواعيد' : 'View and manage appointments'}</p>
+                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'الحجوزات المحققة' : 'Completed Bookings'}</p>
+                <p className="text-sm text-slate-500">
+                  {vendorStatsLoading ? '...' : (i18n.language === 'ar' ? `${vendorRealStats?.stats?.completedBookings || 0} حجز مكتمل` : `${vendorRealStats?.stats?.completedBookings || 0} completed`)}
+                </p>
               </div>
               <ExternalLink className="size-5 shrink-0 text-slate-400" />
             </Link>
@@ -214,9 +263,17 @@ export default function DashboardHome() {
           aria-labelledby="carwash-section-heading"
           className="rounded-2xl border border-sky-100 bg-sky-50/50 p-6"
         >
-          <h2 id="carwash-section-heading" className="mb-4 text-lg font-semibold text-slate-900">
-            {i18n.language === 'ar' ? 'قسمك (خدمة الغسيل)' : 'Your section (Car Wash)'}
-          </h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 id="carwash-section-heading" className="text-lg font-semibold text-slate-900">
+              {i18n.language === 'ar' ? 'نظرة عامة (خدمة الغسيل)' : 'Overview (Car Wash)'}
+            </h2>
+            {vendorRealStats?.stats?.revenue != null && (
+              <div className="text-right">
+                <p className="text-xs font-medium text-slate-500 uppercase">{i18n.language === 'ar' ? 'إجمالي الإيرادات' : 'Total Revenue'}</p>
+                <p className="text-lg font-bold text-sky-600">{vendorRealStats.stats.revenue.toLocaleString()} SAR</p>
+              </div>
+            )}
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Link to="/vendor/comprehensive-care/services" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-sky-200 hover:shadow-md">
               <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-sky-100">
@@ -228,13 +285,15 @@ export default function DashboardHome() {
               </div>
               <ExternalLink className="size-5 shrink-0 text-slate-400" />
             </Link>
-            <Link to="/vendor/comprehensive-care/bookings" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-sky-200 hover:shadow-md">
+            <Link to="/vendor/car-wash/bookings" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-sky-200 hover:shadow-md">
               <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-emerald-100">
                 <CalendarCheck className="size-6 text-emerald-600" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'الحجوزات' : 'Appointments'}</p>
-                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? 'عرض وإدارة المواعيد' : 'View and manage appointments'}</p>
+                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'الحجوزات المحققة' : 'Completed Bookings'}</p>
+                <p className="text-sm text-slate-500">
+                  {vendorStatsLoading ? '...' : (i18n.language === 'ar' ? `${vendorRealStats?.stats?.completedBookings || 0} حجز مكتمل` : `${vendorRealStats?.stats?.completedBookings || 0} completed`)}
+                </p>
               </div>
               <ExternalLink className="size-5 shrink-0 text-slate-400" />
             </Link>
@@ -267,23 +326,133 @@ export default function DashboardHome() {
         </motion.section>
       )}
 
+      {/* متوسط التقييم — يظهر لكل الفيندورات */}
+      {isVendor && (myVendorProfile || vendorProfileLoading) && (
+        <motion.section
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+          className="rounded-2xl border border-amber-100 bg-amber-50/50 p-4"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-amber-100">
+              <Star className="size-6 text-amber-600 fill-amber-500" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-600">{i18n.language === 'ar' ? 'متوسط التقييم' : 'Average rating'}</p>
+              <p className="text-xl font-bold text-slate-900">
+                {vendorProfileLoading ? '...' : `${vendorRating.toFixed(1)} / 5`}
+                {!vendorProfileLoading && vendorReviewsCount > 0 && (
+                  <span className="ml-2 text-sm font-normal text-slate-500">({vendorReviewsCount} {i18n.language === 'ar' ? 'تقييم' : 'reviews'})</span>
+                )}
+              </p>
+            </div>
+          </div>
+        </motion.section>
+      )}
+
+      {/* فيندور قطع الغيار: قسمه الخاص */}
+      {isAutoPartsVendor && (
+        <motion.section
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+          aria-labelledby="autoparts-section-heading"
+          className="rounded-2xl border border-violet-100 bg-violet-50/50 p-6"
+        >
+          <h2 id="autoparts-section-heading" className="mb-4 text-lg font-semibold text-slate-900">
+            {i18n.language === 'ar' ? 'قسمك (قطع الغيار)' : 'Your section (Auto Parts)'}
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Link to="/auto-parts/new" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-violet-200 hover:shadow-md">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-violet-100">
+                <ShoppingBag className="size-6 text-violet-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'منتجاتي' : 'My products'}</p>
+                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? `عدد المنتجات: ${partsLoading ? '...' : myPartsCount}` : `${partsLoading ? '...' : myPartsCount} product(s)`}</p>
+              </div>
+              <ExternalLink className="size-5 shrink-0 text-slate-400" />
+            </Link>
+            <Link to="/marketplace-orders" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-violet-200 hover:shadow-md">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-emerald-100">
+                <Package className="size-6 text-emerald-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'طلبات المتجر' : 'Store orders'}</p>
+                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? `عدد الطلبات: ${ordersLoading ? '...' : myOrdersCount}` : `${ordersLoading ? '...' : myOrdersCount} order(s)`}</p>
+              </div>
+              <ExternalLink className="size-5 shrink-0 text-slate-400" />
+            </Link>
+          </div>
+        </motion.section>
+      )}
+
       {/* Quick actions */}
       <section aria-labelledby="quick-heading">
         <h2 id="quick-heading" className="mb-3 text-sm font-medium text-slate-500">{t('dashboard.quickActions')}</h2>
         <div className="flex flex-wrap gap-3">
-          {quickLinks.map(({ to, label, icon: Icon }) => (
-            <Link
-              key={to}
-              to={to}
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
-            >
-              <Icon className="size-4 text-slate-500" /> {label}
-            </Link>
-          ))}
+          {isAutoPartsVendor ? (
+            <>
+              <Link to="/auto-parts/new" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
+                <Plus className="size-4 text-slate-500" /> {i18n.language === 'ar' ? 'إضافة منتج' : 'Add product'}
+              </Link>
+              <Link to="/auto-parts" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
+                <ShoppingBag className="size-4 text-slate-500" /> {i18n.language === 'ar' ? 'منتجاتي' : 'My products'}
+              </Link>
+              <Link to="/marketplace-orders" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
+                <Package className="size-4 text-slate-500" /> {i18n.language === 'ar' ? 'طلبات المتجر' : 'Store orders'}
+              </Link>
+              <Link to="/profile" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
+                <UserCircle className="size-4 text-slate-500" /> {t('nav.profile', 'Profile')}
+              </Link>
+            </>
+          ) : (
+            quickLinks.map(({ to, label, icon: linkIcon }) => {
+              const LinkIcon = linkIcon;
+              return (
+                <Link
+                  key={to}
+                  to={to}
+                  className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+                >
+                  <LinkIcon className="size-4 text-slate-500" /> {label}
+                </Link>
+              );
+            })
+          )}
         </div>
       </section>
 
-      <section aria-labelledby="overview-heading">
+      {isAutoPartsVendor && (
+        <section aria-labelledby="vendor-overview-heading">
+          <h2 id="vendor-overview-heading" className="mb-4 text-lg font-semibold text-slate-900">
+            {i18n.language === 'ar' ? 'نظرة عامة' : 'Overview'}
+          </h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Link to="/auto-parts" className="block transition-transform hover:scale-[1.02]">
+              <StatCard
+                title={i18n.language === 'ar' ? 'منتجاتي' : 'My products'}
+                value={partsLoading ? '...' : String(myPartsCount)}
+                icon={ShoppingBag}
+                colorClass="bg-violet-500"
+                loading={partsLoading}
+              />
+            </Link>
+            <Link to="/marketplace-orders" className="block transition-transform hover:scale-[1.02]">
+              <StatCard
+                title={i18n.language === 'ar' ? 'طلبات المتجر' : 'Store orders'}
+                value={ordersLoading ? '...' : String(myOrdersCount)}
+                icon={Package}
+                colorClass="bg-emerald-500"
+                loading={ordersLoading}
+              />
+            </Link>
+          </div>
+        </section>
+      )}
+
+      <section aria-labelledby="overview-heading" className={isAutoPartsVendor ? 'hidden' : ''}>
         <h2 id="overview-heading" className="mb-4 text-lg font-semibold text-slate-900">
           {t('dashboard.overview')}
         </h2>
@@ -325,7 +494,7 @@ export default function DashboardHome() {
         </div>
       </section>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className={`grid grid-cols-1 gap-6 lg:grid-cols-2 ${isAutoPartsVendor ? 'hidden' : ''}`}>
         {/* Recent Activity */}
         <section aria-labelledby="activity-heading">
           <div className="mb-4 flex items-center justify-between">
@@ -360,7 +529,7 @@ export default function DashboardHome() {
                       <div className="flex items-center text-xs text-slate-500 gap-2">
                         <span>{log.user?.profile?.firstName || log.user?.email || 'System'}</span>
                         <span>•</span>
-                        <span>{new Date(log.createdAt).toLocaleString(i18n.language)}</span>
+                        <span>{fmtDT(log.createdAt)}</span>
                       </div>
                     </div>
                   </div>
@@ -417,7 +586,7 @@ export default function DashboardHome() {
         </section>
       </div>
 
-      <section aria-labelledby="chart-heading" className="min-h-[320px]">
+      <section aria-labelledby="chart-heading" className={`min-h-[320px] ${isAutoPartsVendor ? 'hidden' : ''}`}>
         <h2 id="chart-heading" className="mb-4 text-lg font-semibold text-slate-900">
           {t('dashboard.activityDistribution')}
         </h2>

@@ -6,14 +6,9 @@ import { invoiceService } from '../services/invoiceService';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
 import { Card } from '../components/ui/Card';
+import { useDateFormat } from '../hooks/useDateFormat';
 
 const PAGE_SIZE = 10;
-
-function formatDate(d, locale = 'en-SA') {
-  if (!d) return '—';
-  const x = typeof d === 'string' ? new Date(d) : d;
-  return Number.isNaN(x.getTime()) ? '—' : x.toLocaleDateString(locale, { dateStyle: 'short' });
-}
 
 function customerLabel(i) {
   const p = i.customer?.profile;
@@ -22,7 +17,8 @@ function customerLabel(i) {
 }
 
 export default function InvoicesPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const { fmt } = useDateFormat();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
   const { data, isLoading, isError, error } = useQuery({
@@ -130,7 +126,7 @@ export default function InvoicesPage() {
                            {t(`finance.status.${inv.status}`) || inv.status}
                          </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{formatDate(inv.createdAt, i18n.language)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{fmt(inv.createdAt)}</td>
                     </tr>
                   ))}
                 </tbody>

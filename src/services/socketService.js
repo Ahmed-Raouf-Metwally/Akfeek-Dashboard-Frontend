@@ -76,6 +76,29 @@ class SocketService {
         }
     }
 
+    /** طلب دعم فني: انضمام لغرفة التتبع لاستقبال موقع الفني */
+    joinTSRRequest(requestId) {
+        if (!this.socket) this.connect();
+        this.socket.emit('customer:join_tsr_request', requestId);
+    }
+
+    leaveTSRRequest(requestId) {
+        if (this.socket) {
+            this.socket.emit('customer:leave_tsr_request', requestId);
+        }
+    }
+
+    onTechnicianLocationUpdate(callback) {
+        if (!this.socket) this.connect();
+        this.socket.on('technician:location_update', callback);
+    }
+
+    offTechnicianLocationUpdate() {
+        if (this.socket) {
+            this.socket.off('technician:location_update');
+        }
+    }
+
     disconnect() {
         if (this.socket) {
             this.socket.disconnect();

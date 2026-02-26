@@ -8,14 +8,9 @@ import { useAuthStore } from '../store/authStore';
 import { Card } from '../components/ui/Card';
 import { Skeleton, TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
+import { useDateFormat } from '../hooks/useDateFormat';
 
 const PAGE_SIZE = 10;
-
-function formatDate(d, locale = 'ar-SA') {
-  if (!d) return '—';
-  const x = typeof d === 'string' ? new Date(d) : d;
-  return Number.isNaN(x.getTime()) ? '—' : x.toLocaleDateString(locale, { dateStyle: 'short' });
-}
 
 function formatTime(t) {
   if (!t) return '';
@@ -30,6 +25,7 @@ function customerLabel(b) {
 
 export default function VendorComprehensiveBookingsPage() {
   const { t, i18n } = useTranslation();
+  const { fmt } = useDateFormat();
   const user = useAuthStore((s) => s.user);
   const vendorType = user?.vendorType;
   const isCarWash = vendorType === 'CAR_WASH';
@@ -151,7 +147,7 @@ export default function VendorComprehensiveBookingsPage() {
                         {(b.services ?? []).map((bs) => bs.service?.nameAr || bs.service?.name).join(', ') || '—'}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-600">
-                        {formatDate(b.scheduledDate)} {formatTime(b.scheduledTime) && ` ${formatTime(b.scheduledTime)}`}
+                        {fmt(b.scheduledDate)} {formatTime(b.scheduledTime) && ` ${formatTime(b.scheduledTime)}`}
                       </td>
                       <td className="px-4 py-3">
                         <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">{b.status}</span>

@@ -21,11 +21,14 @@ function getTitleForPath(pathname, t, user) {
     '/notifications': [t('nav.notifications', 'Notifications'), t('common.viewManageNotifications', 'View and manage notifications')],
     '/activity': [t('nav.activity', 'Activity / Logs'), t('common.auditLog', 'Audit and activity log')],
     '/feedback': [t('nav.feedback', 'Complaints & Suggestions'), t('feedback.subtitle', 'Manage customer feedback')],
+    '/technical-support-requests': [t('nav.technicalSupportRequests', 'طلبات الدعم الفني'), t('technicalSupport.subtitle', 'عرض الطلبات وتعيين الفني')],
     '/services': [t('nav.services', 'Services'), t('common.serviceCatalog', 'Service catalog')],
     '/services/new': [t('common.createService', 'Create service'), t('common.addNewService', 'Add a new service')],
     '/brands': [t('nav.brands', 'Vehicle Brands'), t('common.manageBrands', 'Manage brands')],
     '/models': [t('nav.models', 'Vehicle Models'), t('common.manageModels', 'Manage models')],
     '/bookings': [t('nav.bookings', 'Bookings'), t('common.manageBookings', 'Manage bookings')],
+    '/broadcasts': [t('nav.broadcasts', 'Broadcasts'), t('broadcasts.subtitle', 'Manage emergency broadcasts')],
+    '/towing-requests': [t('nav.towingRequests', 'Towing Requests'), t('towingRequests.subtitle', 'All towing requests and assigned driver')],
     '/invoices': [t('nav.invoices', 'Invoices'), t('common.viewInvoices', 'View invoices')],
     '/settings': [t('nav.settings', 'Settings'), t('common.appSettings', 'App settings')],
     '/vendors': [t('nav.vendors', 'Vendors'), t('common.manageVendors', 'Manage auto parts vendors')],
@@ -43,6 +46,8 @@ function getTitleForPath(pathname, t, user) {
       : isCarWash
         ? [t('nav.vendorCarWashBookings', 'Car wash appointments'), t('carWash.vendorBookingsSubtitle', 'Bookings for your car wash services')]
         : [t('nav.vendorComprehensiveBookings', 'Appointments'), t('comprehensiveCare.vendorBookingsSubtitle', 'Bookings for your comprehensive care services')],
+    '/vendor/coupons': [t('nav.vendorCoupons', 'Coupons'), t('vendorCoupons.subtitle', 'Coupon applies only to your services')],
+    '/coupons': [t('nav.allCoupons', 'All Coupons'), t('allCoupons.subtitle', 'Manage and monitor all platform coupons')],
   };
 
   if (ROUTE_TITLES[pathname]) return ROUTE_TITLES[pathname];
@@ -104,7 +109,7 @@ function AdminLayoutInner() {
   }, [location.pathname, closeMobileMenu]);
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggleCollapse={toggleSidebar}
@@ -124,14 +129,14 @@ function AdminLayoutInner() {
           onToggleSidebar={toggleSidebar}
           sidebarCollapsed={sidebarCollapsed}
         />
-        <main className="flex-1 overflow-auto p-4 sm:p-6">
-          <AnimatePresence mode="wait">
+        <main className="flex-1 overflow-auto p-4 sm:p-6 dark:bg-slate-950">
+          <AnimatePresence initial={false}>
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.12 }}
               className="min-h-0"
             >
               <Outlet />
