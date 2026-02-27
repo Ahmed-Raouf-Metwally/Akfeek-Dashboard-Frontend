@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Star } from 'lucide-react';
 
-export default function VendorBadge({ vendor, isArabic = false }) {
+export default function VendorBadge({ vendor, isArabic = false, showRating = true }) {
   if (!vendor) {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-100 text-slate-600 text-xs font-medium">
@@ -14,21 +15,32 @@ export default function VendorBadge({ vendor, isArabic = false }) {
   }
 
   const name = isArabic && vendor.businessNameAr ? vendor.businessNameAr : vendor.businessName;
+  const rating = vendor.averageRating != null ? Number(vendor.averageRating) : 0;
+  const totalReviews = vendor.totalReviews != null ? Number(vendor.totalReviews) : 0;
 
   return (
-    <Link 
-      to={`/vendors/${vendor.id}`} 
-      onClick={(e) => e.stopPropagation()}
-      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors border border-indigo-100"
-    >
-      {vendor.logo ? (
-        <img src={vendor.logo} alt={name} className="w-4 h-4 rounded-full object-cover" />
-      ) : (
-        <div className="w-4 h-4 rounded-full bg-indigo-200 flex items-center justify-center text-[8px] font-bold text-indigo-700">
-          {name.charAt(0).toUpperCase()}
+    <div className="flex flex-col gap-0.5">
+      <Link 
+        to={`/vendors/${vendor.id}`} 
+        onClick={(e) => e.stopPropagation()}
+        className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors border border-indigo-100 w-fit"
+      >
+        {vendor.logo ? (
+          <img src={vendor.logo} alt={name} className="w-4 h-4 rounded-full object-cover" />
+        ) : (
+          <div className="w-4 h-4 rounded-full bg-indigo-200 flex items-center justify-center text-[8px] font-bold text-indigo-700">
+            {name.charAt(0).toUpperCase()}
+          </div>
+        )}
+        <span className="text-xs font-medium truncate max-w-[100px]">{name}</span>
+      </Link>
+      {showRating && (rating > 0 || totalReviews > 0) && (
+        <div className="flex items-center gap-1 text-amber-600" title={isArabic ? `${rating} من 5 (${totalReviews} تقييم)` : `${rating}/5 (${totalReviews} reviews)`}>
+          <Star className="size-3.5 fill-amber-500" />
+          <span className="text-xs font-medium">{rating.toFixed(1)}</span>
+          {totalReviews > 0 && <span className="text-[10px] text-slate-500">({totalReviews})</span>}
         </div>
       )}
-      <span className="text-xs font-medium truncate max-w-[100px]">{name}</span>
-    </Link>
+    </div>
   );
 }

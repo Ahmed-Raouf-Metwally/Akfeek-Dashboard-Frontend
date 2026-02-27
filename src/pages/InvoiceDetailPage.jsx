@@ -5,6 +5,8 @@ import { ArrowLeft, FileText } from 'lucide-react';
 import { invoiceService } from '../services/invoiceService';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import { Card } from '../components/ui/Card';
+import { useTranslation } from 'react-i18next';
+import { useDateFormat } from '../hooks/useDateFormat';
 
 function DetailRow({ label, value }) {
   return (
@@ -15,19 +17,8 @@ function DetailRow({ label, value }) {
   );
 }
 
-function formatDate(d) {
-  if (!d) return '—';
-  const x = typeof d === 'string' ? new Date(d) : d;
-  return Number.isNaN(x.getTime()) ? '—' : x.toLocaleDateString('en-SA', { dateStyle: 'medium' });
-}
-
-function formatDateTime(d) {
-  if (!d) return '—';
-  const x = typeof d === 'string' ? new Date(d) : d;
-  return Number.isNaN(x.getTime()) ? '—' : x.toLocaleString();
-}
-
 export default function InvoiceDetailPage() {
+  const { fmt, fmtDT } = useDateFormat();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -112,9 +103,9 @@ export default function InvoiceDetailPage() {
           <DetailRow label="Status" value={invoice.status} />
           <DetailRow label="Total amount" value={invoice.totalAmount != null ? `${Number(invoice.totalAmount).toFixed(2)} SAR` : null} />
           <DetailRow label="Paid amount" value={invoice.paidAmount != null ? `${Number(invoice.paidAmount).toFixed(2)} SAR` : null} />
-          <DetailRow label="Issued at" value={formatDate(invoice.issuedAt)} />
-          <DetailRow label="Due date" value={formatDate(invoice.dueDate)} />
-          <DetailRow label="Paid at" value={invoice.paidAt ? formatDateTime(invoice.paidAt) : null} />
+          <DetailRow label="Issued at" value={fmt(invoice.issuedAt)} />
+          <DetailRow label="Due date" value={fmt(invoice.dueDate)} />
+          <DetailRow label="Paid at" value={invoice.paidAt ? fmtDT(invoice.paidAt) : null} />
           <DetailRow label="Customer" value={customerName} />
           <DetailRow label="Customer email" value={invoice.customer?.email} />
           <DetailRow label="Customer phone" value={invoice.customer?.phone} />

@@ -3,15 +3,16 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
 import { Search, Plus, Pencil, Trash2, Eye, MapPin, Phone, CheckCircle, XCircle, Building2, Star, ArrowRight } from 'lucide-react';
 import { workshopService } from '../services/workshopService';
 import { useConfirm } from '../hooks/useConfirm';
+import { useAuthStore } from '../store/authStore';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
-import Input from '../components/Input';
 import { Card } from '../components/ui/Card';
 import { ImageOrPlaceholder } from '../components/ui/ImageOrPlaceholder';
+import { defaultWorkingHoursByDay, buildWorkingHoursPayload } from '../utils/workshopFormShared';
+import WorkshopFormFields from '../components/workshops/WorkshopFormFields';
 
 const emptyForm = () => ({
   name: '',
@@ -25,7 +26,8 @@ const emptyForm = () => ({
   locationUrl: '',
   phone: '',
   email: '',
-  services: '',
+  services: '["Engine Repair", "Oil Change"]',
+  workingHoursByDay: defaultWorkingHoursByDay(),
   isActive: true,
   isVerified: false,
 });
@@ -68,12 +70,7 @@ function WorkshopCard({ workshop, onEdit, onDelete, onToggleVerification, openCo
     : (workshop.images && workshop.images.length > 0 ? `${import.meta.env.VITE_API_URL}${workshop.images[0]}` : null);
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-    >
+    <div>
       <Link
         to={`/workshops/${workshop.id}`}
         className="group block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-500/10"
@@ -171,12 +168,14 @@ function WorkshopCard({ workshop, onEdit, onDelete, onToggleVerification, openCo
           </div>
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
 }
 
 export default function WorkshopsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.role === 'ADMIN';
   const [openConfirm, ConfirmModal] = useConfirm();
   const queryClient = useQueryClient();
   const PAGE_SIZE = 12; // Increased page size for grid
@@ -205,12 +204,12 @@ export default function WorkshopsPage() {
 
   const { data: workshops = [], isLoading } = useQuery({
     queryKey: ['workshops-admin', { search, city, isVerified: verifiedFilter }],
-    queryFn: () => workshopService.getAllWorkshopsAdmin({ 
-      search: search || undefined, 
+    queryFn: () => workshopService.getAllWorkshopsAdmin({
+      search: search || undefined,
       city: city || undefined,
       isVerified: verifiedFilter || undefined,
     }),
-    staleTime: 60_000,
+    enabled: isAdmin,
   });
 
   const createMutation = useMutation({
@@ -257,6 +256,16 @@ export default function WorkshopsPage() {
   const openEdit = (w) => {
     setShowAdd(false);
     setEditWorkshop(w);
+    const wh = w.workingHours && typeof w.workingHours === 'object' ? w.workingHours : {};
+    const workingHoursByDay = defaultWorkingHoursByDay();
+    WORKING_DAYS.forEach(({ key }) => {
+      const h = wh[key];
+      if (h && (h.closed === true || h === null)) {
+        workingHoursByDay[key] = { closed: true, open: '', close: '' };
+      } else if (h && h.open && h.close) {
+        workingHoursByDay[key] = { closed: false, open: h.open, close: h.close };
+      }
+    });
     setForm({
       name: w.name ?? '',
       nameAr: w.nameAr ?? '',
@@ -270,6 +279,7 @@ export default function WorkshopsPage() {
       phone: w.phone ?? '',
       email: w.email ?? '',
       services: typeof w.services === 'string' ? w.services : JSON.stringify(w.services || []),
+      workingHoursByDay,
       isActive: w.isActive ?? true,
       isVerified: w.isVerified ?? false,
     });
@@ -296,6 +306,7 @@ export default function WorkshopsPage() {
       phone: form.phone.trim(),
       email: form.email.trim() || undefined,
       services: form.services.trim(),
+      workingHours: buildWorkingHoursPayload(form.workingHoursByDay || defaultWorkingHoursByDay()),
       isActive: form.isActive,
       isVerified: form.isVerified,
     };
@@ -318,16 +329,39 @@ export default function WorkshopsPage() {
     return { paginatedItems, totalPages, total };
   }, [workshops, page]);
 
+  if (!isAdmin) {
+    const isAr = i18n.language === 'ar';
+    const isWorkshopVendor = user?.role === 'VENDOR' && user?.vendorType === 'CERTIFIED_WORKSHOP';
+    return (
+      <div className="space-y-8">
+        <ConfirmModal />
+        <Card className="p-8 text-center">
+          <Building2 className="mx-auto size-12 text-slate-300" />
+          <h2 className="mt-4 text-lg font-semibold text-slate-900">{isAr ? 'صفحة إدارية' : 'Admin only'}</h2>
+          <p className="mt-2 text-slate-600">
+            {isAr ? 'هذه الصفحة متاحة للمسؤولين فقط. لإدارة ورشتك استخدم الرابط أدناه.' : 'This page is for administrators only. To manage your workshop, use the link below.'}
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            {isWorkshopVendor && (
+              <Link to="/vendor/workshop" className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500">
+                <Building2 className="size-4" /> {isAr ? 'الورشة' : 'My Workshop'}
+              </Link>
+            )}
+            <Link to="/dashboard" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+              {isAr ? 'لوحة التحكم' : 'Dashboard'}
+            </Link>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <ConfirmModal />
       
       {/* Hero Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-8 shadow-xl shadow-indigo-500/20"
-      >
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-8 shadow-xl shadow-indigo-500/20">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-5">
             <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
@@ -354,86 +388,20 @@ export default function WorkshopsPage() {
             {t('workshops.addWorkshop', 'Add Workshop')}
           </button>
         </div>
-      </motion.div>
+      </div>
 
       {/* Form Section */}
       {showForm && (
         <Card className="p-6">
           <h3 className="mb-4 text-base font-semibold text-slate-900">{formTitle}</h3>
           <form onSubmit={handleFormSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Input
-              label={t('workshops.name')}
-              name="name"
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              placeholder="e.g. Al-Salam Auto Center"
-              required
+            <WorkshopFormFields
+              form={form}
+              setForm={setForm}
+              requireLocationUrl={!editWorkshop}
+              showAdminFields={true}
             />
-            <Input
-              label={t('common.nameAr')}
-              name="nameAr"
-              value={form.nameAr}
-              onChange={(e) => setForm((f) => ({ ...f, nameAr: e.target.value }))}
-              placeholder="مركز السلام للسيارات"
-            />
-            <Input
-              label={t('workshops.city')}
-              name="city"
-              value={form.city}
-              onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
-              placeholder="Riyadh"
-              required
-            />
-            <Input
-              label={t('workshops.address')}
-              name="address"
-              value={form.address}
-              onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-              placeholder="King Fahd Road"
-              required
-            />
-            <Input
-              label={t('workshops.phone')}
-              name="phone"
-              type="tel"
-              value={form.phone}
-              onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-              placeholder="+966112345000"
-              required
-            />
-            <Input
-              label={t('workshops.email')}
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-              placeholder="info@workshop.sa"
-            />
-            <Input
-              label={t('workshops.locationUrl')}
-              name="locationUrl"
-              value={form.locationUrl}
-              onChange={(e) => setForm((f) => ({ ...f, locationUrl: e.target.value }))}
-              placeholder={t('workshops.locationUrlPlaceholder')}
-            />
-            <Input
-              label={t('workshops.services')}
-              name="services"
-              value={form.services}
-              onChange={(e) => setForm((f) => ({ ...f, services: e.target.value }))}
-              placeholder='["Engine Repair", "Oil Change"]'
-              required
-              className="sm:col-span-2"
-            />
-             <Input
-              label={t('common.description')}
-              name="description"
-              value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              placeholder="Brief description"
-              className="sm:col-span-3"
-            />
-            <div className="flex w-full gap-3 pt-2 sm:col-span-1 lg:col-span-1">
+            <div className="flex w-full gap-3 pt-2 sm:col-span-2 lg:col-span-3">
               <button
                 type="submit"
                 disabled={createMutation.isPending || updateMutation.isPending}

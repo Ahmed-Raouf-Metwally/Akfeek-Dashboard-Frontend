@@ -6,14 +6,9 @@ import { paymentService } from '../services/paymentService';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
 import { Card } from '../components/ui/Card';
+import { useDateFormat } from '../hooks/useDateFormat';
 
 const PAGE_SIZE = 10;
-
-function formatDate(d, locale = 'en-SA') {
-  if (!d) return '—';
-  const x = typeof d === 'string' ? new Date(d) : d;
-  return Number.isNaN(x.getTime()) ? '—' : x.toLocaleDateString(locale, { dateStyle: 'short' });
-}
 
 function customerLabel(p) {
   const cust = p.customer;
@@ -44,7 +39,8 @@ function MethodLabel({ method, t }) {
 }
 
 export default function PaymentsPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const { fmt } = useDateFormat();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
   const { data, isLoading, isError, error } = useQuery({
@@ -148,7 +144,7 @@ export default function PaymentsPage() {
                       <td className="px-4 py-3">
                         <StatusBadge status={pay.status} t={t} />
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{formatDate(pay.createdAt, i18n.language)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{fmt(pay.createdAt)}</td>
                     </tr>
                   ))}
                 </tbody>

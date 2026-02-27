@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, UserPlus, Search } from 'lucide-react';
 import { vendorService } from '../services/vendorService';
+import { userService } from '../services/userService';
 import { Card } from '../components/ui/Card';
 import Input from '../components/Input';
 
 export default function CreateVendorPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
+
   const [formData, setFormData] = useState({
     businessName: '',
     businessNameAr: '',
@@ -21,7 +22,34 @@ export default function CreateVendorPage() {
     city: '',
     country: 'SA',
     userId: '', // Admin creates for a user
+    vendorType: 'AUTO_PARTS', // AUTO_PARTS | COMPREHENSIVE_CARE | CERTIFIED_WORKSHOP | CAR_WASH
   });
+
+  const [createNewAccount, setCreateNewAccount] = useState(false);
+  const [accountData, setAccountData] = useState({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+  });
+
+  const VENDOR_TYPE_OPTIONS = [
+    { value: 'AUTO_PARTS', labelEn: 'Auto Parts / Products', labelAr: 'قطع الغيار / المنتجات' },
+    { value: 'COMPREHENSIVE_CARE', labelEn: 'Comprehensive Care', labelAr: 'العناية الشاملة' },
+    { value: 'CERTIFIED_WORKSHOP', labelEn: 'Certified Workshop', labelAr: 'الورش المعتمدة' },
+    { value: 'CAR_WASH', labelEn: 'Car Wash', labelAr: 'خدمة الغسيل' },
+  ];
+
+  const [userSearch, setUserSearch] = useState('');
+
+  // Fetch users for linking
+  const { data: usersData, isLoading: isLoadingUsers } = useQuery({
+    queryKey: ['users', { search: userSearch }],
+    queryFn: () => userService.getUsers({ search: userSearch, limit: 50 }),
+    enabled: !createNewAccount,
+  });
+
+  const users = usersData?.users || [];
 
   const createMutation = useMutation({
     mutationFn: (data) => vendorService.createVendor(data),
@@ -30,7 +58,11 @@ export default function CreateVendorPage() {
       toast.success('Vendor profile created successfully');
       navigate('/vendors');
     },
-    onError: (err) => toast.error(err?.message || 'Failed to create vendor'),
+    onError: (err) => {
+      const msg = err?.response?.data?.error || err?.normalized?.message || err?.message || 'Failed to create vendor';
+      const is409 = err?.response?.status === 409;
+      toast.error(is409 ? (msg || 'البريد أو رقم الهاتف مسجل مسبقاً. استخدم بريداً آخر أو اختر "ربط بمستخدم موجود".') : msg);
+    },
   });
 
   const handleSubmit = (e) => {
@@ -41,6 +73,11 @@ export default function CreateVendorPage() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAccountChange = (e) => {
+    const { name, value } = e.target;
+    setAccountData(prev => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -57,17 +94,98 @@ export default function CreateVendorPage() {
 
       <form onSubmit={handleSubmit}>
         <Card className="p-6 space-y-6">
+          <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+            <p className="mb-3 text-sm font-medium text-slate-700">طريقة إضافة الحساب / Account type</p>
+            <div className="flex flex-wrap gap-4">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="radio"
+                  name="accountType"
+                  checked={createNewAccount}
+                  onChange={() => setCreateNewAccount(true)}
+                  className="rounded-full border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <UserPlus className="size-4 text-indigo-600" />
+                <span className="text-sm font-medium text-slate-800">إنشاء حساب جديد للفيندور / Create new vendor account</span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="radio"
+                  name="accountType"
+                  checked={!createNewAccount}
+                  onChange={() => setCreateNewAccount(false)}
+                  className="rounded-full border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span className="text-sm font-medium text-slate-800">ربط بمستخدم موجود (User ID) / Link existing user</span>
+              </label>
+            </div>
+          </div>
+
+          {createNewAccount ? (
+            <div className="grid gap-6 sm:grid-cols-2 rounded-xl border border-indigo-100 bg-indigo-50/30 p-4">
+              <h3 className="sm:col-span-2 text-sm font-semibold text-indigo-900">بيانات تسجيل الدخول / Login credentials</h3>
+              <Input label="Email" name="email" type="email" value={accountData.email} onChange={handleAccountChange} required />
+              <Input label="Password" name="password" type="password" value={accountData.password} onChange={handleAccountChange} required />
+              <Input label="First Name" name="firstName" value={accountData.firstName} onChange={handleAccountChange} required />
+              <Input label="Last Name" name="lastName" value={accountData.lastName} onChange={handleAccountChange} required />
+            </div>
+          ) : (
+            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-4">
+              <div className="relative">
+                <Input
+                  label="Search User (Name, Email or Phone)"
+                  placeholder="Type to search..."
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  icon={<Search className="size-4 text-slate-400" />}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-slate-700">Select User / اختر المستخدم</label>
+                <select
+                  name="userId"
+                  value={formData.userId}
+                  onChange={handleChange}
+                  className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  required={!createNewAccount}
+                >
+                  <option value="">-- Choose a user --</option>
+                  {isLoadingUsers ? (
+                    <option disabled>Loading users...</option>
+                  ) : users.length === 0 ? (
+                    <option disabled>No users found</option>
+                  ) : (
+                    users.map(user => (
+                      <option key={user.id} value={user.id}>
+                        {user.profile?.firstName} {user.profile?.lastName} ({user.email}) - {user.role}
+                      </option>
+                    ))
+                  )}
+                </select>
+                <p className="text-xs text-slate-500">
+                  {formData.userId ? `Selected ID: ${formData.userId}` : 'Please select a user to link with the vendor profile.'}
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="grid gap-6 sm:grid-cols-2">
-            <Input
-              label="User ID (UUID)"
-              name="userId"
-              value={formData.userId}
-              onChange={handleChange}
-              placeholder="e.g. 550e8400-e29b-..."
-              required
-              helperText="The existing user UUID to assign this vendor profile to."
-            />
-            <div className="hidden sm:block"></div>
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-slate-700">Vendor Type / نوع الفيندور</label>
+              <select
+                name="vendorType"
+                value={formData.vendorType}
+                onChange={handleChange}
+                className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              >
+                {VENDOR_TYPE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.labelEn} / {opt.labelAr}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             <Input
               label="Business Name (English)"
@@ -84,7 +202,7 @@ export default function CreateVendorPage() {
               required
               dir="rtl"
             />
-            
+
             <Input
               label="Contact Email"
               name="contactEmail"
@@ -101,7 +219,7 @@ export default function CreateVendorPage() {
               onChange={handleChange}
               required
             />
-            
+
             <div className="sm:col-span-2">
               <Input
                 label="Address"
@@ -111,7 +229,7 @@ export default function CreateVendorPage() {
                 required
               />
             </div>
-            
+
             <Input
               label="City"
               name="city"
@@ -127,7 +245,7 @@ export default function CreateVendorPage() {
               required
               maxLength={2}
             />
-            
+
             <div className="sm:col-span-2">
               <label className="mb-1.5 block text-sm font-medium text-slate-700">Description</label>
               <textarea

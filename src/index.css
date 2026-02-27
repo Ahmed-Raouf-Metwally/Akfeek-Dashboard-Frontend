@@ -1,45 +1,133 @@
 @import "tailwindcss";
 
+/* ─── Dark-mode variant via .dark class on <html> ─────────────────────────── */
+@variant dark (&:where(.dark, .dark *));
+
+/* ─── CSS tokens (light defaults) ────────────────────────────────────────── */
+:root {
+  --bg-page:       theme(colors.slate.50);
+  --bg-surface:    #ffffff;
+  --bg-subtle:     theme(colors.slate.50);
+  --bg-muted:      theme(colors.slate.100);
+  --bg-hover:      theme(colors.slate.100);
+  --border:        theme(colors.slate.200);
+  --border-subtle: theme(colors.slate.100);
+  --text-primary:  theme(colors.slate.900);
+  --text-secondary:theme(colors.slate.700);
+  --text-muted:    theme(colors.slate.500);
+  --text-disabled: theme(colors.slate.400);
+  --ring:          theme(colors.indigo.500);
+}
+
+/* ─── Dark overrides ──────────────────────────────────────────────────────── */
+html.dark {
+  --bg-page:       #0f172a;           /* slate-950 */
+  --bg-surface:    #1e293b;           /* slate-800 */
+  --bg-subtle:     #1e293b;
+  --bg-muted:      #334155;           /* slate-700 */
+  --bg-hover:      #334155;
+  --border:        #334155;
+  --border-subtle: #1e293b;
+  --text-primary:  #f1f5f9;           /* slate-100 */
+  --text-secondary:#cbd5e1;           /* slate-300 */
+  --text-muted:    #94a3b8;           /* slate-400 */
+  --text-disabled: #64748b;           /* slate-500 */
+  --ring:          theme(colors.indigo.400);
+
+  color-scheme: dark;
+}
+
+/* ─── Base ────────────────────────────────────────────────────────────────── */
 @layer base {
   html {
     @apply antialiased;
   }
   body {
-    @apply bg-slate-50 text-slate-900 font-sans;
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    @apply font-sans transition-colors duration-200;
   }
 
   /* RTL Support */
-  [dir="rtl"] {
-    direction: rtl;
-    text-align: right;
-  }
+  [dir="rtl"] { direction: rtl; text-align: right; }
+  [dir="ltr"] { direction: ltr; text-align: left;  }
+}
 
-  [dir="ltr"] {
-    direction: ltr;
-    text-align: left;
+/* ─── Global dark-mode overrides for common Tailwind utilities ─────────────
+   This approach means we don't need to add dark: prefix to every component. */
+@layer base {
+  html.dark {
+    /* surfaces */
+    .bg-white   { background-color: var(--bg-surface) !important; }
+    .bg-slate-50  { background-color: var(--bg-page) !important; }
+    .bg-slate-100 { background-color: var(--bg-muted) !important; }
+    .bg-slate-200 { background-color: #334155 !important; }
+
+    /* text */
+    .text-slate-900 { color: var(--text-primary) !important; }
+    .text-slate-800 { color: #e2e8f0 !important; }
+    .text-slate-700 { color: var(--text-secondary) !important; }
+    .text-slate-600 { color: #94a3b8 !important; }
+    .text-slate-500 { color: var(--text-muted) !important; }
+    .text-slate-400 { color: var(--text-disabled) !important; }
+
+    /* borders */
+    .border-slate-200 { border-color: var(--border) !important; }
+    .border-slate-100 { border-color: var(--border-subtle) !important; }
+
+    /* dividers */
+    .divide-slate-100 > * + * { border-color: var(--border-subtle) !important; }
+    .divide-slate-200 > * + * { border-color: var(--border) !important; }
+
+    /* inputs */
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    select,
+    textarea {
+      background-color: var(--bg-muted);
+      color: var(--text-primary);
+      border-color: var(--border);
+    }
+    input::placeholder, textarea::placeholder { color: var(--text-disabled); }
+
+    /* tables */
+    .bg-slate-50\/80, .bg-slate-50\/50, .bg-slate-50\/30 {
+      background-color: color-mix(in srgb, var(--bg-muted) 30%, transparent) !important;
+    }
+
+    /* hover states */
+    .hover\:bg-slate-50:hover  { background-color: var(--bg-hover) !important; }
+    .hover\:bg-slate-100:hover { background-color: var(--bg-muted) !important; }
+
+    /* ring */
+    .ring-black\/5 { --tw-ring-color: rgb(255 255 255 / 0.05) !important; }
+
+    /* shadow — lighten a bit so cards are still visible */
+    .shadow-sm { box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4) !important; }
+    .hover\:shadow-md:hover { box-shadow: 0 4px 8px 0 rgb(0 0 0 / 0.5) !important; }
+
+    /* sidebar / header special backgrounds */
+    header.sticky,
+    aside { background-color: var(--bg-surface) !important; }
+
+    /* badges / pills that rely on white */
+    .bg-white\/50 { background-color: color-mix(in srgb, var(--bg-surface) 50%, transparent) !important; }
+
+    /* focus rings */
+    .focus\:border-indigo-500:focus { border-color: var(--ring) !important; }
   }
 }
 
+/* ─── Utilities ───────────────────────────────────────────────────────────── */
 @layer utilities {
-  /* RTL-aware spacing */
-  .rtl\:mr-auto {
-    margin-inline-start: auto;
-  }
+  .rtl\:mr-auto { margin-inline-start: auto; }
+  .rtl\:ml-auto { margin-inline-end: auto; }
 
-  .rtl\:ml-auto {
-    margin-inline-end: auto;
-  }
+  .glow-indigo  { box-shadow: 0 0 20px -5px rgb(99 102 241 / 0.35); }
+  .glow-emerald { box-shadow: 0 0 20px -5px rgb(34 197 94 / 0.35); }
 
-  /* Gradient accents & glow for dashboard components */
-  .glow-indigo {
-    box-shadow: 0 0 20px -5px rgb(99 102 241 / 0.35);
-  }
-  .glow-emerald {
-    box-shadow: 0 0 20px -5px rgb(34 197 94 / 0.35);
-  }
   .gradient-border {
     position: relative;
-    background: white;
+    background: var(--bg-surface);
   }
   .gradient-border::before {
     content: "";

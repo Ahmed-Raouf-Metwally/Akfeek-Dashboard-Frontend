@@ -5,6 +5,19 @@ import api from './api';
  */
 export const serviceService = {
   /**
+   * Upload a service image file. Returns the image URL to use in imageUrl.
+   * @param {File} file - Image file (JPEG, PNG, WebP, max 5MB)
+   * @returns {Promise<string>} URL path e.g. /uploads/services/service-xxx.jpg
+   */
+  async uploadImage(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    const { data } = await api.post('/services/upload-image', formData);
+    if (!data.success) throw new Error(data.error || 'Upload failed');
+    return data.data;
+  },
+
+  /**
    * Get services with optional filters.
    * @param {{ category?: string, type?: string, search?: string, isActive?: boolean }}
    */

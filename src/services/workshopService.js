@@ -93,6 +93,31 @@ export const workshopService = {
             throw new Error(data.error || 'Failed to delete workshop');
         }
     },
+
+    /** Vendor (CERTIFIED_WORKSHOP): my workshop & bookings */
+    async getMyWorkshop() {
+        const { data } = await api.get('/workshops/profile/me');
+        if (!data.success) throw new Error(data.error || 'Failed to load workshop');
+        return data.data;
+    },
+    /**
+     * Create my workshop (Vendor – certified workshop only). Workshop is created unverified until admin approves.
+     */
+    async createMyWorkshop(payload) {
+        const { data } = await api.post('/workshops/profile/me', payload);
+        if (!data.success) throw new Error(data.error || 'Failed to create workshop');
+        return data.data;
+    },
+    async updateMyWorkshop(payload) {
+        const { data } = await api.put('/workshops/profile/me', payload);
+        if (!data.success) throw new Error(data.error || 'Failed to update workshop');
+        return data.data;
+    },
+    async getMyWorkshopBookings(params = {}) {
+        const { data } = await api.get('/workshops/profile/me/bookings', { params });
+        if (!data.success) throw new Error(data.error || 'Failed to load bookings');
+        return { list: data.data ?? [], pagination: data.pagination ?? { page: 1, limit: 10, total: 0, totalPages: 1 } };
+    },
 };
 
 export default workshopService;
