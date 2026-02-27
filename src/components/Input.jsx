@@ -8,6 +8,7 @@ export default function Input({
   onChange,
   name,
   error,
+  helperText,
   className = '',
   ...rest
 }) {
@@ -37,6 +38,7 @@ export default function Input({
         {...rest}
       />
       {error && <p className="mt-1.5 text-sm text-red-600">{error}</p>}
+      {helperText && !error && <p className="mt-1.5 text-sm text-slate-500">{helperText}</p>}
     </div>
   );
 }

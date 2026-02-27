@@ -2,16 +2,22 @@ import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { ArrowLeft, CheckCircle, Trash2, Tag, Truck, Box, DollarSign, Layers } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { ArrowLeft, CheckCircle, Trash2, Tag, Truck, Box, Pencil } from 'lucide-react';
 import { autoPartService } from '../services/autoPartService';
+import { useAuthStore } from '../store/authStore';
 import { useConfirm } from '../hooks/useConfirm';
 import { Card } from '../components/ui/Card';
-import ApprovalStatusBadge from '../components/marketplace/ApprovalStatusBadge';
 import VendorBadge from '../components/marketplace/VendorBadge';
 
 export default function AutoPartDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.role === 'ADMIN';
+  const isVendor = user?.role === 'VENDOR';
+  const canEditOrDelete = isAdmin || isVendor;
   const queryClient = useQueryClient();
   const [openConfirm, ConfirmModal] = useConfirm();
   const [activeImage, setActiveImage] = useState(0);
@@ -21,20 +27,11 @@ export default function AutoPartDetailPage() {
     queryFn: () => autoPartService.getAutoPartById(id),
   });
 
-  const isPending = part && !part.isApproved;
-
-  const updateApprovalMutation = useMutation({
-    mutationFn: (isApproved) => autoPartService.updatePartApproval(part.id, isApproved),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['auto-part', id] });
-      toast.success('Approval status updated');
-    },
-    onError: (err) => toast.error(err?.message || 'Failed to update status'),
-  });
-
   const deleteMutation = useMutation({
     mutationFn: () => autoPartService.deleteAutoPart(part.id),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auto-parts'] });
+      queryClient.invalidateQueries({ queryKey: ['auto-part', id] });
       toast.success('Part deleted');
       navigate('/auto-parts');
     },
@@ -62,26 +59,25 @@ export default function AutoPartDetailPage() {
           </div>
         </div>
         <div className="ml-auto flex items-center gap-2">
-           {isPending && (
-             <button
-               onClick={async () => {
-                 const ok = await openConfirm({ title: 'Approve Part', message: 'Approve this part for listing?', variant: 'primary' });
-                 if (ok) updateApprovalMutation.mutate(true);
-               }}
-               className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500"
-             >
-               <CheckCircle className="size-4" /> Approve
-             </button>
+           {canEditOrDelete && (
+             <>
+               <Link
+                 to={`/auto-parts/${part.id}/edit`}
+                 className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+               >
+                 <Pencil className="size-4" /> {t('common.edit', 'Edit')}
+               </Link>
+               <button
+                 onClick={async () => {
+                   const ok = await openConfirm({ title: t('common.delete') || 'Delete Part', message: t('autoParts.deleteMessage', 'Delete this part? This cannot be undone.'), variant: 'danger' });
+                   if (ok) deleteMutation.mutate();
+                 }}
+                 className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
+               >
+                 <Trash2 className="size-4" /> {t('common.delete', 'Delete')}
+               </button>
+             </>
            )}
-           <button
-             onClick={async () => {
-               const ok = await openConfirm({ title: 'Delete Part', message: 'Delete this part? This cannot be undone.', variant: 'danger' });
-               if (ok) deleteMutation.mutate();
-             }}
-             className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
-           >
-             <Trash2 className="size-4" /> Delete
-           </button>
         </div>
       </div>
 
@@ -122,7 +118,6 @@ export default function AutoPartDetailPage() {
                     <span className="text-sm text-slate-400 line-through">{parseFloat(part.compareAtPrice).toLocaleString()} SAR</span>
                   )}
                </div>
-               <ApprovalStatusBadge status={part.isApproved ? 'APPROVED' : 'PENDING_APPROVAL'} />
              </div>
 
              <div className="space-y-4 border-t border-slate-100 pt-6">
@@ -153,7 +148,7 @@ export default function AutoPartDetailPage() {
                <div className="rounded-lg bg-slate-50 p-4">
                  <div className="flex items-center justify-between">
                    <VendorBadge vendor={part.vendor} />
-                   <Link to={`/vendors/${part.vendorId}`} className="text-sm text-indigo-600 hover:underline">View Profile</Link>
+                   {part.vendorId && <Link to={`/vendors/${part.vendorId}`} className="text-sm text-indigo-600 hover:underline">View Profile</Link>}
                  </div>
                </div>
              </div>

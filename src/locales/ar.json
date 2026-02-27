@@ -33,6 +33,7 @@
     "details": "التفاصيل",
     "total": "الإجمالي",
     "all": "الكل",
+    "viewAll": "عرض الكل",
     "yourAccount": "حسابك",
     "managePlatformUsers": "إدارة مستخدمي المنصة",
     "rolesAndAccess": "الأدوار والتحكم بالوصول",
@@ -105,12 +106,15 @@
   "nav": {
     "dashboard": "لوحة التحكم",
     "analytics": "التحليلات",
+    "myVendorDetail": "صفحة تفاصيل متجري",
     "users": "المستخدمون",
     "bookings": "الحجوزات",
     "services": "الخدمات",
+    "comprehensiveCare": "العناية الشاملة",
     "mobileCarService": "خدمة الورش المتنقلة",
     "products": "المنتجات",
     "vendors": "الموردون",
+    "vendorRequests": "طلبات الموردين",
     "technicians": "الفنيون",
     "reports": "التقارير",
     "settings": "الإعدادات",
@@ -119,18 +123,33 @@
     "brands": "ماركات السيارات",
     "models": "موديلات السيارات",
     "broadcasts": "البث المباشر",
+    "towingRequests": "طلبات الونش",
     "inspections": "الفحوصات",
     "supply-requests": "طلبات التوريد",
     "invoices": "الفواتير",
     "payments": "المدفوعات",
     "wallets": "المحافظ",
+    "points": "سجل نقاط الولاء",
     "ratings": "التقييمات",
     "auto-part-categories": "فئات قطع الغيار",
     "auto-parts": "قطع غيار السيارات",
     "marketplace-orders": "طلبات المتجر",
     "roles": "الأدوار والصلاحيات",
     "activity": "سجل النشاط",
-    "workshops": "الورش المعتمدة"
+    "workshops": "الورش المعتمدة",
+    "feedback": "الشكاوي والاقتراحات",
+    "vendorComprehensiveCare": "العناية الشاملة",
+    "vendorComprehensiveServices": "خدماتي",
+    "vendorComprehensiveBookings": "مواعيد الحجوزات",
+    "vendorMyServices": "خدماتي",
+    "vendorBookings": "مواعيد الحجوزات",
+    "vendorMyWorkshop": "الورشة",
+    "vendorWorkshopBookings": "حجوزات الورشة",
+    "vendorCoupons": "الكوبونات",
+    "allCoupons": "كافة الكوبونات",
+    "carWashWorkshops": "ورش الغسيل",
+    "comprehensiveCareWorkshops": "العناية الشاملة",
+    "technicalSupportRequests": "طلبات الدعم الفني"
   },
   "workshops": {
     "title": "الورش المعتمدة",
@@ -156,6 +175,8 @@
     "services": "الخدمات المقدمة",
     "servicesOffered": "الخدمات المقدمة",
     "workingHours": "ساعات العمل",
+    "workingHoursJson": "ساعات العمل (JSON)",
+    "closed": "مغلق",
     "verified": "معتمدة",
     "unverified": "غير معتمدة",
     "active": "نشطة",
@@ -266,9 +287,17 @@
     "viewDetails": "عرض التفاصيل",
     "activityDistribution": "النشاط والتوزيع"
   },
+  "comprehensiveCare": {
+    "subtitle": "قدّف الخدمة واحجز موعد",
+    "vendorServicesSubtitle": "إدارة خدمات العناية الشاملة",
+    "vendorBookingsSubtitle": "حجوزات خدمات العناية الشاملة",
+    "myServices": "خدماتي",
+    "appointments": "مواعيد الحجوزات"
+  },
   "users": {
     "title": "المستخدمين",
     "addUser": "إضافة مستخدم",
+    "editUser": "تعديل مستخدم",
     "searchUsers": "البحث عن مستخدمين...",
     "name": "الاسم",
     "email": "البريد الإلكتروني",
@@ -308,7 +337,8 @@
       "REPAIR": "إصلاح",
       "EMERGENCY": "طوارئ",
       "INSPECTION": "فحص",
-      "CUSTOMIZATION": "تخصيص"
+      "CUSTOMIZATION": "تخصيص",
+      "COMPREHENSIVE_CARE": "العناية الشاملة"
     },
     "types": {
       "FIXED": "ثابت",
@@ -319,14 +349,16 @@
     },
     "parentService": "الخدمة الأم",
     "thisIsParent": "لا شيء – هذه الخدمة هي الأم",
+    "parentServiceHint": "لا شيء = الخدمة الأم؛ اختر خدمة أم لإضافة خدمة فرعية.",
+    "vendor": "الفيندور",
+    "noVendor": "بدون فيندور",
+    "vendorHint": "للعناية الشاملة، اختر الفيندور الذي يقدم هذه الخدمة.",
     "addSubService": "إضافة خدمة فرعية",
     "subServices": "الخدمات الفرعية",
     "newService": "خدمة جديدة",
     "editService": "تعديل الخدمة",
-    "parentServiceHint": "لا شيء = الخدمة الأم؛ اختر خدمة أم لإضافة خدمة فرعية.",
     "noSubServices": "لا توجد خدمات فرعية بعد.",
-    "noMobileCarService": "لم يتم إعداد خدمة الورش المتنقلة بعد. أضفها من قائمة الخدمات الرئيسية.",
-    "price": "الأسعار"
+    "noMobileCarService": "لم يتم إعداد خدمة الورش المتنقلة بعد. أضفها من قائمة الخدمات الرئيسية."
   },
   "bookings": {
     "title": "الحجوزات",
@@ -374,12 +406,17 @@
     "perPage": "صف لكل صفحة",
     "resetAll": "إعادة تعيين جميع الإعدادات",
     "appearance": "المظهر",
+    "language": "اللغة",
+    "languageSubtitle": "لغة واجهة الداشبورد. يمكنك أيضاً التبديل من أيقونة اللغة في الهيدر.",
     "theme": "السمة",
     "dateFormat": "تنسيق التاريخ",
     "compactMode": "الوضع المضغوط",
     "compactModeDesc": "تقليل المسافات في الجداول والقوائم",
     "businessSettings": "العمولات والضرائب",
     "businessSettingsSubtitle": "التحكم الكامل في عمولة المنصة وحصة الفني والضريبة",
+    "noPricingSettings": "لا توجد إعدادات عمولات/ضريبة. شغّل seed في الباكند لإنشاء VAT_RATE و PLATFORM_COMMISSION_PERCENT.",
+    "initPricingInBackend": "تهيئة إعدادات التسعير في الباكند",
+    "pricingInitSuccess": "تم تهيئة إعدادات التسعير في الباكند",
     "systemSettings": "إعدادات النظام",
     "systemSettingsSubtitle": "تكوين الواجهة الخلفية حسب الفئة",
     "saveChanges": "حفظ التغييرات",
@@ -409,6 +446,7 @@
       "PLATFORM_COMMISSION_PERCENT": "نسبة عمولة المنصة",
       "TECHNICIAN_COMMISSION_PERCENT": "نسبة حصة الفني",
       "VAT_PERCENT": "نسبة الضريبة",
+      "VAT_RATE": "ضريبة القيمة المضافة (٪)",
       "TAX_INCLUDED_IN_PRICE": "الأسعار تشمل الضريبة",
       "SERVICE_DEFAULT_MARKUP_PERCENT": "نسبة الزيادة الافتراضية",
       "MIN_BOOKING_AMOUNT_SAR": "الحد الأدنى للحجز",
@@ -466,7 +504,25 @@
     "noVendors": "لا يوجد موردين",
     "business": "اسم العمل",
     "contact": "جهة الاتصال",
-    "stats": "الإحصائيات"
+    "stats": "الإحصائيات",
+    "onboardingTitle": "طلبات تسجيل الموردين",
+    "onboardingSubtitle": "مراجعة وإدارة طلبات الموردين الجدد",
+    "requestDetails": "تفاصيل طلب التسجيل",
+    "company": "الشركة",
+    "mainService": "الخدمة الرئيسية",
+    "legalName": "الاسم القانوني",
+    "supplierType": "نوع المورد",
+    "locationInfo": "بيانات التسجيل والموقع",
+    "crNumber": "رقم السجل التجاري",
+    "vatNumber": "الرقم الضريبي",
+    "address": "العنوان",
+    "contactPerson": "الشخص المسؤول",
+    "serviceCapacity": "الخدمات والقدرة الاستيعابية",
+    "experience": "الخبرة",
+    "fleet": "الأسطول",
+    "servicesOffered": "الخدمات المقدمة",
+    "employeesBand": "نطاق الموظفين",
+    "monthlyCapacity": "القدرة الشهرية"
   },
   "notifications": {
     "title": "الإشعارات",
@@ -474,7 +530,13 @@
     "markAllRead": "تحديد الكل كمقروء",
     "noNotifications": "لا توجد إشعارات بعد",
     "notification": "الإشعار",
-    "markRead": "تحديد كمقروء"
+    "markRead": "تحديد كمقروء",
+    "youHaveUnread": "لديك {{count}} إشعارات جديدة",
+    "allCaughtUp": "لا توجد إشعارات غير مقروءة",
+    "seeAllHistory": "مشاهدة سجل الإشعارات",
+    "newNotification": "إشعار جديد",
+    "myNotifications": "تنبيهاتي",
+    "systemArchive": "سجل إشعارات النظام"
   },
   "activity": {
     "title": "سجل النشاط",
@@ -537,6 +599,9 @@
       "HIGH": "عالية"
     }
   },
+  "towingRequests": {
+    "subtitle": "جميع طلبات الونش وسائق الونش المعيّن"
+  },
   "finance": {
     "invoicesTitle": "الفواتير",
     "invoicesSubtitle": "عرض وإدارة الفواتير",
@@ -579,7 +644,23 @@
       "BANK_TRANSFER": "تحويل بنكي",
       "APPLE_PAY": "Apple Pay",
       "MADA": "مدى"
-    }
+    },
+    "wallets": "المحافظ",
+    "manageWallets": "إدارة محافظ المستخدمين",
+    "credit": "إيداع",
+    "debit": "خصم",
+    "reason": "السبب",
+    "creditWallet": "إيداع في المحفظة",
+    "debitWallet": "خصم من المحفظة",
+    "creditSuccess": "تم الإيداع في المحفظة بنجاح",
+    "debitSuccess": "تم الخصم من المحفظة بنجاح",
+    "searchUser": "البحث عن مستخدم (الاسم أو البريد)...",
+    "points": "نقاط الولاء",
+    "adjustPoints": "تعديل النقاط",
+    "pointsAdjustSuccess": "تم تعديل النقاط بنجاح",
+    "pointsAudit": "سجل عمليات النقاط",
+    "pointsAuditDesc": "عرض جميع عمليات نقاط الولاء",
+    "type": "النوع"
   },
   "inspections": {
     "title": "تقارير الفحص",
@@ -666,5 +747,69 @@
     "english": "English",
     "switchLanguage": "تبديل اللغة",
     "currentLanguage": "اللغة الحالية"
+  },
+  "feedback": {
+    "title": "الشكاوي والاقتراحات",
+    "subtitle": "إدارة ملاحظات العملاء والشكاوي والاقتراحات",
+    "feedbackItem": "ملاحظة",
+    "deletedSuccess": "تم حذف الملاحظة بنجاح",
+    "statusUpdated": "تم تحديث الحالة بنجاح",
+    "priorityUpdated": "تم تحديث الأهمية بنجاح",
+    "replySuccess": "تم إرسال الرد بنجاح",
+    "details": "تفاصيل الملاحظة",
+    "orderInfo": "معلومات الطلب",
+    "replies": "الردود",
+    "sendReply": "إرسال الرد",
+    "replyPlaceholder": "اكتب ردك هنا...",
+    "noReplies": "لا توجد ردود حتى الآن.",
+    "closedError": "لا يمكن الرد على شكوى مغلقة.",
+    "searchPlaceholder": "بحث في الموضوع أو الرسالة...",
+    "allStatuses": "جميع الحالات",
+    "allTypes": "جميع الأنواع",
+    "allCategories": "جميع الفئات",
+    "allPriorities": "جميع الأهميات",
+    "noFeedback": "لا توجد شكاوي أو اقتراحات حالياً",
+    "anonymous": "مجهول الهوية",
+    "urgent": "عاجل",
+    "pending": "قيد الانتظار",
+    "fields": {
+      "subject": "الموضوع",
+      "user": "المستخدم",
+      "type": "النوع",
+      "priority": "الأهمية"
+    },
+    "status": {
+      "OPEN": "مفتوح",
+      "IN_PROGRESS": "قيد المعالجة",
+      "RESOLVED": "تم الحل",
+      "REJECTED": "مرفوض",
+      "CLOSED": "مغلق"
+    },
+    "types": {
+      "COMPLAINT": "شكوى",
+      "SUGGESTION": "اقتراح"
+    },
+    "categories": {
+      "DELIVERY": "التوصيل",
+      "PAYMENT": "الدفع",
+      "PRODUCT": "المنتج",
+      "UI_UX": "واجهة المستخدم",
+      "OTHER": "أخرى"
+    },
+    "priorities": {
+      "LOW": "منخفضة",
+      "MEDIUM": "متوسطة",
+      "HIGH": "عالية",
+      "URGENT": "عاجل جداً"
+    }
+  },
+  "vendorCoupons": {
+    "subtitle": "كوبونات الخصم المطبقة على خدماتك فقط"
+  },
+  "allCoupons": {
+    "subtitle": "إدارة ومراقبة كافة كوبونات الخصم في المنصة"
+  },
+  "technicalSupport": {
+    "subtitle": "إدارة طلبات الدعم المرفوعة من المستخدمين"
   }
 }

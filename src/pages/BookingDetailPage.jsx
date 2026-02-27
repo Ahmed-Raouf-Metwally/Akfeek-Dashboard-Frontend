@@ -1,10 +1,12 @@
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, CalendarCheck, Clock, Radio, ClipboardCheck, PackageSearch, FileText, Star, Wrench, Package } from 'lucide-react';
+import { ArrowLeft, CalendarCheck, Clock, Radio, ClipboardCheck, PackageSearch, FileText, Star, Wrench } from 'lucide-react';
 import { bookingService } from '../services/bookingService';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import { Card } from '../components/ui/Card';
+import { useTranslation } from 'react-i18next';
+import { useDateFormat } from '../hooks/useDateFormat';
 
 function DetailRow({ label, value }) {
   return (
@@ -15,19 +17,8 @@ function DetailRow({ label, value }) {
   );
 }
 
-function formatDate(d) {
-  if (!d) return '—';
-  const x = typeof d === 'string' ? new Date(d) : d;
-  return Number.isNaN(x.getTime()) ? '—' : x.toLocaleDateString('en-SA', { dateStyle: 'medium' });
-}
-
-function formatDateTime(d) {
-  if (!d) return '—';
-  const x = typeof d === 'string' ? new Date(d) : d;
-  return Number.isNaN(x.getTime()) ? '—' : x.toLocaleString();
-}
-
 export default function BookingDetailPage() {
+  const { fmt, fmtDT } = useDateFormat();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -114,7 +105,7 @@ export default function BookingDetailPage() {
           <div className="space-y-0">
             <DetailRow label="Booking #" value={booking.bookingNumber ?? booking.id} />
             <DetailRow label="Status" value={booking.status} />
-            <DetailRow label="Scheduled date" value={formatDate(booking.scheduledDate)} />
+            <DetailRow label="Scheduled date" value={fmt(booking.scheduledDate)} />
             <DetailRow label="Scheduled time" value={booking.scheduledTime} />
             <DetailRow label="Total price" value={booking.totalPrice != null ? `${Number(booking.totalPrice).toFixed(2)} SAR` : null} />
             <DetailRow label="Subtotal" value={booking.subtotal != null ? `${Number(booking.subtotal).toFixed(2)} SAR` : null} />
@@ -123,7 +114,7 @@ export default function BookingDetailPage() {
             <DetailRow label="Parts total" value={booking.partsTotal != null ? `${Number(booking.partsTotal).toFixed(2)} SAR` : null} />
             <DetailRow label="Tax" value={booking.tax != null ? `${Number(booking.tax).toFixed(2)} SAR` : null} />
             <DetailRow label="Discount" value={booking.discount != null ? `${Number(booking.discount).toFixed(2)} SAR` : null} />
-            <DetailRow label="Created" value={formatDateTime(booking.createdAt)} />
+            <DetailRow label="Created" value={fmtDT(booking.createdAt)} />
           </div>
         </Card>
 
@@ -188,7 +179,7 @@ export default function BookingDetailPage() {
                     <p className="text-xs text-slate-500">Status: {booking.jobBroadcast.status}</p>
                   </div>
                 </div>
-                <span className="text-xs text-slate-400">{formatDate(booking.jobBroadcast.createdAt)}</span>
+                <span className="text-xs text-slate-400">{fmt(booking.jobBroadcast.createdAt)}</span>
               </div>
             )}
             {booking.inspectionReport && (
@@ -202,7 +193,7 @@ export default function BookingDetailPage() {
                     </p>
                   </div>
                 </div>
-                <span className="text-xs text-slate-400">{formatDate(booking.inspectionReport.createdAt)}</span>
+                <span className="text-xs text-slate-400">{fmt(booking.inspectionReport.createdAt)}</span>
               </div>
             )}
             {booking.supplyRequests && booking.supplyRequests.length > 0 && (
@@ -216,7 +207,7 @@ export default function BookingDetailPage() {
                         <p className="text-xs text-slate-500">Status: {sr.status}</p>
                       </div>
                     </div>
-                    <span className="text-xs text-slate-400">{formatDate(sr.createdAt)}</span>
+                    <span className="text-xs text-slate-400">{fmt(sr.createdAt)}</span>
                   </div>
                 ))}
               </div>
@@ -284,26 +275,6 @@ export default function BookingDetailPage() {
                   <p className="text-xs text-slate-500">Qty: {bs.quantity} × {Number(bs.unitPrice).toFixed(2)} SAR</p>
                 </div>
                 <span className="text-sm font-semibold text-slate-900">{Number(bs.totalPrice).toFixed(2)} SAR</span>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {(booking.products && booking.products.length > 0) && (
-        <Card className="p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <Package className="size-5 text-slate-500" />
-            <h2 className="text-base font-semibold text-slate-900">Products</h2>
-          </div>
-          <div className="space-y-2">
-            {booking.products.map((bp) => (
-              <div key={bp.id} className="flex items-center justify-between rounded-lg border border-slate-200 p-3">
-                <div>
-                  <p className="text-sm font-medium text-slate-900">{bp.product.name}</p>
-                  <p className="text-xs text-slate-500">SKU: {bp.product.sku} · Qty: {bp.quantity} × {Number(bp.unitPrice).toFixed(2)} SAR</p>
-                </div>
-                <span className="text-sm font-semibold text-slate-900">{Number(bp.totalPrice).toFixed(2)} SAR</span>
               </div>
             ))}
           </div>

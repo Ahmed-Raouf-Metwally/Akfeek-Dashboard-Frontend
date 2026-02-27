@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useAuthStore } from '../store/authStore';
 import authService from '../services/authService';
 
 export default function Login() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const setAuth = useAuthStore((s) => s.setAuth);
@@ -20,8 +21,13 @@ export default function Login() {
 
   const from = location.state?.from?.pathname || '/dashboard';
 
+  useEffect(() => {
+    if (token && user) {
+      navigate(from, { replace: true });
+    }
+  }, [token, user, navigate, from]);
+
   if (token && user) {
-    navigate(from, { replace: true });
     return null;
   }
 
@@ -64,8 +70,11 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
-      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4" dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
+      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm relative">
+        <div className="absolute top-4 end-4">
+          <LanguageSwitcher />
+        </div>
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900">{t('auth.signIn')}</h1>
           <p className="mt-1 text-sm text-slate-500">
@@ -107,12 +116,6 @@ export default function Login() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-slate-500">
-          {t('auth.dontHaveAccount', "Don't have an account?")}{' '}
-          <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-700">
-            {t('auth.register', 'Register')}
-          </Link>
-        </p>
       </div>
     </div>
   );

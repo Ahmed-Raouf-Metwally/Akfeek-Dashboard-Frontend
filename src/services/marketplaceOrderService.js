@@ -25,10 +25,10 @@ export const marketplaceOrderService = {
     return response.data;
   },
 
-  // Get order details
+  // Get order details (returns the order object; API wraps in { success, data })
   getOrderById: async (id) => {
     const response = await api.get(`/marketplace-orders/${id}`);
-    return response.data;
+    return response.data?.data ?? response.data;
   },
 
   // Update global order status (Admin)

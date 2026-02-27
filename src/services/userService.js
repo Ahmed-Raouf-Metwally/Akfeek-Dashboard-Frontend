@@ -45,6 +45,19 @@ export const userService = {
   },
 
   /**
+   * Update user details. Admin only.
+   * @param {string} id
+   * @param {Object} data - { firstName, lastName, bio, bioAr, avatar }
+   */
+  async updateUser(id, payload) {
+    const { data } = await api.put(`/users/${id}`, payload);
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to update user');
+    }
+    return data.data;
+  },
+
+  /**
    * Delete user. Admin only.
    */
   async deleteUser(id) {

@@ -35,6 +35,7 @@
     "details": "Details",
     "total": "Total",
     "all": "All",
+    "viewAll": "View All",
     "yourAccount": "Your account",
     "managePlatformUsers": "Manage platform users",
     "rolesAndAccess": "Roles and access control",
@@ -107,12 +108,15 @@
   "nav": {
     "dashboard": "Dashboard",
     "analytics": "Analytics",
+    "myVendorDetail": "My Store Page",
     "users": "Users",
     "bookings": "Bookings",
     "services": "Services",
+    "comprehensiveCare": "Comprehensive Care",
     "mobileCarService": "Mobile Car Service",
     "products": "Products",
     "vendors": "Vendors",
+    "vendorRequests": "Vendor Requests",
     "technicians": "Technicians",
     "reports": "Reports",
     "settings": "Settings",
@@ -121,18 +125,29 @@
     "brands": "Vehicle Brands",
     "models": "Vehicle Models",
     "broadcasts": "Broadcasts",
+    "towingRequests": "Towing Requests",
     "inspections": "Inspections",
     "supply-requests": "Supply Requests",
     "invoices": "Invoices",
     "payments": "Payments",
     "wallets": "Wallets",
+    "points": "Loyalty Points Audit",
     "ratings": "Ratings",
     "auto-part-categories": "Auto Part Categories",
     "auto-parts": "Auto Parts",
     "marketplace-orders": "Marketplace Orders",
     "roles": "Roles & Permissions",
     "activity": "Activity / Logs",
-    "workshops": "Workshops"
+    "workshops": "Workshops",
+    "vendorComprehensiveCare": "Comprehensive Care",
+    "vendorComprehensiveServices": "My Services",
+    "vendorComprehensiveBookings": "Appointments",
+    "vendorMyServices": "My Services",
+    "vendorBookings": "Appointments",
+    "vendorMyWorkshop": "My Workshop",
+    "vendorWorkshopBookings": "Workshop Bookings",
+    "vendorCoupons": "Coupons",
+    "allCoupons": "All Coupons"
   },
   "workshops": {
     "title": "Certified Workshops",
@@ -158,6 +173,8 @@
     "services": "Services Offered",
     "servicesOffered": "Services Offered",
     "workingHours": "Working Hours",
+    "workingHoursJson": "Working hours (JSON)",
+    "closed": "Closed",
     "verified": "Verified",
     "unverified": "Unverified",
     "active": "Active",
@@ -268,9 +285,17 @@
     "viewDetails": "View details",
     "activityDistribution": "Activity & distribution"
   },
+  "comprehensiveCare": {
+    "subtitle": "Configure service and book appointment",
+    "vendorServicesSubtitle": "Manage your comprehensive care services",
+    "vendorBookingsSubtitle": "Bookings for your comprehensive care services",
+    "myServices": "My Services",
+    "appointments": "Appointments"
+  },
   "users": {
     "title": "Users",
     "addUser": "Add User",
+    "editUser": "Edit User",
     "searchUsers": "Search users...",
     "name": "Name",
     "email": "Email",
@@ -299,7 +324,6 @@
     "name": "Name",
     "category": "Category",
     "type": "Type",
-    "price": "Price",
     "duration": "Duration",
     "active": "Active",
     "inactive": "Inactive",
@@ -310,7 +334,8 @@
       "REPAIR": "Repair",
       "EMERGENCY": "Emergency",
       "INSPECTION": "Inspection",
-      "CUSTOMIZATION": "Customization"
+      "CUSTOMIZATION": "Customization",
+      "COMPREHENSIVE_CARE": "Comprehensive Care"
     },
     "types": {
       "FIXED": "Fixed",
@@ -321,6 +346,9 @@
     },
     "parentService": "Parent service",
     "thisIsParent": "None – this is the parent",
+    "vendor": "Vendor",
+    "noVendor": "No vendor",
+    "vendorHint": "For Comprehensive Care, assign the vendor that offers this service.",
     "addSubService": "Add sub-service",
     "subServices": "Sub-services",
     "newService": "New service",
@@ -376,12 +404,17 @@
     "perPage": "per page",
     "resetAll": "Reset all settings",
     "appearance": "Appearance",
+    "language": "Language",
+    "languageSubtitle": "Dashboard interface language. You can also switch from the language icon in the header.",
     "theme": "Theme",
     "dateFormat": "Date format",
     "compactMode": "Compact mode",
     "compactModeDesc": "Tighter spacing in tables and lists",
     "businessSettings": "Commissions, Tax & Pricing",
     "businessSettingsSubtitle": "Full control over platform commission, technician share, VAT, and pricing",
+    "noPricingSettings": "No commission/tax/pricing settings found. Run backend seed to create VAT_RATE and PLATFORM_COMMISSION_PERCENT.",
+    "initPricingInBackend": "Initialize pricing settings in backend",
+    "pricingInitSuccess": "Pricing settings initialized in backend",
     "systemSettings": "System Settings",
     "systemSettingsSubtitle": "Backend configuration by category",
     "saveChanges": "Save Changes",
@@ -411,6 +444,7 @@
       "PLATFORM_COMMISSION_PERCENT": "Platform Commission %",
       "TECHNICIAN_COMMISSION_PERCENT": "Technician Share %",
       "VAT_PERCENT": "VAT %",
+      "VAT_RATE": "VAT (Value Added Tax) %",
       "TAX_INCLUDED_IN_PRICE": "Prices include tax",
       "SERVICE_DEFAULT_MARKUP_PERCENT": "Default Service Markup %",
       "MIN_BOOKING_AMOUNT_SAR": "Min Booking Amount",
@@ -468,7 +502,25 @@
     "noVendors": "No vendors found",
     "business": "Business",
     "contact": "Contact",
-    "stats": "Stats"
+    "stats": "Stats",
+    "onboardingTitle": "Vendor Registration Requests",
+    "onboardingSubtitle": "Review and manage new vendor applications",
+    "requestDetails": "Vendor Registration Details",
+    "company": "Company",
+    "mainService": "Main Service",
+    "legalName": "Legal Name",
+    "supplierType": "Supplier Type",
+    "locationInfo": "Registration & Location",
+    "crNumber": "CR Number",
+    "vatNumber": "VAT Number",
+    "address": "Address",
+    "contactPerson": "Contact Person",
+    "serviceCapacity": "Service & Capacity",
+    "experience": "Experience",
+    "fleet": "Fleet",
+    "servicesOffered": "Services Offered",
+    "employeesBand": "Employees Band",
+    "monthlyCapacity": "Monthly Capacity"
   },
   "notifications": {
     "title": "Notifications",
@@ -476,7 +528,13 @@
     "markAllRead": "Mark all as read",
     "noNotifications": "No notifications yet",
     "notification": "Notification",
-    "markRead": "Mark as read"
+    "markRead": "Mark as read",
+    "youHaveUnread": "You have {{count}} unread notifications",
+    "allCaughtUp": "You're all caught up",
+    "seeAllHistory": "See notification history",
+    "newNotification": "New Notification",
+    "myNotifications": "My Feed",
+    "systemArchive": "System Logs"
   },
   "activity": {
     "title": "Activity & Logs",
@@ -539,6 +597,9 @@
       "HIGH": "High"
     }
   },
+  "towingRequests": {
+    "subtitle": "All towing requests and assigned driver"
+  },
   "finance": {
     "invoicesTitle": "Invoices",
     "invoicesSubtitle": "View and manage invoices",
@@ -581,7 +642,23 @@
       "BANK_TRANSFER": "Bank Transfer",
       "APPLE_PAY": "Apple Pay",
       "MADA": "Mada"
-    }
+    },
+    "wallets": "Wallets",
+    "manageWallets": "Manage all user wallets",
+    "credit": "Credit",
+    "debit": "Debit",
+    "reason": "Reason",
+    "creditWallet": "Credit Wallet",
+    "debitWallet": "Debit Wallet",
+    "creditSuccess": "Wallet credited successfully",
+    "debitSuccess": "Wallet debited successfully",
+    "searchUser": "Search user (name or email)...",
+    "points": "Loyalty Points",
+    "adjustPoints": "Adjust Points",
+    "pointsAdjustSuccess": "Points adjusted successfully",
+    "pointsAudit": "Points Transaction Audit",
+    "pointsAuditDesc": "View all loyalty point transactions",
+    "type": "Type"
   },
   "inspections": {
     "title": "Inspection Reports",
@@ -668,5 +745,52 @@
     "english": "English",
     "switchLanguage": "Switch Language",
     "currentLanguage": "Current Language"
+  },
+  "feedback": {
+    "title": "Feedback & Complaints",
+    "replies": "Replies",
+    "sendReply": "Send Reply",
+    "replyPlaceholder": "Write your reply here...",
+    "noReplies": "No replies yet.",
+    "closedError": "Cannot reply to a closed feedback.",
+    "searchPlaceholder": "Search subject or message...",
+    "allStatuses": "All Statuses",
+    "allTypes": "All Types",
+    "allCategories": "All Categories",
+    "allPriorities": "All Priorities",
+    "noFeedback": "No complaints or suggestions found",
+    "anonymous": "Anonymous",
+    "urgent": "Urgent",
+    "pending": "Pending",
+    "fields": {
+      "subject": "Subject",
+      "user": "User",
+      "type": "Type",
+      "priority": "Priority"
+    },
+    "status": {
+      "OPEN": "Open",
+      "IN_PROGRESS": "In Progress",
+      "RESOLVED": "Resolved",
+      "REJECTED": "Rejected",
+      "CLOSED": "Closed"
+    },
+    "types": {
+      "COMPLAINT": "Complaint",
+      "SUGGESTION": "Suggestion"
+    },
+    "categories": {
+      "DELIVERY": "Delivery",
+      "PAYMENT": "Payment",
+      "PRODUCT": "Product",
+      "UI_UX": "UI/UX",
+      "OTHER": "Other"
+    },
+    "priorities": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "URGENT": "Urgent"
+    }
   }
 }

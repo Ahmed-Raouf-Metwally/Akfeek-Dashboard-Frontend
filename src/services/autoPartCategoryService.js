@@ -15,8 +15,8 @@ export const autoPartCategoryService = {
   /**
    * Get hierarchical category tree.
    */
-  async getCategoryTree() {
-    const { data } = await api.get('/auto-part-categories/tree');
+  async getCategoryTree(params = {}) {
+    const { data } = await api.get('/auto-part-categories/tree', { params });
     if (!data.success) {
       throw new Error(data.error || 'Failed to load category tree');
     }

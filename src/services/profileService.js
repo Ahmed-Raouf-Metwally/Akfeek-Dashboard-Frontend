@@ -22,6 +22,20 @@ export const profileService = {
     if (!data.success) throw new Error(data.error || data.message || 'Failed to update language');
     return data.data;
   },
+
+  async changePassword(currentPassword, newPassword) {
+    const { data } = await api.put('/users/password', { currentPassword, newPassword });
+    if (!data.success) throw new Error(data.error || data.message || 'Failed to change password');
+    return data;
+  },
+
+  async uploadAvatar(file) {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    const { data } = await api.post('/users/avatar', formData);
+    if (!data.success) throw new Error(data.error || data.message || 'Failed to upload avatar');
+    return data.data;
+  },
 };
 
 export default profileService;

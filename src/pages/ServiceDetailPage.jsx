@@ -18,10 +18,21 @@ function DetailRow({ label, value }) {
   );
 }
 
+const DAY_NAMES = [
+  { key: 0, en: 'Sunday', ar: 'الأحد' },
+  { key: 1, en: 'Monday', ar: 'الإثنين' },
+  { key: 2, en: 'Tuesday', ar: 'الثلاثاء' },
+  { key: 3, en: 'Wednesday', ar: 'الأربعاء' },
+  { key: 4, en: 'Thursday', ar: 'الخميس' },
+  { key: 5, en: 'Friday', ar: 'الجمعة' },
+  { key: 6, en: 'Saturday', ar: 'السبت' },
+];
+
 export default function ServiceDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === 'ar';
 
   const { data: service, isLoading, isError } = useQuery({
     queryKey: ['service', id],
@@ -164,6 +175,45 @@ export default function ServiceDetailPage() {
           )}
         </div>
       </Card>
+
+      {(service.workingHours != null && Array.isArray(service.workingHours) && service.workingHours.length > 0) && (
+        <Card className="overflow-hidden p-0">
+          <div className="border-b border-slate-100 px-6 py-4">
+            <h2 className="text-base font-semibold text-slate-900">{isAr ? 'أوقات العمل' : 'Working hours'}</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50/80">
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">{isAr ? 'اليوم' : 'Day'}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">{isAr ? 'من' : 'From'}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">{isAr ? 'إلى' : 'To'}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {service.workingHours
+                  .filter((h) => h && (h.start != null || h.end != null))
+                  .sort((a, b) => (a.dayOfWeek ?? 0) - (b.dayOfWeek ?? 0))
+                  .map((h) => {
+                    const day = DAY_NAMES.find((d) => Number(d.key) === Number(h.dayOfWeek));
+                    return (
+                      <tr key={h.dayOfWeek} className="border-b border-slate-100">
+                        <td className="px-4 py-3 text-sm font-medium text-slate-900">{day ? (isAr ? day.ar : day.en) : h.dayOfWeek}</td>
+                        <td className="px-4 py-3 text-sm text-slate-700">{h.start ?? '—'}</td>
+                        <td className="px-4 py-3 text-sm text-slate-700">{h.end ?? '—'}</td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+          {service.slotDurationMinutes != null && (
+            <div className="border-t border-slate-100 px-6 py-3 text-sm text-slate-500">
+              {isAr ? `مدة الموعد: ${service.slotDurationMinutes} دقيقة` : `Slot duration: ${service.slotDurationMinutes} min`}
+            </div>
+          )}
+        </Card>
+      )}
 
       {pricing.length > 0 && (
         <Card className="overflow-hidden p-0">

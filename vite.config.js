@@ -7,9 +7,13 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
-      // During development, proxy /api to the backend (set in .env or use default)
+      // In dev, frontend uses same origin (/api); proxy forwards to backend (see .env VITE_API_URL)
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:5000',
+        target: process.env.VITE_API_URL || 'http://localhost:3000',
+        changeOrigin: true,
+      },
+      '/uploads': {
+        target: process.env.VITE_API_URL || 'http://localhost:3000',
         changeOrigin: true,
       },
     },

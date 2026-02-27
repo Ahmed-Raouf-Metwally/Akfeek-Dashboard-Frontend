@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Filter, LayoutGrid, List, CheckCircle, XCircle } from 'lucide-react';
+import { Search, Plus, Filter, LayoutGrid, List, Pencil, Eye } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
 import { autoPartService } from '../services/autoPartService';
 import { autoPartCategoryService } from '../services/autoPartCategoryService';
 import { useConfirm } from '../hooks/useConfirm';
@@ -12,11 +13,12 @@ import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
 import { Card } from '../components/ui/Card';
 import AutoPartCard from '../components/marketplace/AutoPartCard';
-import ApprovalStatusBadge from '../components/marketplace/ApprovalStatusBadge';
 import VendorBadge from '../components/marketplace/VendorBadge';
 
 export default function AutoPartsPage() {
   const { t } = useTranslation();
+  const user = useAuthStore((s) => s.user);
+  const canEditParts = user?.role === 'ADMIN' || user?.role === 'VENDOR';
   const [openConfirm, ConfirmModal] = useConfirm();
   const queryClient = useQueryClient();
   const PAGE_SIZE = 12;
@@ -24,7 +26,6 @@ export default function AutoPartsPage() {
   const [categoryId, setCategoryId] = useState('');
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState('grid');
-  const [isApproved, setIsApproved] = useState(''); // ''=all, 'true'=approved, 'false'=pending
 
   // Fetch Categories
   const { data: categories = [] } = useQuery({
@@ -41,22 +42,12 @@ export default function AutoPartsPage() {
 
   // Fetch Parts
   const { data: parts = [], isLoading } = useQuery({
-    queryKey: ['auto-parts', { search, categoryId, isApproved }],
+    queryKey: ['auto-parts', { search, categoryId }],
     queryFn: () => autoPartService.getAutoParts({ 
       search: search || undefined, 
-      category: categoryId || undefined,
-      isApproved: isApproved === '' ? undefined : isApproved === 'true'
+      category: categoryId || undefined
     }),
     staleTime: 60_000,
-  });
-
-  const updateApprovalMutation = useMutation({
-    mutationFn: ({ id, isApproved }) => autoPartService.updatePartApproval(id, isApproved),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['auto-parts'] });
-      toast.success(t('common.success'));
-    },
-    onError: (err) => toast.error(err?.message || t('common.error')),
   });
 
   const { paginatedItems: paginatedParts, totalPages, total } = useMemo(() => {
@@ -125,16 +116,6 @@ export default function AutoPartsPage() {
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
-
-            <select
-              value={isApproved}
-              onChange={(e) => setIsApproved(e.target.value)}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            >
-              <option value="">{t('common.status')}</option>
-              <option value="true">{t('autoParts.approved')}</option>
-              <option value="false">{t('autoParts.pending')}</option>
-            </select>
           </div>
         </div>
 
@@ -187,7 +168,6 @@ export default function AutoPartsPage() {
                             )}
                             <div>
                                <div className="font-medium text-slate-900 line-clamp-1">{part.name}</div>
-                               <div className="text-xs text-slate-500">{!part.isApproved && <span className="text-amber-600 font-medium">{t('autoParts.pending')}</span>}</div>
                             </div>
                           </div>
                         </td>
@@ -207,26 +187,14 @@ export default function AutoPartsPage() {
                         </td>
                         <td className="px-4 py-3 text-end">
                            <div className="flex items-center justify-end gap-2">
-                              {!part.isApproved && (
-                                <button
-                                  onClick={async () => {
-                                      const ok = await openConfirm({
-                                          title: t('autoParts.approvePart'),
-                                          message: t('autoParts.confirmApprove', {name: part.name}),
-                                          confirmLabel: t('common.approve'),
-                                          variant: 'primary'
-                                      });
-                                      if (ok) updateApprovalMutation.mutate({ id: part.id, isApproved: true });
-                                  }}
-                                  className="p-1 text-green-600 hover:bg-green-50 rounded"
-                                  title={t('common.approve')}
-                                >
-                                  <CheckCircle className="size-5" />
-                                </button>
-                              )}
-                              <Link to={`/auto-parts/${part.id}`} className="p-1 text-slate-500 hover:bg-slate-100 rounded">
-                                 <List className="size-5" />
+                              <Link to={`/auto-parts/${part.id}`} className="p-1 text-slate-500 hover:bg-slate-100 rounded" title={t('common.viewDetails')}>
+                                 <Eye className="size-5" />
                               </Link>
+                              {canEditParts && (
+                                <Link to={`/auto-parts/${part.id}/edit`} className="p-1 text-indigo-600 hover:bg-indigo-50 rounded" title={t('common.edit')}>
+                                  <Pencil className="size-5" />
+                                </Link>
+                              )}
                            </div>
                         </td>
                       </tr>

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { Search, UserMinus, Check, Eye, Trash2, Car, MapPin } from 'lucide-react';
+import { Search, UserMinus, Check, Eye, Trash2, Car, MapPin, Pencil } from 'lucide-react';
 import { userService } from '../services/userService';
 import { useConfirm } from '../hooks/useConfirm';
 import { TableSkeleton } from '../components/ui/Skeleton';
@@ -96,6 +96,14 @@ function UserRow({ user, onStatusChange, onDelete, openConfirm, t }) {
             aria-label={t('common.viewDetails')}
           >
             <Eye className="size-5" />
+          </Link>
+          <Link
+            to={`/users/${user.id}/edit`}
+            className={iconBtn}
+            title={t('common.edit')}
+            aria-label={t('common.edit')}
+          >
+            <Pencil className="size-5" />
           </Link>
           <button
             type="button"
