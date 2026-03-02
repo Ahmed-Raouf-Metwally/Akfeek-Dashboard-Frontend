@@ -21,9 +21,7 @@ function getTitleForPath(pathname, t, user) {
     '/notifications': [t('nav.notifications', 'Notifications'), t('common.viewManageNotifications', 'View and manage notifications')],
     '/activity': [t('nav.activity', 'Activity / Logs'), t('common.auditLog', 'Audit and activity log')],
     '/feedback': [t('nav.feedback', 'Complaints & Suggestions'), t('feedback.subtitle', 'Manage customer feedback')],
-    '/technical-support-requests': [t('nav.technicalSupportRequests', 'طلبات الدعم الفني'), t('technicalSupport.subtitle', 'عرض الطلبات وتعيين الفني')],
-    '/services': [t('nav.services', 'Services'), t('common.serviceCatalog', 'Service catalog')],
-    '/services/new': [t('common.createService', 'Create service'), t('common.addNewService', 'Add a new service')],
+    '/technical-support-requests': [t('nav.technicalSupportRequests'), t('technicalSupport.subtitle')],
     '/brands': [t('nav.brands', 'Vehicle Brands'), t('common.manageBrands', 'Manage brands')],
     '/models': [t('nav.models', 'Vehicle Models'), t('common.manageModels', 'Manage models')],
     '/bookings': [t('nav.bookings', 'Bookings'), t('common.manageBookings', 'Manage bookings')],
@@ -32,6 +30,12 @@ function getTitleForPath(pathname, t, user) {
     '/invoices': [t('nav.invoices', 'Invoices'), t('common.viewInvoices', 'View invoices')],
     '/settings': [t('nav.settings', 'Settings'), t('common.appSettings', 'App settings')],
     '/vendors': [t('nav.vendors', 'Vendors'), t('common.manageVendors', 'Manage auto parts vendors')],
+    '/winches': [t('nav.winches'), t('winch.manageSubtitle')],
+    '/mobile-workshops': [t('nav.mobile-workshops'), t('mobileWorkshop.manageSubtitle')],
+    '/mobile-workshops/new': [t('mobileWorkshop.addTitle'), ''],
+    '/winches/new': [t('winch.addTitle'), t('winch.newSubtitle')],
+    '/winches/:id': [t('winch.detailTitle'), ''],
+    '/winches/:id/edit': [t('winch.editTitle'), ''],
     '/vendors/new': [t('common.addVendor', 'Add Vendor'), t('common.createVendorProfile', 'Create new vendor profile')],
     '/auto-parts': [t('nav.auto-parts', 'Auto Parts'), t('common.managePartsCatalog', 'Manage parts catalog')],
     '/auto-parts/new': [t('common.addAutoPart', 'Add Auto Part'), t('common.createPartListing', 'Create new part listing')],
@@ -51,7 +55,6 @@ function getTitleForPath(pathname, t, user) {
   };
 
   if (ROUTE_TITLES[pathname]) return ROUTE_TITLES[pathname];
-  if (pathname.startsWith('/services/') && pathname !== '/services/new') return [t('common.serviceDetails', 'Service details'), ''];
   if (pathname.startsWith('/users/')) return [t('common.userDetails', 'User details'), ''];
   if (pathname.startsWith('/bookings/')) return [t('common.bookingDetails', 'Booking details'), ''];
   if (pathname.startsWith('/brands/')) return [t('common.brandDetails', 'Brand details'), ''];

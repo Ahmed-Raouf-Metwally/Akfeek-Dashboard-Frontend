@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 // eslint-disable-next-line no-unused-vars -- motion.section used in JSX
@@ -21,7 +21,6 @@ import {
   Star,
 } from 'lucide-react';
 import { dashboardService } from '../services/dashboardService';
-import { serviceService } from '../services/serviceService';
 import { autoPartService } from '../services/autoPartService';
 import { marketplaceOrderService } from '../services/marketplaceOrderService';
 import { vendorService } from '../services/vendorService';
@@ -37,30 +36,9 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
 } from 'recharts';
 
-const CHART_COLORS = [
-  'rgb(99 102 241)',   // indigo-500
-  'rgb(34 197 94)',    // green-500
-  'rgb(245 158 11)',   // amber-500
-  'rgb(59 130 246)',   // blue-500
-  'rgb(139 92 246)',   // violet-500
-  'rgb(236 72 153)',   // pink-500
-];
-
-const MOCK_CHART = [
-  { name: 'Mon', count: 12 },
-  { name: 'Tue', count: 19 },
-  { name: 'Wed', count: 15 },
-  { name: 'Thu', count: 22 },
-  { name: 'Fri', count: 18 },
-  { name: 'Sat', count: 24 },
-  { name: 'Sun', count: 14 },
-];
+// Chart data comes from API (statsData?.data?.chartWeeklyBookings)
 
 function StatCard({ title, value, icon, colorClass, loading }) {
   const IconEl = icon;
@@ -142,15 +120,10 @@ export default function DashboardHome() {
     retry: (failureCount, error) => error?.response?.status !== 403 && failureCount < 2,
   });
 
-  const { data: servicesData, isLoading: servicesLoading } = useQuery({
-    queryKey: ['dashboard', 'services'],
-    queryFn: () => serviceService.getServices(),
-    staleTime: 300_000, // Cache services longer
-  });
-
   const stats = statsError ? {} : (statsData?.data?.stats || {});
   const rawBookings = statsError ? [] : (statsData?.data?.recentBookings || []);
   const rawActivity = statsError ? [] : (statsData?.data?.recentActivity || []);
+  const chartWeeklyBookings = statsError ? [] : (statsData?.data?.chartWeeklyBookings || []);
   // Only treat as activity if it looks like ActivityLog (action/entity), not e.g. WorkshopReview
   const recentActivity = Array.isArray(rawActivity)
     ? rawActivity.filter((log) => log && (log.action != null || log.entity != null))
@@ -160,23 +133,7 @@ export default function DashboardHome() {
     ? rawBookings.filter((b) => b && (b.bookingNumber != null || b.status != null))
     : [];
 
-  const services = useMemo(
-    () => (Array.isArray(servicesData) ? servicesData : servicesData?.length ? servicesData : []),
-    [servicesData]
-  );
-  const totalServices = services.length;
-
-  const categoryData = useMemo(() => {
-    const byCat = {};
-    services.forEach((s) => {
-      const c = s.category || 'OTHER';
-      byCat[c] = (byCat[c] || 0) + 1;
-    });
-    return Object.entries(byCat).map(([name, value]) => ({ name, value })).slice(0, 6);
-  }, [services]);
-
   const quickLinks = [
-    { to: '/services/new', label: t('dashboard.newService'), icon: Plus },
     { to: '/users', label: t('dashboard.manageUsers'), icon: UserPlus },
     { to: '/bookings', label: t('nav.bookings'), icon: CalendarCheck },
     { to: '/invoices', label: t('nav.invoices'), icon: FileText },
@@ -197,10 +154,10 @@ export default function DashboardHome() {
       >
         <h2 className="text-xl font-semibold">{greeting}</h2>
         <p className="mt-1.5 text-sm text-indigo-100/90">
-          {isCareVendor ? (i18n.language === 'ar' ? 'إدارة خدماتك وحجوزات العناية الشاملة' : 'Manage your services and comprehensive care appointments')
-            : isCarWashVendor ? (i18n.language === 'ar' ? 'إدارة خدمات الغسيل والحجوزات' : 'Manage your car wash services and appointments')
-              : isWorkshopVendor ? (i18n.language === 'ar' ? 'إدارة الورشة المعتمدة' : 'Manage your certified workshop')
-                : isAutoPartsVendor ? (i18n.language === 'ar' ? 'إدارة منتجاتك وطلبات المتجر' : 'Manage your products and store orders')
+          {isCareVendor ? t('dashboard.vendorManageCare')
+            : isCarWashVendor ? t('dashboard.vendorManageCarWash')
+              : isWorkshopVendor ? t('dashboard.vendorManageWorkshop')
+                : isAutoPartsVendor ? t('dashboard.vendorManageAutoParts')
                   : t('dashboard.platformActivity')}
         </p>
       </motion.section>
@@ -216,11 +173,11 @@ export default function DashboardHome() {
         >
           <div className="mb-4 flex items-center justify-between">
             <h2 id="vendor-section-heading" className="text-lg font-semibold text-slate-900">
-              {i18n.language === 'ar' ? 'نظرة عامة (العناية الشاملة)' : 'Overview (Comprehensive Care)'}
+              {t('dashboard.vendorCareOverview')}
             </h2>
             {vendorRealStats?.stats?.revenue != null && (
               <div className="text-right">
-                <p className="text-xs font-medium text-slate-500 uppercase">{i18n.language === 'ar' ? 'إجمالي الإيرادات' : 'Total Revenue'}</p>
+                <p className="text-xs font-medium text-slate-500 uppercase">{t('dashboard.vendorCareRevenue')}</p>
                 <p className="text-lg font-bold text-indigo-600">{vendorRealStats.stats.revenue.toLocaleString()} SAR</p>
               </div>
             )}
@@ -231,9 +188,9 @@ export default function DashboardHome() {
                 <Wrench className="size-6 text-indigo-600" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'خدماتي' : 'My services'}</p>
+                <p className="font-semibold text-slate-900">{t('dashboard.vendorCareMyServices')}</p>
                 <p className="text-sm text-slate-500">
-                  {i18n.language === 'ar' ? `عدد الخدمات: ${totalServices}` : `${totalServices} service(s)`}
+                  {t('dashboard.vendorCareManageServices')}
                 </p>
               </div>
               <ExternalLink className="size-5 shrink-0 text-slate-400" />
@@ -243,9 +200,9 @@ export default function DashboardHome() {
                 <CalendarCheck className="size-6 text-emerald-600" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'الحجوزات المحققة' : 'Completed Bookings'}</p>
+                <p className="font-semibold text-slate-900">{t('dashboard.vendorCareBookings')}</p>
                 <p className="text-sm text-slate-500">
-                  {vendorStatsLoading ? '...' : (i18n.language === 'ar' ? `${vendorRealStats?.stats?.completedBookings || 0} حجز مكتمل` : `${vendorRealStats?.stats?.completedBookings || 0} completed`)}
+                  {vendorStatsLoading ? '...' : t('dashboard.vendorCareBookingsCount', { count: vendorRealStats?.stats?.completedBookings || 0 })}
                 </p>
               </div>
               <ExternalLink className="size-5 shrink-0 text-slate-400" />
@@ -265,11 +222,11 @@ export default function DashboardHome() {
         >
           <div className="mb-4 flex items-center justify-between">
             <h2 id="carwash-section-heading" className="text-lg font-semibold text-slate-900">
-              {i18n.language === 'ar' ? 'نظرة عامة (خدمة الغسيل)' : 'Overview (Car Wash)'}
+              {t('dashboard.vendorCarWashOverview')}
             </h2>
             {vendorRealStats?.stats?.revenue != null && (
               <div className="text-right">
-                <p className="text-xs font-medium text-slate-500 uppercase">{i18n.language === 'ar' ? 'إجمالي الإيرادات' : 'Total Revenue'}</p>
+                <p className="text-xs font-medium text-slate-500 uppercase">{t('dashboard.vendorCareRevenue')}</p>
                 <p className="text-lg font-bold text-sky-600">{vendorRealStats.stats.revenue.toLocaleString()} SAR</p>
               </div>
             )}
@@ -280,8 +237,8 @@ export default function DashboardHome() {
                 <Wrench className="size-6 text-sky-600" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'خدماتي' : 'My services'}</p>
-                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? 'إدارة خدمات الغسيل' : 'Manage car wash services'}</p>
+                <p className="font-semibold text-slate-900">{t('dashboard.vendorCarWashMyServices')}</p>
+                <p className="text-sm text-slate-500">{t('dashboard.vendorCarWashManageServices')}</p>
               </div>
               <ExternalLink className="size-5 shrink-0 text-slate-400" />
             </Link>
@@ -290,9 +247,9 @@ export default function DashboardHome() {
                 <CalendarCheck className="size-6 text-emerald-600" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'الحجوزات المحققة' : 'Completed Bookings'}</p>
+                <p className="font-semibold text-slate-900">{t('dashboard.vendorCareBookings')}</p>
                 <p className="text-sm text-slate-500">
-                  {vendorStatsLoading ? '...' : (i18n.language === 'ar' ? `${vendorRealStats?.stats?.completedBookings || 0} حجز مكتمل` : `${vendorRealStats?.stats?.completedBookings || 0} completed`)}
+                  {vendorStatsLoading ? '...' : t('dashboard.vendorCarWashBookingsCount', { count: vendorRealStats?.stats?.completedBookings || 0 })}
                 </p>
               </div>
               <ExternalLink className="size-5 shrink-0 text-slate-400" />
@@ -311,15 +268,15 @@ export default function DashboardHome() {
           className="rounded-2xl border border-amber-100 bg-amber-50/50 p-6"
         >
           <h2 id="workshop-section-heading" className="mb-4 text-lg font-semibold text-slate-900">
-            {i18n.language === 'ar' ? 'قسمك (الورش المعتمدة)' : 'Your section (Certified Workshop)'}
+            {t('dashboard.vendorWorkshopSection')}
           </h2>
           <Link to="/workshops" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-amber-200 hover:shadow-md">
             <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-amber-100">
               <Wrench className="size-6 text-amber-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'الورشة' : 'Workshop'}</p>
-              <p className="text-sm text-slate-500">{i18n.language === 'ar' ? 'عرض وإدارة الورشة المعتمدة' : 'View and manage your certified workshop'}</p>
+              <p className="font-semibold text-slate-900">{t('dashboard.vendorWorkshopTitle')}</p>
+              <p className="text-sm text-slate-500">{t('dashboard.vendorWorkshopSubtitle')}</p>
             </div>
             <ExternalLink className="size-5 shrink-0 text-slate-400" />
           </Link>
@@ -339,11 +296,11 @@ export default function DashboardHome() {
               <Star className="size-6 text-amber-600 fill-amber-500" />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-600">{i18n.language === 'ar' ? 'متوسط التقييم' : 'Average rating'}</p>
+              <p className="text-sm font-medium text-slate-600">{t('dashboard.vendorWorkshopRating')}</p>
               <p className="text-xl font-bold text-slate-900">
                 {vendorProfileLoading ? '...' : `${vendorRating.toFixed(1)} / 5`}
                 {!vendorProfileLoading && vendorReviewsCount > 0 && (
-                  <span className="ml-2 text-sm font-normal text-slate-500">({vendorReviewsCount} {i18n.language === 'ar' ? 'تقييم' : 'reviews'})</span>
+                  <span className="ml-2 text-sm font-normal text-slate-500">({t('dashboard.vendorWorkshopReviews', { count: vendorReviewsCount })})</span>
                 )}
               </p>
             </div>
@@ -361,7 +318,7 @@ export default function DashboardHome() {
           className="rounded-2xl border border-violet-100 bg-violet-50/50 p-6"
         >
           <h2 id="autoparts-section-heading" className="mb-4 text-lg font-semibold text-slate-900">
-            {i18n.language === 'ar' ? 'قسمك (قطع الغيار)' : 'Your section (Auto Parts)'}
+            {t('dashboard.vendorAutoPartsSection')}
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <Link to="/auto-parts/new" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-violet-200 hover:shadow-md">
@@ -369,8 +326,8 @@ export default function DashboardHome() {
                 <ShoppingBag className="size-6 text-violet-600" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'منتجاتي' : 'My products'}</p>
-                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? `عدد المنتجات: ${partsLoading ? '...' : myPartsCount}` : `${partsLoading ? '...' : myPartsCount} product(s)`}</p>
+                <p className="font-semibold text-slate-900">{t('dashboard.vendorMyProducts')}</p>
+                <p className="text-sm text-slate-500">{t('dashboard.vendorMyProductsCount', { count: partsLoading ? '...' : myPartsCount })}</p>
               </div>
               <ExternalLink className="size-5 shrink-0 text-slate-400" />
             </Link>
@@ -379,8 +336,8 @@ export default function DashboardHome() {
                 <Package className="size-6 text-emerald-600" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'طلبات المتجر' : 'Store orders'}</p>
-                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? `عدد الطلبات: ${ordersLoading ? '...' : myOrdersCount}` : `${ordersLoading ? '...' : myOrdersCount} order(s)`}</p>
+                <p className="font-semibold text-slate-900">{t('dashboard.vendorStoreOrders')}</p>
+                <p className="text-sm text-slate-500">{t('dashboard.vendorStoreOrdersCount', { count: ordersLoading ? '...' : myOrdersCount })}</p>
               </div>
               <ExternalLink className="size-5 shrink-0 text-slate-400" />
             </Link>
@@ -395,13 +352,13 @@ export default function DashboardHome() {
           {isAutoPartsVendor ? (
             <>
               <Link to="/auto-parts/new" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
-                <Plus className="size-4 text-slate-500" /> {i18n.language === 'ar' ? 'إضافة منتج' : 'Add product'}
+                <Plus className="size-4 text-slate-500" /> {t('dashboard.vendorAddProduct')}
               </Link>
               <Link to="/auto-parts" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
-                <ShoppingBag className="size-4 text-slate-500" /> {i18n.language === 'ar' ? 'منتجاتي' : 'My products'}
+                <ShoppingBag className="size-4 text-slate-500" /> {t('dashboard.vendorMyProductsLink')}
               </Link>
               <Link to="/marketplace-orders" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
-                <Package className="size-4 text-slate-500" /> {i18n.language === 'ar' ? 'طلبات المتجر' : 'Store orders'}
+                <Package className="size-4 text-slate-500" /> {t('dashboard.vendorStoreOrdersLink')}
               </Link>
               <Link to="/profile" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
                 <UserCircle className="size-4 text-slate-500" /> {t('nav.profile', 'Profile')}
@@ -427,12 +384,12 @@ export default function DashboardHome() {
       {isAutoPartsVendor && (
         <section aria-labelledby="vendor-overview-heading">
           <h2 id="vendor-overview-heading" className="mb-4 text-lg font-semibold text-slate-900">
-            {i18n.language === 'ar' ? 'نظرة عامة' : 'Overview'}
+            {t('dashboard.vendorOverview')}
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Link to="/auto-parts" className="block transition-transform hover:scale-[1.02]">
               <StatCard
-                title={i18n.language === 'ar' ? 'منتجاتي' : 'My products'}
+                title={t('dashboard.vendorMyProductsTitle')}
                 value={partsLoading ? '...' : String(myPartsCount)}
                 icon={ShoppingBag}
                 colorClass="bg-violet-500"
@@ -441,7 +398,7 @@ export default function DashboardHome() {
             </Link>
             <Link to="/marketplace-orders" className="block transition-transform hover:scale-[1.02]">
               <StatCard
-                title={i18n.language === 'ar' ? 'طلبات المتجر' : 'Store orders'}
+                title={t('dashboard.vendorStoreOrdersTitle')}
                 value={ordersLoading ? '...' : String(myOrdersCount)}
                 icon={Package}
                 colorClass="bg-emerald-500"
@@ -473,15 +430,6 @@ export default function DashboardHome() {
               icon={CalendarCheck}
               colorClass="bg-emerald-500"
               loading={statsLoading}
-            />
-          </Link>
-          <Link to="/services" className="block transition-transform hover:scale-[1.02]">
-            <StatCard
-              title={t('dashboard.services')}
-              value={totalServices}
-              icon={Wrench}
-              colorClass="bg-amber-500"
-              loading={servicesLoading}
             />
           </Link>
           <StatCard
@@ -596,7 +544,7 @@ export default function DashboardHome() {
             <CardBody className="pt-0">
               <div className="relative w-full min-w-0" style={{ width: '100%', height: 280, minHeight: 280 }}>
                 <ResponsiveContainer width="100%" height={280} minWidth={0} minHeight={280} debounce={50}>
-                  <BarChart data={MOCK_CHART} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                  <BarChart data={chartWeeklyBookings.length ? chartWeeklyBookings : [{ name: '-', count: 0 }]} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="#94a3b8" />
                     <YAxis tick={{ fontSize: 12 }} stroke="#94a3b8" />
@@ -615,38 +563,6 @@ export default function DashboardHome() {
             </CardBody>
           </Card>
 
-          <Card className="overflow-hidden">
-            <CardHeader title={t('dashboard.servicesByCategory')} />
-            <CardBody className="pt-0">
-              <div className="relative w-full min-w-0" style={{ width: '100%', height: 280, minHeight: 280 }}>
-                {categoryData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={280} minWidth={0} minHeight={280} debounce={50}>
-                    <PieChart>
-                      <Pie
-                        data={categoryData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={90}
-                        label={({ name, value }) => `${name} (${value})`}
-                      >
-                        {categoryData.map((_, i) => (
-                          <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex h-full items-center justify-center text-slate-500">
-                    {t('dashboard.noServices')}
-                  </div>
-                )}
-              </div>
-            </CardBody>
-          </Card>
         </div>
       </section>
 

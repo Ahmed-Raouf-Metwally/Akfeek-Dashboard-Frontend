@@ -118,6 +118,53 @@ export const workshopService = {
         if (!data.success) throw new Error(data.error || 'Failed to load bookings');
         return { list: data.data ?? [], pagination: data.pagination ?? { page: 1, limit: 10, total: 0, totalPages: 1 } };
     },
+
+    // ── Vendor: إدارة الخدمات (مع الأسعار) ─────────────────────────────────────
+    async getMyWorkshopServices() {
+        const { data } = await api.get('/workshops/profile/me/services');
+        if (!data.success) throw new Error(data.error || 'Failed to load services');
+        return data.data ?? [];
+    },
+    async addMyWorkshopService(payload) {
+        const { data } = await api.post('/workshops/profile/me/services', payload);
+        if (!data.success) throw new Error(data.error || 'Failed to add service');
+        return data.data;
+    },
+    async updateMyWorkshopService(svcId, payload) {
+        const { data } = await api.put(`/workshops/profile/me/services/${svcId}`, payload);
+        if (!data.success) throw new Error(data.error || 'Failed to update service');
+        return data.data;
+    },
+    async deleteMyWorkshopService(svcId) {
+        const { data } = await api.delete(`/workshops/profile/me/services/${svcId}`);
+        if (!data.success) throw new Error(data.error || 'Failed to delete service');
+        return data;
+    },
+
+    // ── Workshop Services (Pricing) — Admin ─────────────────────────────────────
+    async getWorkshopServices(workshopId) {
+        const { data } = await api.get(`/workshops/${workshopId}/services`);
+        if (!data.success) throw new Error(data.error || 'Failed to load services');
+        return data.data ?? [];
+    },
+
+    async addWorkshopService(workshopId, payload) {
+        const { data } = await api.post(`/workshops/${workshopId}/services`, payload);
+        if (!data.success) throw new Error(data.error || 'Failed to add service');
+        return data.data;
+    },
+
+    async updateWorkshopService(workshopId, svcId, payload) {
+        const { data } = await api.put(`/workshops/${workshopId}/services/${svcId}`, payload);
+        if (!data.success) throw new Error(data.error || 'Failed to update service');
+        return data.data;
+    },
+
+    async deleteWorkshopService(workshopId, svcId) {
+        const { data } = await api.delete(`/workshops/${workshopId}/services/${svcId}`);
+        if (!data.success) throw new Error(data.error || 'Failed to delete service');
+        return data;
+    },
 };
 
 export default workshopService;

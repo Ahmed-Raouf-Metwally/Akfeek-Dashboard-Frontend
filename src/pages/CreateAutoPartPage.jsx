@@ -23,10 +23,11 @@ export default function CreateAutoPartPage() {
     queryFn: () => autoPartCategoryService.getCategoryTree(),
   });
 
-  const { data: vendors = [] } = useQuery({
+  const { data: vendorsResult } = useQuery({
     queryKey: ['vendors-list'],
-    queryFn: () => vendorService.getVendors({ status: 'ACTIVE' }),
+    queryFn: () => vendorService.getVendors({ status: 'ACTIVE', limit: 100 }),
   });
+  const vendors = vendorsResult?.vendors ?? [];
 
   const [formData, setFormData] = useState({
     name: '',

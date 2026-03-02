@@ -34,6 +34,8 @@ import {
   Tag,
   Droplets,
   ShieldCheck,
+  TrendingUp,
+  RotateCcw,
 } from 'lucide-react';
 import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
 import { useAuthStore } from '../../store/authStore';
@@ -46,6 +48,14 @@ const VENDOR_COMPREHENSIVE_CARE_KEYS = new Set(['dashboard', 'analytics', 'myVen
 const VENDOR_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyWorkshop', 'vendorWorkshopBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
 /** ٤ – فيندور خدمة الغسيل */
 const VENDOR_CAR_WASH_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
+
+const SECTION_LABEL_KEYS = {
+  main: 'sectionMain',
+  'services-vehicles': 'sectionServicesVehicles',
+  orders: 'sectionOrders',
+  vendorServices: 'sectionVendorServices',
+  vendorWorkshop: 'sectionVendorWorkshop',
+};
 
 const SECTIONS = [
   {
@@ -65,11 +75,14 @@ const SECTIONS = [
     labelEn: 'Services & Vehicles',
     labelAr: 'الخدمات والمركبات',
     items: [
-      { key: 'services', to: '/services', icon: Wrench, label: 'Services' },
-      { key: 'mobileCarService', to: '/mobile-car-service', icon: Truck, label: 'Mobile Car Service' },
+      // { key: 'services', to: '/services', icon: Wrench, label: 'Services' },
+      //{ key: 'mobileCarService', to: '/mobile-car-service', icon: Truck, label: 'Mobile Car Service' },
       { key: 'workshops', to: '/workshops', icon: Building2, label: 'Workshops' },
       { key: 'carWashWorkshops', to: '/car-wash', icon: Droplets, label: 'Car Wash Workshops', labelAr: 'ورش الغسيل' },
       { key: 'comprehensiveCareWorkshops', to: '/comprehensive-care', icon: ShieldCheck, label: 'Comprehensive Care', labelAr: 'العناية الشاملة' },
+      { key: 'winches', to: '/winches', icon: Truck, label: 'الوينشات' },
+      { key: 'mobile-workshops', to: '/mobile-workshops', icon: Wrench, label: 'الورش المتنقلة' },
+      { key: 'technicalSupportRequests', to: '/technical-support-requests', icon: Headphones, label: 'Technical Support Requests' },
       { key: 'brands', to: '/brands', icon: Car, label: 'Vehicle Brands' },
       { key: 'models', to: '/models', icon: CircleDot, label: 'Vehicle Models' },
     ],
@@ -85,7 +98,9 @@ const SECTIONS = [
       { key: 'inspections', to: '/inspections', icon: ClipboardCheck, label: 'Inspections' },
       { key: 'invoices', to: '/invoices', icon: FileText, label: 'Invoices' },
       { key: 'payments', to: '/payments', icon: CreditCard, label: 'Payments' },
+      { key: 'refunds', to: '/refunds', icon: RotateCcw, label: 'Refunds', labelAr: 'الاستردادات' },
       { key: 'wallets', to: '/wallets', icon: Wallet, label: 'Wallets' },
+      { key: 'commissionReport', to: '/commission-report', icon: TrendingUp, label: 'Commission Report', labelAr: 'تقرير العمولة والضريبة' },
       { key: 'points', to: '/points', icon: Star, label: 'Points Audit' },
       { key: 'ratings', to: '/ratings', icon: Star, label: 'Ratings' },
     ],
@@ -115,6 +130,7 @@ const SECTIONS = [
     items: [
       { key: 'vendors', to: '/vendors', icon: Store, label: 'Vendors' },
       { key: 'vendorRequests', to: '/vendors/onboarding', icon: ClipboardCheck, label: 'Vendor Requests' },
+      
       { key: 'auto-part-categories', to: '/auto-part-categories', icon: Layers, label: 'Categories' },
       { key: 'auto-parts', to: '/auto-parts', icon: ShoppingBag, label: 'Auto Parts' },
       { key: 'marketplace-orders', to: '/marketplace-orders', icon: Package, label: 'Orders' },
@@ -129,7 +145,6 @@ const SECTIONS = [
       { key: 'users', to: '/users', icon: Users, label: 'Users' },
       { key: 'roles', to: '/roles', icon: Shield, label: 'Roles & Permissions' },
       { key: 'feedback', to: '/feedback', icon: MessageSquare, label: 'Feedback' },
-      { key: 'technicalSupportRequests', to: '/technical-support-requests', icon: Headphones, label: 'Technical Support Requests' },
       { key: 'notifications', to: '/notifications', icon: Bell, label: 'Notifications' },
       { key: 'activity', to: '/activity', icon: Activity, label: 'Activity / Logs' },
     ],
@@ -188,6 +203,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
   const panel = (
     <aside
       className={`
+        print:hidden
         fixed inset-y-0 z-40 flex flex-col border-slate-200 bg-white
         dark:border-slate-700 dark:bg-slate-800
         transition-[width,transform] duration-200 ease-in-out
@@ -265,7 +281,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
             <div key={section.key} className="space-y-1">
               {!collapsed && (
                 <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                  {isRTL ? section.labelAr : section.labelEn}
+                  {t(`nav.${SECTION_LABEL_KEYS[section.key] || 'dashboard'}`)}
                 </p>
               )}
               <ul className="space-y-0.5">
@@ -307,7 +323,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
           aria-label="Close menu"
           onClick={onCloseMobile}
           onKeyDown={(e) => (e.key === 'Escape' ? onCloseMobile?.() : null)}
-          className="fixed inset-0 z-30 bg-slate-900/20 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-30 bg-slate-900/20 backdrop-blur-sm lg:hidden print:hidden"
         />
       )}
       {panel}

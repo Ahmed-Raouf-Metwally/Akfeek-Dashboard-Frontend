@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { Search, Plus, Pencil, Trash2, Eye, MapPin, Phone, CheckCircle, XCircle, Building2, Star, ArrowRight } from 'lucide-react';
 import { workshopService } from '../services/workshopService';
+import { vendorService } from '../services/vendorService';
 import { useConfirm } from '../hooks/useConfirm';
 import { useAuthStore } from '../store/authStore';
 import { TableSkeleton } from '../components/ui/Skeleton';
@@ -30,6 +31,7 @@ const emptyForm = () => ({
   workingHoursByDay: defaultWorkingHoursByDay(),
   isActive: true,
   isVerified: false,
+  vendorId: '',
 });
 
 function WorkshopCard({ workshop, onEdit, onDelete, onToggleVerification, openConfirm, t }) {
@@ -212,6 +214,14 @@ export default function WorkshopsPage() {
     enabled: isAdmin,
   });
 
+  const { data: certifiedVendorsResult } = useQuery({
+    queryKey: ['vendors', { vendorType: 'CERTIFIED_WORKSHOP', limit: 100 }],
+    queryFn: () => vendorService.getVendors({ vendorType: 'CERTIFIED_WORKSHOP', limit: 100 }),
+    enabled: isAdmin,
+    staleTime: 60_000,
+  });
+  const certifiedVendors = certifiedVendorsResult?.vendors ?? [];
+
   const createMutation = useMutation({
     mutationFn: (payload) => workshopService.createWorkshop(payload),
     onSuccess: () => {
@@ -282,6 +292,7 @@ export default function WorkshopsPage() {
       workingHoursByDay,
       isActive: w.isActive ?? true,
       isVerified: w.isVerified ?? false,
+      vendorId: w.vendorId ?? '',
     });
   };
 
@@ -309,6 +320,7 @@ export default function WorkshopsPage() {
       workingHours: buildWorkingHoursPayload(form.workingHoursByDay || defaultWorkingHoursByDay()),
       isActive: form.isActive,
       isVerified: form.isVerified,
+      vendorId: form.vendorId?.trim() ? form.vendorId.trim() : (editWorkshop ? null : undefined),
     };
     if (editWorkshop) {
       updateMutation.mutate({ id: editWorkshop.id, payload });
@@ -401,6 +413,28 @@ export default function WorkshopsPage() {
               requireLocationUrl={!editWorkshop}
               showAdminFields={true}
             />
+            <div className="sm:col-span-2 lg:col-span-3 space-y-1">
+              <label className="block text-sm font-medium text-slate-700">
+                {i18n.language === 'ar' ? 'ربط بالفيندور (ورشة معتمدة)' : 'Link to vendor (Certified Workshop)'}
+              </label>
+              <select
+                value={form.vendorId || ''}
+                onChange={(e) => setForm((f) => ({ ...f, vendorId: e.target.value }))}
+                className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              >
+                <option value="">{i18n.language === 'ar' ? '-- بدون ربط --' : '-- No link --'}</option>
+                {certifiedVendors.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.businessName || v.id} {v.businessNameAr ? ` / ${v.businessNameAr}` : ''}
+                  </option>
+                ))}
+              </select>
+              {certifiedVendors.length === 0 && (
+                <p className="text-xs text-amber-600">
+                  {i18n.language === 'ar' ? 'لا يوجد فيندورز من نوع ورشة معتمدة. أضف فيندور من نوع "الورش المعتمدة" أولاً.' : 'No certified workshop vendors. Add a vendor with type "Certified Workshop" first.'}
+                </p>
+              )}
+            </div>
             <div className="flex w-full gap-3 pt-2 sm:col-span-2 lg:col-span-3">
               <button
                 type="submit"

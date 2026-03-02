@@ -9,7 +9,11 @@ export const vendorService = {
     if (!data.success) {
       throw new Error(data.error || 'Failed to load vendors');
     }
-    return data.data;
+    // Return both data array and pagination metadata
+    return {
+      vendors: data.data ?? [],
+      pagination: data.pagination ?? null,
+    };
   },
 
   /**
@@ -189,7 +193,29 @@ export const vendorService = {
       throw new Error(data.error || 'Failed to delete vendor');
     }
     return data;
-  }
+  },
+
+  // ── Documents ─────────────────────────────────────────────────────────────
+  async getDocuments(vendorId) {
+    const { data } = await api.get(`/vendors/${vendorId}/documents`);
+    return data.data ?? [];
+  },
+
+  async uploadDocument(vendorId, file, docType, name) {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('docType', docType);
+    form.append('name', name || file.name);
+    const { data } = await api.post(`/vendors/${vendorId}/documents`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data.data;
+  },
+
+  async deleteDocument(vendorId, docId) {
+    const { data } = await api.delete(`/vendors/${vendorId}/documents/${docId}`);
+    return data;
+  },
 };
 
 export default vendorService;

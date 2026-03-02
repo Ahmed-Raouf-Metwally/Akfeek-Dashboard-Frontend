@@ -4,9 +4,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
 import { workshopService } from '../services/workshopService';
+import { vendorService } from '../services/vendorService';
 import { useAuthStore } from '../store/authStore';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
+import VendorDocuments from '../components/VendorDocuments';
 import { defaultWorkingHoursByDay, buildWorkingHoursPayload } from '../utils/workshopFormShared';
 import WorkshopFormFields from '../components/workshops/WorkshopFormFields';
 import ImageUploader from '../components/workshops/ImageUploader';
@@ -25,7 +27,7 @@ function emptyForm() {
     locationUrl: '',
     phone: '',
     email: '',
-    services: '["Engine Repair", "Oil Change"]',
+    services: '[]',
     workingHoursByDay: defaultWorkingHoursByDay(),
   };
 }
@@ -42,6 +44,13 @@ export default function VendorWorkshopEditPage() {
     queryKey: ['workshop', 'me'],
     queryFn: () => workshopService.getMyWorkshop(),
     retry: (_, err) => err?.response?.status !== 403 && err?.response?.status !== 404,
+  });
+
+  const { data: myVendorProfile } = useQuery({
+    queryKey: ['vendor-profile-me'],
+    queryFn: () => vendorService.getMyVendorProfile(),
+    staleTime: 60_000,
+    enabled: user?.role === 'VENDOR',
   });
 
   const isCreateMode = isError && error?.response?.status === 404;
@@ -70,7 +79,7 @@ export default function VendorWorkshopEditPage() {
         locationUrl: '',
         phone: workshop.phone ?? '',
         email: workshop.email ?? '',
-        services: typeof workshop.services === 'string' ? workshop.services : JSON.stringify(workshop.services || []),
+        services: '[]',
         workingHoursByDay,
       });
     }
@@ -114,11 +123,14 @@ export default function VendorWorkshopEditPage() {
       locationUrl: form.locationUrl.trim() || undefined,
       phone: form.phone.trim(),
       email: form.email.trim() || undefined,
-      services: form.services.trim(),
       workingHours: buildWorkingHoursPayload(form.workingHoursByDay || defaultWorkingHoursByDay()),
     };
-    if (isCreateMode) createMutation.mutate(payload);
-    else updateMutation.mutate(payload);
+    if (isCreateMode) {
+      payload.services = form.services?.trim() || '[]';
+      createMutation.mutate(payload);
+    } else {
+      updateMutation.mutate(payload);
+    }
   };
 
   if (user?.role !== 'VENDOR' || user?.vendorType !== 'CERTIFIED_WORKSHOP') {
@@ -224,6 +236,11 @@ export default function VendorWorkshopEditPage() {
           </div>
         </Card>
       )}
+
+      {/* Documents */}
+      {myVendorProfile?.id ? (
+        <VendorDocuments vendorId={myVendorProfile.id} />
+      ) : null}
     </div>
   );
 }

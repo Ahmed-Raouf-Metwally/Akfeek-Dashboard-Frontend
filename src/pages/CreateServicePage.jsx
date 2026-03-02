@@ -79,9 +79,11 @@ export default function CreateServicePage() {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
   const preselectedParentId = searchParams.get('parentId') || '';
+  const preselectedVendorId = searchParams.get('vendorId') || '';
   const [form, setForm] = useState(() => ({
     ...emptyForm(),
     ...(preselectedParentId && { type: 'MOBILE_CAR_SERVICE', parentServiceId: preselectedParentId }),
+    ...(preselectedVendorId && { vendorId: preselectedVendorId }),
   }));
   const [imagePreviewError, setImagePreviewError] = useState(false);
 
@@ -92,10 +94,11 @@ export default function CreateServicePage() {
   });
   const parentServices = allServices.filter((s) => !s.parentServiceId);
 
-  const { data: vendorsList = [] } = useQuery({
+  const { data: vendorsListResult } = useQuery({
     queryKey: ['vendors-list'],
-    queryFn: () => vendorService.getVendors({ status: 'ACTIVE' }),
+    queryFn: () => vendorService.getVendors({ status: 'ACTIVE', limit: 100 }),
   });
+  const vendorsList = vendorsListResult?.vendors ?? [];
 
   const createMutation = useMutation({
     mutationFn: (payload) => serviceService.createService(payload),

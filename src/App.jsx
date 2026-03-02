@@ -19,9 +19,6 @@ import DashboardHome from './pages/DashboardHome';
 import UsersPage from './pages/UsersPage';
 import UserDetailPage from './pages/UserDetailPage';
 import EditUserPage from './pages/EditUserPage';
-import ServicesPage from './pages/ServicesPage';
-import CreateServicePage from './pages/CreateServicePage';
-import ServiceDetailPage from './pages/ServiceDetailPage';
 import BrandsPage from './pages/BrandsPage';
 import BrandDetailPage from './pages/BrandDetailPage';
 import VehicleModelsPage from './pages/VehicleModelsPage';
@@ -31,7 +28,9 @@ import BookingDetailPage from './pages/BookingDetailPage';
 import InvoicesPage from './pages/InvoicesPage';
 import InvoiceDetailPage from './pages/InvoiceDetailPage';
 import PaymentsPage from './pages/PaymentsPage';
+import RefundsPage from './pages/RefundsPage';
 import WalletsPage from './pages/WalletsPage';
+import CommissionReportPage from './pages/CommissionReportPage';
 import PointsPage from './pages/PointsPage';
 import RatingsPage from './pages/RatingsPage';
 import JobBroadcastsPage from './pages/JobBroadcastsPage';
@@ -47,6 +46,12 @@ import VendorsPage from './pages/VendorsPage';
 import CreateVendorPage from './pages/CreateVendorPage';
 import VendorDetailPage from './pages/VendorDetailPage';
 import EditVendorPage from './pages/EditVendorPage';
+import WinchesPage from './pages/WinchesPage';
+import WinchDetailPage from './pages/WinchDetailPage';
+import CreateEditWinchPage from './pages/CreateEditWinchPage';
+import MobileWorkshopsPage from './pages/MobileWorkshopsPage';
+import MobileWorkshopDetailPage from './pages/MobileWorkshopDetailPage';
+import CreateEditMobileWorkshopPage from './pages/CreateEditMobileWorkshopPage';
 import MyVendorRedirectPage from './pages/MyVendorRedirectPage';
 import VendorOnboardingPage from './pages/VendorOnboardingPage';
 import AutoPartsPage from './pages/AutoPartsPage';
@@ -132,9 +137,9 @@ function App() {
             <Route path="activity" element={<ActivityLogsPage />} />
             <Route path="users/:id" element={<UserDetailPage />} />
             <Route path="users/:id/edit" element={<EditUserPage />} />
-            <Route path="services" element={<ServicesPage />} />
-            <Route path="services/new" element={<CreateServicePage />} />
-            <Route path="services/:id" element={<ServiceDetailPage />} />
+            <Route path="services" element={<Navigate to="/dashboard" replace />} />
+            <Route path="services/new" element={<Navigate to="/dashboard" replace />} />
+            <Route path="services/:id" element={<Navigate to="/dashboard" replace />} />
             <Route path="mobile-car-service" element={<MobileCarServicePage />} />
             <Route path="mobile-car-service/new" element={<MobileCarSubServiceNewPage />} />
             <Route path="mobile-car-service/:id" element={<MobileCarSubServiceDetailPage />} />
@@ -150,8 +155,9 @@ function App() {
             <Route path="inspections" element={<InspectionsPage />} />
             <Route path="invoices" element={<InvoicesPage />} />
             <Route path="invoices/:id" element={<InvoiceDetailPage />} />
+            <Route path="commission-report" element={<CommissionReportPage />} />
             <Route path="payments" element={<PaymentsPage />} />
-            <Route path="payments" element={<PaymentsPage />} />
+            <Route path="refunds" element={<AdminOnlyRoute><RefundsPage /></AdminOnlyRoute>} />
             <Route path="wallets" element={<WalletsPage />} />
             <Route path="points" element={<AdminOnlyRoute><PointsPage /></AdminOnlyRoute>} />
             <Route path="ratings" element={<AdminOnlyRoute><RatingsPage /></AdminOnlyRoute>} />
@@ -167,6 +173,14 @@ function App() {
             <Route path="vendors/new" element={<CreateVendorPage />} />
             <Route path="vendors/:id" element={<VendorDetailPage />} />
             <Route path="vendors/:id/edit" element={<EditVendorPage />} />
+            <Route path="winches" element={<WinchesPage />} />
+            <Route path="winches/new" element={<CreateEditWinchPage />} />
+            <Route path="winches/:id" element={<WinchDetailPage />} />
+            <Route path="winches/:id/edit" element={<CreateEditWinchPage />} />
+            <Route path="mobile-workshops" element={<MobileWorkshopsPage />} />
+            <Route path="mobile-workshops/new" element={<CreateEditMobileWorkshopPage />} />
+            <Route path="mobile-workshops/:id" element={<MobileWorkshopDetailPage />} />
+            <Route path="mobile-workshops/:id/edit" element={<CreateEditMobileWorkshopPage />} />
             <Route path="auto-parts" element={<AutoPartsPage />} />
             <Route path="auto-parts/new" element={<CreateAutoPartPage />} />
             <Route path="auto-parts/:id" element={<AutoPartDetailPage />} />

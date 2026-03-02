@@ -9,6 +9,7 @@ import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
 import { Card } from '../components/ui/Card';
 import { useDateFormat } from '../hooks/useDateFormat';
+import { CURRENCY_SYMBOL } from '../constants/currency';
 
 const PAGE_SIZE = 10;
 
@@ -18,15 +19,16 @@ function customerLabel(b) {
   return b.customer?.email || b.customer?.phone || b.customerId || '—';
 }
 
-function technicianLabel(b) {
-  if (!b.technician) return '—';
-  const p = b.technician.profile;
-  if (p?.firstName || p?.lastName) return [p.firstName, p.lastName].filter(Boolean).join(' ');
-  return b.technician.email || '—';
+function vendorLabel(b) {
+  // الفيندور من أول خدمة محجوزة لها فيندور، وإلا من ورشة الحجز
+  const fromService = b.services?.find((s) => s.service?.vendor);
+  const vendor = fromService?.service?.vendor ?? b.workshop?.vendor;
+  if (!vendor) return '—';
+  return vendor.businessNameAr || vendor.businessName || '—';
 }
 
 export default function BookingsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { fmt } = useDateFormat();
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'ADMIN';
@@ -44,29 +46,15 @@ export default function BookingsPage() {
   const list = data?.list ?? [];
   const pagination = data?.pagination ?? { page: 1, total: 0, totalPages: 1, limit: PAGE_SIZE };
 
+  // حالات أساسية للفلتر فقط — الحجوزات قد تحمل حالات أخرى في النظام لكن نعرض الأكثر استخداماً
   const STATUS_OPTIONS = [
-    { value: 'PENDING', label: t('finance.status.PENDING') },
-    { value: 'CONFIRMED', label: t('finance.status.CONFIRMED') || 'Confirmed' },
-    { value: 'BROADCASTING', label: t('broadcasts.status.BROADCASTING') },
-    { value: 'OFFERS_RECEIVED', label: t('broadcasts.status.OFFERS_RECEIVED') },
-    { value: 'TECHNICIAN_ASSIGNED', label: t('broadcasts.status.TECHNICIAN_SELECTED') || 'Technician Assigned' },
-    { value: 'PICKUP_SCHEDULED', label: 'Pickup Scheduled' },
-    { value: 'IN_TRANSIT_PICKUP', label: 'In Transit (Pickup)' },
-    { value: 'INSPECTING', label: 'Inspecting' },
-    { value: 'QUOTE_PENDING', label: 'Quote Pending' },
-    { value: 'QUOTE_APPROVED', label: 'Quote Approved' },
-    { value: 'QUOTE_REJECTED', label: 'Quote Rejected' },
-    { value: 'IN_PROGRESS', label: 'In Progress' },
-    { value: 'PARTS_NEEDED', label: 'Parts Needed' },
-    { value: 'PARTS_ORDERED', label: 'Parts Ordered' },
-    { value: 'PARTS_DELIVERED', label: 'Parts Delivered' },
-    { value: 'COMPLETED', label: t('finance.status.COMPLETED') },
-    { value: 'READY_FOR_DELIVERY', label: 'Ready for Delivery' },
-    { value: 'IN_TRANSIT_DELIVERY', label: 'In Transit (Delivery)' },
-    { value: 'DELIVERED', label: t('finance.status.DELIVERED') || 'Delivered' },
-    { value: 'CANCELLED', label: t('finance.status.CANCELLED') },
-    { value: 'REJECTED', label: 'Rejected' },
-    { value: 'NO_SHOW', label: 'No Show' },
+    { value: 'PENDING', label: i18n.language === 'ar' ? 'قيد الانتظار' : 'Pending' },
+    { value: 'CONFIRMED', label: i18n.language === 'ar' ? 'مؤكد' : 'Confirmed' },
+    { value: 'IN_PROGRESS', label: i18n.language === 'ar' ? 'جارٍ التنفيذ' : 'In Progress' },
+    { value: 'COMPLETED', label: i18n.language === 'ar' ? 'مكتمل' : 'Completed' },
+    { value: 'DELIVERED', label: i18n.language === 'ar' ? 'تم التسليم' : 'Delivered' },
+    { value: 'CANCELLED', label: i18n.language === 'ar' ? 'ملغى' : 'Cancelled' },
+    { value: 'REJECTED', label: i18n.language === 'ar' ? 'مرفوض' : 'Rejected' },
   ];
 
   if (isLoading) {
@@ -141,12 +129,12 @@ export default function BookingsPage() {
                     )}
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.vehicle')}</th>
                     {isAdmin && (
-                      <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.technician')}</th>
+                      <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.vendor', 'مقدم الخدمة / الفيندور')}</th>
                     )}
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.status')}</th>
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.date')}</th>
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.time')}</th>
-                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.totalPrice')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.totalPrice')} ({CURRENCY_SYMBOL})</th>
                     <th className="w-20 px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.actions')}</th>
                   </tr>
                 </thead>
@@ -163,7 +151,7 @@ export default function BookingsPage() {
                           : '—')}
                       </td>
                       {isAdmin && (
-                        <td className="px-4 py-3 text-sm text-slate-600">{technicianLabel(b)}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600">{vendorLabel(b)}</td>
                       )}
                       <td className="px-4 py-3">
                         <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
@@ -173,7 +161,10 @@ export default function BookingsPage() {
                       <td className="px-4 py-3 text-sm text-slate-600">{fmt(b.scheduledDate)}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{b.scheduledTime ?? '—'}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">
-                        {b.totalPrice != null ? Number(b.totalPrice).toFixed(2) : '—'}
+                        {(() => {
+                          const total = Number(b.subtotal ?? 0) + Number(b.laborFee ?? 0) + Number(b.deliveryFee ?? 0) + Number(b.partsTotal ?? 0) - Number(b.discount ?? 0);
+                          return (total !== 0 || b.subtotal != null || b.totalPrice != null) ? `${total.toFixed(2)} ${CURRENCY_SYMBOL}` : '—';
+                        })()}
                       </td>
                       <td className="px-4 py-3">
                         <Link
