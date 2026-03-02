@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { FileText } from 'lucide-react';
+import { FileText, ChevronRight } from 'lucide-react';
 import { invoiceService } from '../services/invoiceService';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
@@ -110,11 +111,16 @@ export default function InvoicesPage() {
                 </thead>
                 <tbody>
                   {list.map((inv) => (
-                    <tr key={inv.id} className="border-b border-slate-100 transition-colors hover:bg-slate-50/50">
-                      <td className="px-4 py-3 text-sm font-medium text-slate-900">{inv.invoiceNumber}</td>
+                    <tr key={inv.id} className="border-b border-slate-100 transition-colors hover:bg-slate-50/50 group">
+                      <td className="px-4 py-3 text-sm font-medium text-slate-900">
+                        <Link to={`/invoices/${inv.id}`} className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 hover:underline">
+                          {inv.invoiceNumber}
+                          <ChevronRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </Link>
+                      </td>
                       <td className="px-4 py-3 text-sm text-slate-600">{customerLabel(inv)}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">
-                        {inv.amount != null ? Number(inv.amount).toFixed(2) : '—'}
+                        {inv.totalAmount != null ? Number(inv.totalAmount).toFixed(2) : '—'}
                       </td>
                       <td className="px-4 py-3">
                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -126,7 +132,7 @@ export default function InvoicesPage() {
                            {t(`finance.status.${inv.status}`) || inv.status}
                          </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{fmt(inv.createdAt)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{fmt(inv.issuedAt ?? inv.createdAt)}</td>
                     </tr>
                   ))}
                 </tbody>
