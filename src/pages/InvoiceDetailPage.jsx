@@ -5,12 +5,13 @@ import toast from 'react-hot-toast';
 import {
   ArrowLeft, FileText, CheckCircle2, XCircle, Clock,
   User, CalendarCheck, ChevronRight, AlertCircle,
-  CreditCard, BadgeCheck, Banknote, Loader2, Wallet, Star,
+  CreditCard, BadgeCheck, Banknote, Loader2, Wallet, Star, Printer,
 } from 'lucide-react';
 import api from '../services/api';
 import { invoiceService } from '../services/invoiceService';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import { Card } from '../components/ui/Card';
+import TaxInvoiceView from '../components/invoice/TaxInvoiceView';
 import { useAuthStore } from '../store/authStore';
 import { useDateFormat } from '../hooks/useDateFormat';
 import { CURRENCY_SYMBOL } from '../constants/currency';
@@ -114,11 +115,15 @@ export default function InvoiceDetailPage() {
     ? [invoice.customer.profile.firstName, invoice.customer.profile.lastName].filter(Boolean).join(' ')
     : invoice.customer?.email || invoice.customer?.phone || '—';
 
-  const isPaid = invoice.status === 'PAID';
-  const remaining = invoice.totalAmount != null && invoice.paidAmount != null
-    ? Number(invoice.totalAmount) - Number(invoice.paidAmount)
-    : null;
+  // إجمالي الفاتورة من مجموع البنود (شامل الضريبة) ليتطابق مع الفاتورة الضريبية
+  const hasLineItems = invoice.lineItems && invoice.lineItems.length > 0;
+  const effectiveTotal = hasLineItems
+    ? invoice.lineItems.reduce((s, line) => s + Number(line.totalPrice ?? 0), 0)
+    : Number(invoice.totalAmount ?? 0);
+  const effectivePaid = invoice.status === 'PAID' ? effectiveTotal : Math.min(Number(invoice.paidAmount ?? 0), effectiveTotal);
+  const remaining = effectiveTotal - effectivePaid;
 
+  const isPaid = invoice.status === 'PAID';
   const cfg = STATUS_CONFIG[invoice.status] ?? {};
 
   return (
@@ -151,7 +156,7 @@ export default function InvoiceDetailPage() {
             <div className="flex flex-col items-end gap-2">
               <StatusBadge status={invoice.status} />
               <span className="text-3xl font-bold text-white">
-                {invoice.totalAmount != null ? Number(invoice.totalAmount).toFixed(2) : '—'}
+                {effectiveTotal != null ? Number(effectiveTotal).toFixed(2) : '—'}
                 <span className="text-base font-normal text-white/60"> {CURRENCY_SYMBOL}</span>
               </span>
             </div>
@@ -179,7 +184,25 @@ export default function InvoiceDetailPage() {
         </div>
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      {/* ── الفاتورة الضريبية (شكل معتمد) ── */}
+      <Card className="p-0 overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
+          <h2 className="text-base font-semibold text-slate-800">الفاتورة الضريبية (Tax Invoice)</h2>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-2 rounded-lg bg-slate-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-600 print:hidden"
+          >
+            <Printer className="size-4" />
+            طباعة الفاتورة
+          </button>
+        </div>
+        <div className="p-6 tax-invoice-print">
+          <TaxInvoiceView invoice={invoice} />
+        </div>
+      </Card>
+
+      <div className="grid gap-6 lg:grid-cols-2 print:hidden">
         {/* ── Amount breakdown ── */}
         <Card className="p-6">
           <div className="mb-4 flex items-center gap-2 border-b pb-3">
@@ -187,8 +210,8 @@ export default function InvoiceDetailPage() {
             <h2 className="text-sm font-semibold text-slate-800">تفاصيل المبالغ</h2>
           </div>
           <div>
-            <AmountRow label="إجمالي الفاتورة" value={invoice.totalAmount} />
-            <AmountRow label="المبلغ المدفوع" value={invoice.paidAmount} color="text-emerald-600" />
+            <AmountRow label="إجمالي الفاتورة" value={effectiveTotal} />
+            <AmountRow label="المبلغ المدفوع" value={effectivePaid} color="text-emerald-600" />
             {remaining > 0.01 && (
               <AmountRow label="المتبقي" value={remaining} color="text-rose-600" />
             )}
@@ -277,7 +300,7 @@ export default function InvoiceDetailPage() {
       </div>
 
       {/* ── Payment status visual ── */}
-      {invoice.totalAmount != null && invoice.paidAmount != null && Number(invoice.totalAmount) > 0 && (
+      {effectiveTotal != null && effectiveTotal > 0 && (
         <Card className="p-6">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -285,18 +308,18 @@ export default function InvoiceDetailPage() {
               <h2 className="text-sm font-semibold text-slate-800">تقدم السداد</h2>
             </div>
             <span className="text-sm font-bold text-slate-700">
-              {Math.min(100, Math.round((Number(invoice.paidAmount) / Number(invoice.totalAmount)) * 100))}%
+              {Math.min(100, Math.round((effectivePaid / effectiveTotal) * 100))}%
             </span>
           </div>
           <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100">
             <div
               className={`h-full rounded-full transition-all duration-500 ${isPaid ? 'bg-emerald-500' : 'bg-indigo-500'}`}
-              style={{ width: `${Math.min(100, (Number(invoice.paidAmount) / Number(invoice.totalAmount)) * 100)}%` }}
+              style={{ width: `${Math.min(100, (effectivePaid / effectiveTotal) * 100)}%` }}
             />
           </div>
           <div className="mt-2 flex justify-between text-xs text-slate-400">
-            <span>مدفوع: {Number(invoice.paidAmount).toFixed(2)} {CURRENCY_SYMBOL}</span>
-            <span>الإجمالي: {Number(invoice.totalAmount).toFixed(2)} {CURRENCY_SYMBOL}</span>
+            <span>مدفوع: {Number(effectivePaid).toFixed(2)} {CURRENCY_SYMBOL}</span>
+            <span>الإجمالي: {Number(effectiveTotal).toFixed(2)} {CURRENCY_SYMBOL}</span>
           </div>
         </Card>
       )}

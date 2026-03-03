@@ -85,6 +85,7 @@ const SECTIONS = [
       { key: 'technicalSupportRequests', to: '/technical-support-requests', icon: Headphones, label: 'Technical Support Requests' },
       { key: 'brands', to: '/brands', icon: Car, label: 'Vehicle Brands' },
       { key: 'models', to: '/models', icon: CircleDot, label: 'Vehicle Models' },
+      { key: 'vehicles', to: '/vehicles', icon: Car, label: 'Vehicles', labelAr: 'المركبات' },
     ],
   },
   {

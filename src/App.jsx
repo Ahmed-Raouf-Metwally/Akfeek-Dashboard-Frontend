@@ -23,6 +23,7 @@ import BrandsPage from './pages/BrandsPage';
 import BrandDetailPage from './pages/BrandDetailPage';
 import VehicleModelsPage from './pages/VehicleModelsPage';
 import ModelDetailPage from './pages/ModelDetailPage';
+import VehiclesPage from './pages/VehiclesPage';
 import BookingsPage from './pages/BookingsPage';
 import BookingDetailPage from './pages/BookingDetailPage';
 import InvoicesPage from './pages/InvoicesPage';
@@ -147,6 +148,7 @@ function App() {
             <Route path="brands/:id" element={<BrandDetailPage />} />
             <Route path="models" element={<VehicleModelsPage />} />
             <Route path="models/:id" element={<ModelDetailPage />} />
+            <Route path="vehicles" element={<VehiclesPage />} />
             <Route path="bookings" element={<BookingsPage />} />
             <Route path="bookings/:id" element={<BookingDetailPage />} />
             <Route path="broadcasts" element={<JobBroadcastsPage />} />

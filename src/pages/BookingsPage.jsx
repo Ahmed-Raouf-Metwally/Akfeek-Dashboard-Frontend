@@ -27,6 +27,17 @@ function vendorLabel(b) {
   return vendor.businessNameAr || vendor.businessName || '—';
 }
 
+/** إجمالي من بنود الفاتورة (مطابق لصفحة الفاتورة) أو totalPrice أو مجموع الحقول */
+function effectiveBookingTotal(b) {
+  const items = b.invoice?.lineItems;
+  if (items && items.length > 0) {
+    return items.reduce((s, line) => s + Number(line.totalPrice ?? 0), 0);
+  }
+  if (b.totalPrice != null) return Number(b.totalPrice);
+  const sum = Number(b.subtotal ?? 0) + Number(b.laborFee ?? 0) + Number(b.deliveryFee ?? 0) + Number(b.partsTotal ?? 0) - Number(b.discount ?? 0);
+  return sum !== 0 || b.subtotal != null ? sum : null;
+}
+
 export default function BookingsPage() {
   const { t, i18n } = useTranslation();
   const { fmt } = useDateFormat();
@@ -161,10 +172,7 @@ export default function BookingsPage() {
                       <td className="px-4 py-3 text-sm text-slate-600">{fmt(b.scheduledDate)}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{b.scheduledTime ?? '—'}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">
-                        {(() => {
-                          const total = Number(b.subtotal ?? 0) + Number(b.laborFee ?? 0) + Number(b.deliveryFee ?? 0) + Number(b.partsTotal ?? 0) - Number(b.discount ?? 0);
-                          return (total !== 0 || b.subtotal != null || b.totalPrice != null) ? `${total.toFixed(2)} ${CURRENCY_SYMBOL}` : '—';
-                        })()}
+                        {effectiveBookingTotal(b) != null ? `${Number(effectiveBookingTotal(b)).toFixed(2)} ${CURRENCY_SYMBOL}` : '—'}
                       </td>
                       <td className="px-4 py-3">
                         <Link

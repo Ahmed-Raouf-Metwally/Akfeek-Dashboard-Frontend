@@ -40,6 +40,15 @@ function MethodLabel({ method, t }) {
   return <span>{label || '—'}</span>;
 }
 
+/** إجمالي من بنود الفاتورة (مطابق لصفحة الفاتورة) أو مبلغ الدفع */
+function effectivePaymentAmount(pay) {
+  const items = pay.invoice?.lineItems;
+  if (items && items.length > 0) {
+    return items.reduce((s, line) => s + Number(line.totalPrice ?? 0), 0);
+  }
+  return pay.amount != null ? Number(pay.amount) : null;
+}
+
 export default function PaymentsPage() {
   const { t } = useTranslation();
   const { fmt } = useDateFormat();
@@ -148,7 +157,7 @@ export default function PaymentsPage() {
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600">{customerLabel(pay)}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">
-                        {pay.amount != null ? `${Number(pay.amount).toFixed(2)} ${CURRENCY_SYMBOL}` : '—'}
+                        {effectivePaymentAmount(pay) != null ? `${Number(effectivePaymentAmount(pay)).toFixed(2)} ${CURRENCY_SYMBOL}` : '—'}
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600">
                         <MethodLabel method={pay.method} t={t} />

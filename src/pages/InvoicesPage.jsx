@@ -8,6 +8,7 @@ import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
 import { Card } from '../components/ui/Card';
 import { useDateFormat } from '../hooks/useDateFormat';
+import { CURRENCY_SYMBOL } from '../constants/currency';
 
 const PAGE_SIZE = 10;
 
@@ -15,6 +16,16 @@ function customerLabel(i) {
   const p = i.customer?.profile;
   if (p?.firstName || p?.lastName) return [p.firstName, p.lastName].filter(Boolean).join(' ');
   return i.customer?.email || i.customer?.phone || i.customerId || '—';
+}
+
+/** إجمالي من بنود الفاتورة (السعر الأصلي الشامل للضريبة) أو totalAmount */
+function effectiveInvoiceTotal(inv) {
+  if (inv.effectiveTotal != null) return Number(inv.effectiveTotal);
+  const items = inv.lineItems;
+  if (items && items.length > 0) {
+    return items.reduce((s, line) => s + Number(line.totalPrice ?? 0), 0);
+  }
+  return inv.totalAmount != null ? Number(inv.totalAmount) : null;
 }
 
 export default function InvoicesPage() {
@@ -120,7 +131,7 @@ export default function InvoicesPage() {
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600">{customerLabel(inv)}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">
-                        {inv.totalAmount != null ? Number(inv.totalAmount).toFixed(2) : '—'}
+                        {effectiveInvoiceTotal(inv) != null ? `${Number(effectiveInvoiceTotal(inv)).toFixed(2)} ${CURRENCY_SYMBOL}` : '—'}
                       </td>
                       <td className="px-4 py-3">
                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${

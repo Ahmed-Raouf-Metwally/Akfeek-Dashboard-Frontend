@@ -49,7 +49,7 @@ function ModelRow({ model, onEdit, onDelete, openConfirm, t }) {
       <td className="px-4 py-3 text-sm text-slate-600">{model.year}</td>
       <td className="px-4 py-3">
         <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
-          {t(`models.sizes.${model.size}`) || model.size || model.type || '—'}
+          {model.type ? t(`models.types.${model.type}`) || model.type : '—'}
         </span>
       </td>
       <td className="px-4 py-3">
@@ -102,7 +102,7 @@ const emptyModelForm = () => ({
   name: '',
   nameAr: '',
   year: new Date().getFullYear(),
-  size: 'MEDIUM',
+  type: 'SEDAN',
 });
 
 export default function VehicleModelsPage() {
@@ -112,29 +112,34 @@ export default function VehicleModelsPage() {
   const PAGE_SIZE = 10;
   const [brandId, setBrandId] = useState('');
   const [year, setYear] = useState('');
-  const [size, setSize] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
   const [page, setPage] = useState(1);
   const [showAdd, setShowAdd] = useState(false);
   const [addForm, setAddForm] = useState(emptyModelForm());
   const [editModel, setEditModel] = useState(null);
   const [editForm, setEditForm] = useState(emptyModelForm());
 
-  const SIZES = [
-    { value: '', label: t('common.all') },
-    { value: 'SMALL', label: t('models.sizes.SMALL') },
-    { value: 'MEDIUM', label: t('models.sizes.MEDIUM') },
-    { value: 'LARGE', label: t('models.sizes.LARGE') },
-    { value: 'EXTRA_LARGE', label: t('models.sizes.EXTRA_LARGE') },
+  const VEHICLE_TYPES = [
+    { value: 'SEDAN', label: t('models.types.SEDAN') },
+    { value: 'HATCHBACK', label: t('models.types.HATCHBACK') },
+    { value: 'COUPE', label: t('models.types.COUPE') },
+    { value: 'SMALL_SUV', label: t('models.types.SMALL_SUV') },
+    { value: 'LARGE_SEDAN', label: t('models.types.LARGE_SEDAN') },
+    { value: 'SUV', label: t('models.types.SUV') },
+    { value: 'CROSSOVER', label: t('models.types.CROSSOVER') },
+    { value: 'TRUCK', label: t('models.types.TRUCK') },
+    { value: 'VAN', label: t('models.types.VAN') },
+    { value: 'BUS', label: t('models.types.BUS') },
   ];
 
   const { data: brandsData } = useQuery({ queryKey: ['brands', false], queryFn: () => brandService.getBrands({ activeOnly: false }), staleTime: 60_000 });
   const brands = brandsData?.brands ?? [];
 
-  useEffect(() => setPage(1), [brandId, year, size]);
+  useEffect(() => setPage(1), [brandId, year, typeFilter]);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['models', { brandId, year, size }],
-    queryFn: () => modelService.getModels({ brandId: brandId || undefined, year: year || undefined, size: size || undefined, activeOnly: 'false' }),
+    queryKey: ['models', { brandId, year, type: typeFilter }],
+    queryFn: () => modelService.getModels({ brandId: brandId || undefined, year: year || undefined, type: typeFilter || undefined, activeOnly: 'false' }),
     staleTime: 60_000,
   });
 
@@ -186,13 +191,13 @@ export default function VehicleModelsPage() {
       name: m.name ?? '',
       nameAr: m.nameAr ?? '',
       year: m.year ?? new Date().getFullYear(),
-      size: m.size ?? m.type ?? 'MEDIUM',
+      type: m.type ?? 'SEDAN',
     });
   };
 
   const handleEditSubmit = (e) => {
     e.preventDefault();
-    if (!editModel || !editForm.brandId || !editForm.name.trim() || !editForm.year || !editForm.size) {
+    if (!editModel || !editForm.brandId || !editForm.name.trim() || !editForm.year || !editForm.type) {
       toast.error(t('validation.required'));
       return;
     }
@@ -201,14 +206,14 @@ export default function VehicleModelsPage() {
       name: editForm.name.trim(),
       nameAr: editForm.nameAr.trim() || undefined,
       year: Number(editForm.year),
-      size: editForm.size,
+      type: editForm.type,
     };
     updateMutation.mutate({ id: editModel.id, payload });
   };
 
   const handleAddSubmit = (e) => {
     e.preventDefault();
-    if (!addForm.brandId || !addForm.name.trim() || !addForm.year || !addForm.size) {
+    if (!addForm.brandId || !addForm.name.trim() || !addForm.year || !addForm.type) {
       toast.error(t('validation.required'));
       return;
     }
@@ -217,7 +222,7 @@ export default function VehicleModelsPage() {
       name: addForm.name.trim(),
       nameAr: addForm.nameAr || undefined,
       year: Number(addForm.year),
-      size: addForm.size,
+      type: addForm.type,
     });
   };
 
@@ -266,15 +271,15 @@ export default function VehicleModelsPage() {
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
-            <div className="min-w-[140px]">
-              <label className="mb-1 block text-sm font-medium text-slate-700">{t('models.size')}</label>
+            <div className="min-w-[160px]">
+              <label className="mb-1 block text-sm font-medium text-slate-700">{t('models.type')}</label>
               <select
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                value={addForm.size}
-                onChange={(e) => setAddForm((f) => ({ ...f, size: e.target.value }))}
+                value={addForm.type}
+                onChange={(e) => setAddForm((f) => ({ ...f, type: e.target.value }))}
               >
-                {SIZES.filter((s) => s.value).map((s) => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
+                {VEHICLE_TYPES.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
               </select>
             </div>
@@ -321,15 +326,15 @@ export default function VehicleModelsPage() {
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
-            <div className="min-w-[140px]">
-              <label className="mb-1 block text-sm font-medium text-slate-700">{t('models.size')}</label>
+            <div className="min-w-[160px]">
+              <label className="mb-1 block text-sm font-medium text-slate-700">{t('models.type')}</label>
               <select
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                value={editForm.size}
-                onChange={(e) => setEditForm((f) => ({ ...f, size: e.target.value }))}
+                value={editForm.type}
+                onChange={(e) => setEditForm((f) => ({ ...f, type: e.target.value }))}
               >
-                {SIZES.filter((s) => s.value).map((s) => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
+                {VEHICLE_TYPES.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
               </select>
             </div>
@@ -372,15 +377,16 @@ export default function VehicleModelsPage() {
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           </div>
-          <div className="min-w-[140px] self-end">
-            <label className="mb-1 block text-sm font-medium text-slate-700">{t('models.size')}</label>
+          <div className="min-w-[160px] self-end">
+            <label className="mb-1 block text-sm font-medium text-slate-700">{t('models.type')}</label>
             <select
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              value={size}
-              onChange={(e) => setSize(e.target.value)}
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
             >
-              {SIZES.map((s) => (
-                <option key={s.value || 'all'} value={s.value}>{s.label}</option>
+              <option value="">{t('common.all')}</option>
+              {VEHICLE_TYPES.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
           </div>
@@ -397,7 +403,7 @@ export default function VehicleModelsPage() {
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.brand')}</th>
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('models.model')}</th>
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('models.year')}</th>
-                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('models.size')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('models.type')}</th>
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.status')}</th>
                     <th className="w-32 px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.actions')}</th>
                   </tr>

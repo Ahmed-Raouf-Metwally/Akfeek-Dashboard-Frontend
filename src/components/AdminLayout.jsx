@@ -24,6 +24,7 @@ function getTitleForPath(pathname, t, user) {
     '/technical-support-requests': [t('nav.technicalSupportRequests'), t('technicalSupport.subtitle')],
     '/brands': [t('nav.brands', 'Vehicle Brands'), t('common.manageBrands', 'Manage brands')],
     '/models': [t('nav.models', 'Vehicle Models'), t('common.manageModels', 'Manage models')],
+    '/vehicles': [t('nav.vehicles', 'Vehicles'), t('vehicles.subtitle', 'All registered vehicles')],
     '/bookings': [t('nav.bookings', 'Bookings'), t('common.manageBookings', 'Manage bookings')],
     '/broadcasts': [t('nav.broadcasts', 'Broadcasts'), t('broadcasts.subtitle', 'Manage emergency broadcasts')],
     '/towing-requests': [t('nav.towingRequests', 'Towing Requests'), t('towingRequests.subtitle', 'All towing requests and assigned driver')],
