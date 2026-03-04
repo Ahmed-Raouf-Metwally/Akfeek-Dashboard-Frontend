@@ -162,6 +162,12 @@
     "sectionOrders": "Orders & Finance",
     "sectionVendorServices": "My Services & Appointments",
     "sectionVendorWorkshop": "Workshop & Bookings",
+    "sectionMarketplace": "Marketplace",
+    "sectionManagement": "Management",
+    "sectionSystem": "System",
+    "employees": "Akfeek Employees",
+    "refunds": "Refunds",
+    "commissionReport": "Commission Report",
     "winches": "Winches",
     "mobile-workshops": "Mobile Workshops"
   },

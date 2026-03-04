@@ -3,15 +3,16 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-ro
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
+import { setTokenGetter } from './services/api';
 import { useTheme } from './hooks/useTheme';
 import Login from './pages/Login';
 import AdminLayout from './components/AdminLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 
-/** Redirect vendor away from admin-only pages (e.g. ratings, points / متوسط التقييم) */
+/** Redirect non-admin (vendor, employee) away from admin-only pages (e.g. employees, ratings, points) */
 function AdminOnlyRoute({ children }) {
   const user = useAuthStore((s) => s.user);
-  if (user?.role === 'VENDOR') return <Navigate to="/dashboard" replace />;
+  if (user?.role !== 'ADMIN') return <Navigate to="/dashboard" replace />;
   return children;
 }
 import AdminCouponsPage from './pages/AdminCouponsPage';
@@ -19,6 +20,7 @@ import DashboardHome from './pages/DashboardHome';
 import UsersPage from './pages/UsersPage';
 import UserDetailPage from './pages/UserDetailPage';
 import EditUserPage from './pages/EditUserPage';
+import CreateUserPage from './pages/CreateUserPage';
 import BrandsPage from './pages/BrandsPage';
 import BrandDetailPage from './pages/BrandDetailPage';
 import VehicleModelsPage from './pages/VehicleModelsPage';
@@ -74,6 +76,9 @@ import WorkshopsComprehensiveCarePage from './pages/WorkshopsComprehensiveCarePa
 import WorkshopDetailPage from './pages/WorkshopDetailPage';
 import FeedbackPage from './pages/FeedbackPage';
 import TechnicalSupportRequestsPage from './pages/TechnicalSupportRequestsPage';
+import EmployeesPage from './pages/EmployeesPage';
+import CreateEmployeePage from './pages/CreateEmployeePage';
+import EmployeePermissionsPage from './pages/EmployeePermissionsPage';
 import VendorComprehensiveServicesPage from './pages/VendorComprehensiveServicesPage';
 import VendorComprehensiveBookingsPage from './pages/VendorComprehensiveBookingsPage';
 import VendorWorkshopPage from './pages/VendorWorkshopPage';
@@ -101,6 +106,10 @@ function App() {
   const setHydrated = useAuthStore((s) => s.setHydrated);
   const isHydrated = useAuthStore((s) => s.isHydrated);
   useTheme(); // Apply and keep dark/light/system in sync
+
+  useEffect(() => {
+    setTokenGetter(() => useAuthStore.getState().token);
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(() => hydrate(), 150);
@@ -133,7 +142,11 @@ function App() {
             <Route path="dashboard" element={<DashboardHome />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="users" element={<UsersPage />} />
+            <Route path="users/new" element={<CreateUserPage />} />
             <Route path="roles" element={<RolesPermissionsPage />} />
+            <Route path="employees" element={<AdminOnlyRoute><EmployeesPage /></AdminOnlyRoute>} />
+            <Route path="employees/new" element={<AdminOnlyRoute><CreateEmployeePage /></AdminOnlyRoute>} />
+            <Route path="employees/:id/permissions" element={<AdminOnlyRoute><EmployeePermissionsPage /></AdminOnlyRoute>} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="activity" element={<ActivityLogsPage />} />
             <Route path="users/:id" element={<UserDetailPage />} />

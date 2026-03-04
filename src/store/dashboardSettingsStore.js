@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware';
 const DEFAULT_NAV = {
   dashboard: true,
   profile: true,
+  employees: true,
   users: true,
   roles: true,
   feedback: true,

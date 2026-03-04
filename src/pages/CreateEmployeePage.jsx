@@ -1,0 +1,162 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { employeesService } from '../services/employeesService';
+import { Card } from '../components/ui/Card';
+
+export default function CreateEmployeePage() {
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const [form, setForm] = useState({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    phone: '',
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (payload) => employeesService.create(payload),
+    onSuccess: () => {
+      toast.success(i18n.language === 'ar' ? 'تم إضافة الموظف بنجاح' : 'Employee added successfully');
+      navigate('/employees');
+    },
+    onError: (err) => {
+      const msg = err?.response?.data?.message || err?.normalized?.message || err.message;
+      toast.error(msg || (i18n.language === 'ar' ? 'فشل في إضافة الموظف' : 'Failed to add employee'));
+    },
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.email || !form.password || !form.firstName || !form.lastName) {
+      toast.error(i18n.language === 'ar' ? 'يرجى تعبئة البريد وكلمة المرور والاسم الأول والأخير' : 'Please fill email, password, first name and last name');
+      return;
+    }
+    if (form.password.length < 8) {
+      toast.error(i18n.language === 'ar' ? 'كلمة المرور 8 أحرف على الأقل' : 'Password must be at least 8 characters');
+      return;
+    }
+    createMutation.mutate(form);
+  };
+
+  const isAr = i18n.language === 'ar';
+
+  return (
+    <div className="mx-auto max-w-xl space-y-6">
+      <div className="flex items-center gap-4">
+        <Link
+          to="/employees"
+          className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+        >
+          <ArrowLeft className="size-4" />
+          {isAr ? 'رجوع للموظفين' : 'Back to employees'}
+        </Link>
+      </div>
+      <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+        {isAr ? 'إضافة موظف أكفيك' : 'Add Akfeek Employee'}
+      </h1>
+
+      <Card className="p-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="email" className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              {isAr ? 'البريد الإلكتروني' : 'Email'} *
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              value={form.email}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+            />
+          </div>
+          <div>
+            <label htmlFor="password" className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              {isAr ? 'كلمة المرور' : 'Password'} * (8+ {isAr ? 'أحرف' : 'chars'})
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              minLength={8}
+              value={form.password}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+            />
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="firstName" className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                {isAr ? 'الاسم الأول' : 'First name'} *
+              </label>
+              <input
+                id="firstName"
+                name="firstName"
+                type="text"
+                required
+                value={form.firstName}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+              />
+            </div>
+            <div>
+              <label htmlFor="lastName" className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                {isAr ? 'الاسم الأخير' : 'Last name'} *
+              </label>
+              <input
+                id="lastName"
+                name="lastName"
+                type="text"
+                required
+                value={form.lastName}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+              />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="phone" className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              {isAr ? 'رقم الجوال' : 'Phone'} ({isAr ? 'اختياري' : 'optional'})
+            </label>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              value={form.phone}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+            />
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button
+              type="submit"
+              disabled={createMutation.isPending}
+              className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
+            >
+              {createMutation.isPending ? (isAr ? 'جاري الحفظ...' : 'Saving...') : (isAr ? 'إضافة الموظف' : 'Add employee')}
+            </button>
+            <Link
+              to="/employees"
+              className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+            >
+              {t('common.cancel')}
+            </Link>
+          </div>
+        </form>
+      </Card>
+    </div>
+  );
+}

@@ -157,9 +157,11 @@ export default function BookingsPage() {
                         <td className="px-4 py-3 text-sm text-slate-600">{customerLabel(b)}</td>
                       )}
                       <td className="px-4 py-3 text-sm text-slate-600">
-                        {b.vehicle?.plateNumber ?? (b.vehicle?.vehicleModel?.brand?.name
-                          ? `${b.vehicle.vehicleModel.brand.name} ${b.vehicle.vehicleModel?.name ?? ''}`.trim()
-                          : '—')}
+                        {(b.vehicle?.plateLettersEn || b.vehicle?.plateDigits)
+                          ? [b.vehicle.plateLettersEn, b.vehicle.plateDigits].filter(Boolean).join(' ')
+                          : (b.vehicle?.vehicleModel?.brand?.name
+                            ? `${b.vehicle.vehicleModel.brand.name} ${b.vehicle.vehicleModel?.name ?? ''}`.trim()
+                            : '—')}
                       </td>
                       {isAdmin && (
                         <td className="px-4 py-3 text-sm text-slate-600">{vendorLabel(b)}</td>

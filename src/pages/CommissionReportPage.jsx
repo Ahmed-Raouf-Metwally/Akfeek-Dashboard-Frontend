@@ -74,14 +74,11 @@ export default function CommissionReportPage() {
     return null;
   };
 
-  const commissionRow = findSetting('PLATFORM_COMMISSION_PERCENT');
-  const vatRow        = findSetting('VAT_RATE');
-
-  const commissionPercent = commissionRow?.value != null ? Number(commissionRow.value) : 10;
-  let   vatRate           = vatRow?.value        != null ? Number(vatRow.value)        : 15;
+  const vatRow = findSetting('VAT_RATE');
+  let vatRate = vatRow?.value != null ? Number(vatRow.value) : 15;
   if (vatRate > 0 && vatRate <= 1) vatRate = vatRate * 100; // تصحيح القيم القديمة
 
-  // حفظ الإعدادات
+  // حفظ الإعدادات (للضريبة فقط — نسبة العمولة تُحدَّد لكل فيندور من صفحة الفيندور)
   const updateMutation = useMutation({
     mutationFn: ({ key, value }) => settingsService.update(key, value),
     onSuccess: () => {
@@ -93,8 +90,8 @@ export default function CommissionReportPage() {
     onError: (err) => toast.error(err?.message ?? 'فشل الحفظ'),
   });
 
-  const [editingKey, setEditingKey]     = useState(null);
-  const [editValue,  setEditValue]      = useState('');
+  const [editingKey, setEditingKey] = useState(null);
+  const [editValue, setEditValue] = useState('');
 
   // تقرير العمولة
   const { data: report, isLoading: loadingReport, isError, error: reportError, refetch } = useQuery({
@@ -162,58 +159,21 @@ export default function CommissionReportPage() {
 
       {/* ── Settings Cards ── */}
       <div className="grid gap-4 sm:grid-cols-2 print:hidden">
-        {/* نسبة العمولة */}
-        <Card className="p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="flex size-9 items-center justify-center rounded-lg bg-indigo-50">
-                <Percent className="size-4 text-indigo-600" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-900">نسبة عمولة الموقع</p>
-                <p className="text-xs text-slate-400">PLATFORM_COMMISSION_PERCENT</p>
-              </div>
+        {/* نسبة العمولة: حسب كل فيندور (لا إعداد عام) */}
+        <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-indigo-50">
+              <Percent className="size-4 text-indigo-600" />
             </div>
-            {editingKey !== 'PLATFORM_COMMISSION_PERCENT' && (
-              <button
-                type="button"
-                onClick={() => openEdit('PLATFORM_COMMISSION_PERCENT', commissionPercent)}
-                className="text-xs font-medium text-indigo-600 hover:text-indigo-500"
-              >
-                تعديل
-              </button>
-            )}
+            <div>
+              <p className="text-sm font-semibold text-slate-900">نسبة عمولة المنصة</p>
+              <p className="text-xs text-slate-500">تُحدَّد لكل فيندور من صفحة تعديل الفيندور</p>
+            </div>
           </div>
-          {editingKey === 'PLATFORM_COMMISSION_PERCENT' ? (
-            <div className="flex items-center gap-2">
-              <input
-                type="number" min="0" max="100" step="0.1"
-                value={editValue}
-                onChange={(e) => setEditValue(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
-                className="w-28 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                autoFocus
-              />
-              <span className="text-sm text-slate-500">%</span>
-              <button onClick={saveEdit} disabled={updateMutation.isPending}
-                className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 disabled:opacity-50">
-                {updateMutation.isPending ? <Loader2 className="size-3.5 animate-spin" /> : 'حفظ'}
-              </button>
-              <button onClick={() => setEditingKey(null)}
-                className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">
-                إلغاء
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-end gap-1">
-              <span className="text-3xl font-bold text-indigo-700">{commissionPercent}</span>
-              <span className="mb-1 text-lg text-indigo-400">%</span>
-            </div>
-          )}
-          <p className="mt-2 text-xs text-slate-400">
-            مثال: حجز بـ 1000 {CURRENCY_SYMBOL} → عمولة الموقع = {(1000 * commissionPercent / 100).toFixed(2)} {CURRENCY_SYMBOL}
+          <p className="text-xs text-slate-500">
+            كل حجز/طلب يستخدم نسبة العمولة الخاصة بالفيندور المرتبط به. لا يوجد نسبة افتراضية موحّدة.
           </p>
-        </Card>
+        </div>
 
         {/* نسبة ضريبة القيمة المضافة */}
         <Card className="p-5">
@@ -276,7 +236,7 @@ export default function CommissionReportPage() {
           <p className="font-semibold mb-1">كيف تعمل الحسابات؟</p>
           <ul className="space-y-0.5 text-xs text-blue-700">
             <li>• <strong>عمولة الموقع</strong> = قيمة (حجز أو طلب متجر) × نسبة العمولة ÷ 100</li>
-            <li>• <strong>نسبة العمولة</strong> قد تكون <strong>مختلفة لكل فيندور</strong> (من صفحة تعديل الفيندور)؛ إن لم تُحدَّد تُستخدم النسبة الافتراضية أعلاه.</li>
+            <li>• <strong>نسبة العمولة</strong> تُحدَّد <strong>لكل فيندور</strong> من صفحة تعديل الفيندور (حقل نسبة العمولة). لا توجد نسبة افتراضية للمنصة.</li>
             <li>• <strong>ضريبة القيمة المضافة المستحقة</strong> = عمولة الموقع × {vatRate}% ÷ 100</li>
             <li>• <strong>صافي العمولة بعد الضريبة</strong> = عمولة الموقع − ضريبة القيمة المضافة</li>
             <li>• الحجوزات: حالات <strong>مكتمل / تم التسليم / جاهز للتسليم</strong></li>
@@ -356,7 +316,7 @@ export default function CommissionReportPage() {
               color="emerald"
               label="عمولة الموقع"
               value={fmt2(summary.totalCommission)}
-              sub={`${summary.defaultCommissionPercent}% من الإيرادات`}
+              sub="حسب نسبة كل فيندور"
               highlight
             />
             <SummaryCard
@@ -456,9 +416,13 @@ export default function CommissionReportPage() {
                     <td className="px-4 py-3 text-xs text-slate-500">{fmtDT(row.createdAt)}</td>
                     <td className="px-4 py-3 font-medium text-slate-900">{fmt2(row.totalPrice)} {CURRENCY_SYMBOL}</td>
                     <td className="px-4 py-3">
-                      <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700">
-                        {row.commissionPercent}%
-                      </span>
+                      {row.commissionPercent != null ? (
+                        <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700">
+                          {Number(row.commissionPercent).toFixed(1)}%
+                        </span>
+                      ) : (
+                        <span className="text-xs text-slate-400">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 font-semibold text-emerald-700">{fmt2(row.commission)} {CURRENCY_SYMBOL}</td>
                     <td className="px-4 py-3 text-amber-700">{fmt2(row.vat)} {CURRENCY_SYMBOL}</td>

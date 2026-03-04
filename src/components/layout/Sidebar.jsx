@@ -40,6 +40,22 @@ import {
 import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
 import { useAuthStore } from '../../store/authStore';
 
+/** موظف أكفيك: كل صلاحية (من الباكند) تُترجم لواحد أو أكثر من مفاتيح القائمة الجانبية */
+const EMPLOYEE_PERMISSION_TO_SIDEBAR_KEYS = {
+  bookings: ['bookings', 'broadcasts', 'towingRequests', 'inspections'],
+  vendors: ['vendors', 'vendorRequests', 'auto-part-categories', 'auto-parts', 'marketplace-orders', 'allCoupons'],
+  vehicles: ['vehicles', 'brands', 'models'],
+  workshops: ['workshops', 'carWashWorkshops', 'comprehensiveCareWorkshops'],
+  winches: ['winches'],
+  mobile_workshops: ['mobile-workshops'],
+  invoices: ['invoices'],
+  payments: ['payments'],
+  users: ['users', 'roles'],
+  settings: ['settings'],
+  finance: ['wallets', 'commissionReport', 'points', 'refunds'],
+  feedback: ['feedback'],
+};
+
 /** ١ – فيندور قطع الغيار / المنتجات (بدون تقييمات أو Points Audit) */
 const VENDOR_AUTO_PARTS_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'auto-parts', 'marketplace-orders', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
 /** ٢ – فيندور العناية الشاملة */
@@ -55,6 +71,9 @@ const SECTION_LABEL_KEYS = {
   orders: 'sectionOrders',
   vendorServices: 'sectionVendorServices',
   vendorWorkshop: 'sectionVendorWorkshop',
+  marketplace: 'sectionMarketplace',
+  management: 'sectionManagement',
+  system: 'sectionSystem',
 };
 
 const SECTIONS = [
@@ -65,6 +84,7 @@ const SECTIONS = [
     items: [
       { key: 'dashboard', to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
       { key: 'analytics', to: '/analytics', icon: BarChart3, label: 'Analytics' },
+      { key: 'employees', to: '/employees', icon: Users, label: 'موظفون أكفيك', labelEn: 'Akfeek Employees' },
       { key: 'myVendorDetail', to: '/my-vendor', icon: Store, label: 'My Store Page' },
       { key: 'vendorCoupons', to: '/vendor/coupons', icon: Tag, label: 'Coupons', labelAr: 'الكوبونات' },
     ],
@@ -198,8 +218,21 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
   const location = useLocation();
   const user = useAuthStore((s) => s.user);
   const isVendor = user?.role === 'VENDOR';
+  const isEmployee = user?.role === 'EMPLOYEE';
+  const employeePermissions = user?.permissions || [];
   const navVisibility = useDashboardSettingsStore((s) => s.navVisibility);
   const isRTL = i18n.language === 'ar';
+
+  /** للموظف: مجموعة مفاتيح القائمة المسموح بها حسب صلاحياته (ديناميكي) */
+  const employeeAllowedSidebarKeys = React.useMemo(() => {
+    if (!isEmployee) return null;
+    const set = new Set(['dashboard', 'profile']);
+    employeePermissions.forEach((key) => {
+      const sidebarKeys = EMPLOYEE_PERMISSION_TO_SIDEBAR_KEYS[key];
+      if (Array.isArray(sidebarKeys)) sidebarKeys.forEach((k) => set.add(k));
+    });
+    return set;
+  }, [isEmployee, employeePermissions]);
 
   const panel = (
     <aside
@@ -273,6 +306,11 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
                   : vt === 'CAR_WASH' ? VENDOR_CAR_WASH_KEYS
                     : VENDOR_AUTO_PARTS_KEYS;
             visibleItems = visibleItems.filter((item) => vendorKeys.has(item.key));
+          } else if (isEmployee && employeeAllowedSidebarKeys) {
+            // موظف أكفيك: يعرض فقط الأقسام التي له فيها صلاحية (ديناميكي)
+            visibleItems = visibleItems.filter((item) => employeeAllowedSidebarKeys.has(item.key));
+            // إخفاء "موظفون أكفيك" — للأدمن فقط
+            visibleItems = visibleItems.filter((item) => item.key !== 'employees');
           } else {
             // إخفاء "صفحة متجري" وتدبير الكوبونات الخاصة عن الأدمن — للفيندور فقط
             visibleItems = visibleItems.filter((item) => item.key !== 'myVendorDetail' && item.key !== 'vendorCoupons');
