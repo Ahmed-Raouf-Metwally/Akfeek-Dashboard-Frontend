@@ -143,3 +143,26 @@ html.dark {
     pointer-events: none;
   }
 }
+
+/* ─── Print: عرض الفاتورة الضريبية فقط ───────────────────────────────────── */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .tax-invoice-print,
+  .tax-invoice-print * {
+    visibility: visible;
+  }
+  .tax-invoice-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    box-shadow: none;
+    border: none;
+    background: white;
+    color: #0f172a;
+  }
+}

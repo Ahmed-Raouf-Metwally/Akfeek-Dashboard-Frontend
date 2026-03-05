@@ -1,12 +1,143 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, MapPin, Phone, Mail, CheckCircle, Clock, Star } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft, MapPin, Phone, Mail, CheckCircle, Clock, Star, Plus, Pencil, Trash2, Check, X, Wrench } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { workshopService } from '../services/workshopService';
+import { useAuthStore } from '../store/authStore';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import { Card } from '../components/ui/Card';
 import { useTranslation } from 'react-i18next';
 import ReviewsList from '../components/workshops/ReviewsList';
+import VendorDocuments from '../components/VendorDocuments';
+
+const WORKSHOP_SERVICE_TYPES = [
+  { value: 'OIL_CHANGE',      label: 'تغيير زيت' },
+  { value: 'ENGINE_REPAIR',   label: 'تصليح محرك' },
+  { value: 'BRAKE',           label: 'فرامل' },
+  { value: 'TIRE',            label: 'إطارات' },
+  { value: 'AC',              label: 'تكييف' },
+  { value: 'ELECTRICAL',      label: 'كهرباء' },
+  { value: 'SUSPENSION',      label: 'تعليق وهيكل' },
+  { value: 'BODY_REPAIR',     label: 'إصلاح هيكل' },
+  { value: 'PAINTING',        label: 'دهان وتشطيب' },
+  { value: 'DIAGNOSIS',       label: 'فحص وتشخيص' },
+  { value: 'BATTERY',         label: 'بطارية' },
+  { value: 'TRANSMISSION',    label: 'ناقل حركة' },
+  { value: 'DETAILING',       label: 'تفصيل وتلميع' },
+  { value: 'GLASS',           label: 'زجاج' },
+  { value: 'GENERAL',         label: 'صيانة عامة' },
+  { value: 'CUSTOM',          label: 'أخرى' },
+];
+const SVC_LABEL = (t) => WORKSHOP_SERVICE_TYPES.find(s => s.value === t)?.label || t;
+const EMPTY_SVC = { serviceType: 'GENERAL', name: '', nameAr: '', description: '', price: '', currency: 'SAR', estimatedDuration: '' };
+
+// ── Inline service row ──────────────────────────────────────────────────────
+function ServiceRow({ svc, workshopId, onRefresh }) {
+  const qc = useQueryClient();
+  const [editing, setEditing] = useState(!svc.id);
+  const [form, setForm] = useState({
+    serviceType:       svc.serviceType       || 'GENERAL',
+    name:              svc.name              || '',
+    nameAr:            svc.nameAr            || '',
+    description:       svc.description       || '',
+    price:             svc.price             ?? '',
+    currency:          svc.currency          || 'SAR',
+    estimatedDuration: svc.estimatedDuration ?? '',
+    isActive:          svc.isActive          ?? true,
+  });
+
+  const save = useMutation({
+    mutationFn: () => svc.id
+      ? workshopService.updateWorkshopService(workshopId, svc.id, { ...form, price: parseFloat(form.price), estimatedDuration: form.estimatedDuration ? parseInt(form.estimatedDuration) : null })
+      : workshopService.addWorkshopService(workshopId, { ...form, price: parseFloat(form.price), estimatedDuration: form.estimatedDuration ? parseInt(form.estimatedDuration) : null }),
+    onSuccess: () => { setEditing(false); qc.invalidateQueries({ queryKey: ['workshop-services', workshopId] }); onRefresh?.(); },
+    onError: (err) => toast.error(err?.response?.data?.error || err?.message || 'خطأ'),
+  });
+
+  const del = useMutation({
+    mutationFn: () => workshopService.deleteWorkshopService(workshopId, svc.id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['workshop-services', workshopId] }); onRefresh?.(); },
+    onError: (err) => toast.error(err?.message || 'فشل الحذف'),
+  });
+
+  const h = (e) => { const { name, value, type, checked } = e.target; setForm(p => ({ ...p, [name]: type === 'checkbox' ? checked : value })); };
+
+  if (!editing) return (
+    <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-3">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-700">{SVC_LABEL(form.serviceType)}</span>
+          <span className="font-semibold text-slate-900">{form.name}</span>
+          {form.nameAr && <span className="text-sm text-slate-500">{form.nameAr}</span>}
+          {!form.isActive && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-400">موقوفة</span>}
+        </div>
+        {form.description && <p className="mt-1 text-xs text-slate-500 line-clamp-2">{form.description}</p>}
+        <div className="mt-1.5 flex items-center gap-3">
+          <span className="text-base font-bold text-emerald-700">{form.price} {form.currency}</span>
+          {form.estimatedDuration && <span className="flex items-center gap-1 text-xs text-slate-400"><Clock className="size-3" />{form.estimatedDuration} دقيقة</span>}
+        </div>
+      </div>
+      <div className="flex gap-1 shrink-0">
+        <button type="button" onClick={() => setEditing(true)} className="size-8 flex items-center justify-center rounded-lg border border-slate-200 text-indigo-600 hover:bg-indigo-50"><Pencil className="size-4" /></button>
+        <button type="button" onClick={() => window.confirm('حذف الخدمة؟') && del.mutate()} className="size-8 flex items-center justify-center rounded-lg border border-slate-200 text-red-500 hover:bg-red-50"><Trash2 className="size-4" /></button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="rounded-xl border-2 border-indigo-200 bg-indigo-50/30 p-4 space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label className="mb-1 block text-xs font-medium text-slate-600">نوع الخدمة</label>
+          <select name="serviceType" value={form.serviceType} onChange={h}
+            className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+            {WORKSHOP_SERVICE_TYPES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-slate-600">اسم الخدمة *</label>
+          <input name="name" value={form.name} onChange={h} required placeholder="مثال: تغيير زيت وفلتر"
+            className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-slate-600">الاسم بالعربي</label>
+          <input name="nameAr" value={form.nameAr} onChange={h} dir="rtl" placeholder="اختياري"
+            className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-slate-600">السعر (ر.س) *</label>
+          <input name="price" type="number" value={form.price} onChange={h} required min="0" step="0.5" placeholder="مثال: 200"
+            className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-slate-600">المدة (دقيقة)</label>
+          <input name="estimatedDuration" type="number" value={form.estimatedDuration} onChange={h} min="5" step="5" placeholder="مثال: 60"
+            className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+        </div>
+        <div className="flex items-end">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="isActive" checked={form.isActive} onChange={h} className="size-4 rounded border-slate-300 text-indigo-600" />
+            <span className="text-sm text-slate-700">الخدمة نشطة</span>
+          </label>
+        </div>
+      </div>
+      <div>
+        <label className="mb-1 block text-xs font-medium text-slate-600">تفاصيل / وصف الخدمة</label>
+        <textarea name="description" value={form.description} onChange={h} rows={2} placeholder="ما الذي تشمله هذه الخدمة..."
+          className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+      </div>
+      <div className="flex justify-end gap-2">
+        {svc.id && <button type="button" onClick={() => setEditing(false)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"><X className="size-4" />إلغاء</button>}
+        <button type="button" onClick={() => { if (!form.name || !form.price) return toast.error('الاسم والسعر مطلوبان'); save.mutate(); }}
+          disabled={save.isPending}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50">
+          <Check className="size-4" />{save.isPending ? 'جاري الحفظ...' : 'حفظ الخدمة'}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function DetailRow({ label, value }) {
   return (
@@ -21,10 +152,19 @@ export default function WorkshopDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'ADMIN';
+  const [addingService, setAddingService] = useState(false);
 
   const { data: workshop, isLoading, isError } = useQuery({
     queryKey: ['workshop', id],
     queryFn: () => workshopService.getWorkshopById(id),
+    enabled: !!id,
+  });
+
+  const { data: workshopServices = [], refetch: refetchServices } = useQuery({
+    queryKey: ['workshop-services', id],
+    queryFn: () => workshopService.getWorkshopServices(id),
     enabled: !!id,
   });
 
@@ -52,23 +192,6 @@ export default function WorkshopDetailPage() {
         </Card>
       </div>
     );
-  }
-
-  // Handle services - can be array, JSON string, or plain string
-  let services = [];
-  if (Array.isArray(workshop.services)) {
-    services = workshop.services;
-  } else if (typeof workshop.services === 'string') {
-    try {
-      // Try to parse as JSON first
-      const parsed = JSON.parse(workshop.services);
-      services = Array.isArray(parsed) ? parsed : [workshop.services];
-    } catch {
-      // If not valid JSON, treat as comma-separated string or single service
-      services = workshop.services.includes(',') 
-        ? workshop.services.split(',').map(s => s.trim())
-        : [workshop.services];
-    }
   }
 
   const workingHours = workshop.workingHours || {};
@@ -259,24 +382,51 @@ export default function WorkshopDetailPage() {
         </Card>
       </div>
 
-      {/* Services Offered */}
-      {services.length > 0 && (
-        <Card className="p-6">
-          <h2 className="mb-4 text-base font-semibold text-slate-900">
-            {t('workshops.servicesOffered', 'Services Offered')}
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {services.map((service, idx) => (
-              <span
-                key={idx}
-                className="inline-flex rounded-full bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700"
-              >
-                {service}
-              </span>
-            ))}
+      {/* Services with Prices */}
+      <Card className="p-6 space-y-4">
+        <div className="flex items-center justify-between border-b pb-2">
+          <div className="flex items-center gap-2">
+            <Wrench className="size-5 text-indigo-500" />
+            <div>
+              <h2 className="text-base font-semibold text-slate-900">الخدمات والأسعار</h2>
+              <p className="text-xs text-slate-400">قائمة الخدمات المقدّمة في الورشة</p>
+            </div>
           </div>
-        </Card>
-      )}
+          {isAdmin && !addingService && (
+            <button onClick={() => setAddingService(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500">
+              <Plus className="size-4" /> إضافة خدمة
+            </button>
+          )}
+        </div>
+
+        <div className="space-y-3">
+          {workshopServices.length === 0 && !addingService && (
+            <div className="rounded-lg border border-dashed border-slate-300 py-10 text-center">
+              <Wrench className="mx-auto size-8 text-slate-300" />
+              <p className="mt-2 text-sm text-slate-400">لا توجد خدمات مضافة بعد</p>
+              {isAdmin && (
+                <button onClick={() => setAddingService(true)}
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500">
+                  <Plus className="size-4" /> أضف أول خدمة
+                </button>
+              )}
+            </div>
+          )}
+
+          {workshopServices.map(svc => (
+            <ServiceRow key={svc.id} svc={svc} workshopId={id} onRefresh={refetchServices} />
+          ))}
+
+          {addingService && (
+            <ServiceRow
+              svc={EMPTY_SVC}
+              workshopId={id}
+              onRefresh={() => { refetchServices(); setAddingService(false); }}
+            />
+          )}
+        </div>
+      </Card>
 
       {/* Working Hours */}
       {Object.keys(workingHours).length > 0 && (
@@ -313,6 +463,11 @@ export default function WorkshopDetailPage() {
           <DetailRow label={t('common.status')} value={workshop.isActive ? t('common.active') : t('common.inactive')} />
         </div>
       </Card>
+
+      {/* Documents — only for Admin */}
+      {isAdmin && workshop.vendorId && (
+        <VendorDocuments vendorId={workshop.vendorId} />
+      )}
 
       {/* Customer Reviews */}
       <Card className="p-6">

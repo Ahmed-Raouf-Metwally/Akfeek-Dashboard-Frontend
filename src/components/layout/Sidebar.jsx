@@ -34,9 +34,27 @@ import {
   Tag,
   Droplets,
   ShieldCheck,
+  TrendingUp,
+  RotateCcw,
 } from 'lucide-react';
 import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
 import { useAuthStore } from '../../store/authStore';
+
+/** موظف أكفيك: كل صلاحية (من الباكند) تُترجم لواحد أو أكثر من مفاتيح القائمة الجانبية */
+const EMPLOYEE_PERMISSION_TO_SIDEBAR_KEYS = {
+  bookings: ['bookings', 'broadcasts', 'towingRequests', 'inspections'],
+  vendors: ['vendors', 'vendorRequests', 'auto-part-categories', 'auto-parts', 'marketplace-orders', 'allCoupons'],
+  vehicles: ['vehicles', 'brands', 'models'],
+  workshops: ['workshops', 'carWashWorkshops', 'comprehensiveCareWorkshops'],
+  winches: ['winches'],
+  mobile_workshops: ['mobile-workshops'],
+  invoices: ['invoices'],
+  payments: ['payments'],
+  users: ['users', 'roles'],
+  settings: ['settings'],
+  finance: ['wallets', 'commissionReport', 'points', 'refunds'],
+  feedback: ['feedback'],
+};
 
 /** ١ – فيندور قطع الغيار / المنتجات (بدون تقييمات أو Points Audit) */
 const VENDOR_AUTO_PARTS_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'auto-parts', 'marketplace-orders', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
@@ -47,6 +65,17 @@ const VENDOR_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail'
 /** ٤ – فيندور خدمة الغسيل */
 const VENDOR_CAR_WASH_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
 
+const SECTION_LABEL_KEYS = {
+  main: 'sectionMain',
+  'services-vehicles': 'sectionServicesVehicles',
+  orders: 'sectionOrders',
+  vendorServices: 'sectionVendorServices',
+  vendorWorkshop: 'sectionVendorWorkshop',
+  marketplace: 'sectionMarketplace',
+  management: 'sectionManagement',
+  system: 'sectionSystem',
+};
+
 const SECTIONS = [
   {
     key: 'main',
@@ -55,6 +84,7 @@ const SECTIONS = [
     items: [
       { key: 'dashboard', to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
       { key: 'analytics', to: '/analytics', icon: BarChart3, label: 'Analytics' },
+      { key: 'employees', to: '/employees', icon: Users, label: 'موظفون أكفيك', labelEn: 'Akfeek Employees' },
       { key: 'myVendorDetail', to: '/my-vendor', icon: Store, label: 'My Store Page' },
       { key: 'vendorCoupons', to: '/vendor/coupons', icon: Tag, label: 'Coupons', labelAr: 'الكوبونات' },
     ],
@@ -65,13 +95,17 @@ const SECTIONS = [
     labelEn: 'Services & Vehicles',
     labelAr: 'الخدمات والمركبات',
     items: [
-      { key: 'services', to: '/services', icon: Wrench, label: 'Services' },
-      { key: 'mobileCarService', to: '/mobile-car-service', icon: Truck, label: 'Mobile Car Service' },
+      // { key: 'services', to: '/services', icon: Wrench, label: 'Services' },
+      //{ key: 'mobileCarService', to: '/mobile-car-service', icon: Truck, label: 'Mobile Car Service' },
       { key: 'workshops', to: '/workshops', icon: Building2, label: 'Workshops' },
       { key: 'carWashWorkshops', to: '/car-wash', icon: Droplets, label: 'Car Wash Workshops', labelAr: 'ورش الغسيل' },
       { key: 'comprehensiveCareWorkshops', to: '/comprehensive-care', icon: ShieldCheck, label: 'Comprehensive Care', labelAr: 'العناية الشاملة' },
+      { key: 'winches', to: '/winches', icon: Truck, label: 'الوينشات' },
+      { key: 'mobile-workshops', to: '/mobile-workshops', icon: Wrench, label: 'الورش المتنقلة' },
+      { key: 'technicalSupportRequests', to: '/technical-support-requests', icon: Headphones, label: 'Technical Support Requests' },
       { key: 'brands', to: '/brands', icon: Car, label: 'Vehicle Brands' },
       { key: 'models', to: '/models', icon: CircleDot, label: 'Vehicle Models' },
+      { key: 'vehicles', to: '/vehicles', icon: Car, label: 'Vehicles', labelAr: 'المركبات' },
     ],
   },
   {
@@ -85,7 +119,9 @@ const SECTIONS = [
       { key: 'inspections', to: '/inspections', icon: ClipboardCheck, label: 'Inspections' },
       { key: 'invoices', to: '/invoices', icon: FileText, label: 'Invoices' },
       { key: 'payments', to: '/payments', icon: CreditCard, label: 'Payments' },
+      { key: 'refunds', to: '/refunds', icon: RotateCcw, label: 'Refunds', labelAr: 'الاستردادات' },
       { key: 'wallets', to: '/wallets', icon: Wallet, label: 'Wallets' },
+      { key: 'commissionReport', to: '/commission-report', icon: TrendingUp, label: 'Commission Report', labelAr: 'تقرير العمولة والضريبة' },
       { key: 'points', to: '/points', icon: Star, label: 'Points Audit' },
       { key: 'ratings', to: '/ratings', icon: Star, label: 'Ratings' },
     ],
@@ -115,6 +151,7 @@ const SECTIONS = [
     items: [
       { key: 'vendors', to: '/vendors', icon: Store, label: 'Vendors' },
       { key: 'vendorRequests', to: '/vendors/onboarding', icon: ClipboardCheck, label: 'Vendor Requests' },
+      
       { key: 'auto-part-categories', to: '/auto-part-categories', icon: Layers, label: 'Categories' },
       { key: 'auto-parts', to: '/auto-parts', icon: ShoppingBag, label: 'Auto Parts' },
       { key: 'marketplace-orders', to: '/marketplace-orders', icon: Package, label: 'Orders' },
@@ -129,7 +166,6 @@ const SECTIONS = [
       { key: 'users', to: '/users', icon: Users, label: 'Users' },
       { key: 'roles', to: '/roles', icon: Shield, label: 'Roles & Permissions' },
       { key: 'feedback', to: '/feedback', icon: MessageSquare, label: 'Feedback' },
-      { key: 'technicalSupportRequests', to: '/technical-support-requests', icon: Headphones, label: 'Technical Support Requests' },
       { key: 'notifications', to: '/notifications', icon: Bell, label: 'Notifications' },
       { key: 'activity', to: '/activity', icon: Activity, label: 'Activity / Logs' },
     ],
@@ -182,12 +218,26 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
   const location = useLocation();
   const user = useAuthStore((s) => s.user);
   const isVendor = user?.role === 'VENDOR';
+  const isEmployee = user?.role === 'EMPLOYEE';
+  const employeePermissions = user?.permissions || [];
   const navVisibility = useDashboardSettingsStore((s) => s.navVisibility);
   const isRTL = i18n.language === 'ar';
+
+  /** للموظف: مجموعة مفاتيح القائمة المسموح بها حسب صلاحياته (ديناميكي) */
+  const employeeAllowedSidebarKeys = React.useMemo(() => {
+    if (!isEmployee) return null;
+    const set = new Set(['dashboard', 'profile']);
+    employeePermissions.forEach((key) => {
+      const sidebarKeys = EMPLOYEE_PERMISSION_TO_SIDEBAR_KEYS[key];
+      if (Array.isArray(sidebarKeys)) sidebarKeys.forEach((k) => set.add(k));
+    });
+    return set;
+  }, [isEmployee, employeePermissions]);
 
   const panel = (
     <aside
       className={`
+        print:hidden
         fixed inset-y-0 z-40 flex flex-col border-slate-200 bg-white
         dark:border-slate-700 dark:bg-slate-800
         transition-[width,transform] duration-200 ease-in-out
@@ -256,6 +306,11 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
                   : vt === 'CAR_WASH' ? VENDOR_CAR_WASH_KEYS
                     : VENDOR_AUTO_PARTS_KEYS;
             visibleItems = visibleItems.filter((item) => vendorKeys.has(item.key));
+          } else if (isEmployee && employeeAllowedSidebarKeys) {
+            // موظف أكفيك: يعرض فقط الأقسام التي له فيها صلاحية (ديناميكي)
+            visibleItems = visibleItems.filter((item) => employeeAllowedSidebarKeys.has(item.key));
+            // إخفاء "موظفون أكفيك" — للأدمن فقط
+            visibleItems = visibleItems.filter((item) => item.key !== 'employees');
           } else {
             // إخفاء "صفحة متجري" وتدبير الكوبونات الخاصة عن الأدمن — للفيندور فقط
             visibleItems = visibleItems.filter((item) => item.key !== 'myVendorDetail' && item.key !== 'vendorCoupons');
@@ -265,7 +320,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
             <div key={section.key} className="space-y-1">
               {!collapsed && (
                 <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                  {isRTL ? section.labelAr : section.labelEn}
+                  {t(`nav.${SECTION_LABEL_KEYS[section.key] || 'dashboard'}`)}
                 </p>
               )}
               <ul className="space-y-0.5">
@@ -307,7 +362,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
           aria-label="Close menu"
           onClick={onCloseMobile}
           onKeyDown={(e) => (e.key === 'Escape' ? onCloseMobile?.() : null)}
-          className="fixed inset-0 z-30 bg-slate-900/20 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-30 bg-slate-900/20 backdrop-blur-sm lg:hidden print:hidden"
         />
       )}
       {panel}

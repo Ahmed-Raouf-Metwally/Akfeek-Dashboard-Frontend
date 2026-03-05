@@ -17,15 +17,25 @@ export const api = axios.create({
 /**
  * Attach token from storage/callback when making requests.
  * Call setAuthToken(token) after login; clear on logout.
+ * tokenGetter: يُستدعى عند كل طلب لقراءة أحدث توكن من الـ store (يتجنب 401 بعد إعادة التحميل).
  */
 let authToken = null;
+let tokenGetter = null;
 
 export function setAuthToken(token) {
   authToken = token;
 }
 
 export function getAuthToken() {
+  if (typeof tokenGetter === 'function') {
+    const fromStore = tokenGetter();
+    if (fromStore) return fromStore;
+  }
   return authToken;
+}
+
+export function setTokenGetter(fn) {
+  tokenGetter = fn;
 }
 
 export function clearAuthToken() {
@@ -34,8 +44,13 @@ export function clearAuthToken() {
 
 api.interceptors.request.use(
   (config) => {
-    if (authToken) {
-      config.headers.Authorization = `Bearer ${authToken}`;
+    const token = getAuthToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    // Let browser set Content-Type with boundary for FormData (file uploads)
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
     }
     // Let browser set Content-Type with boundary for FormData (file uploads)
     if (config.data instanceof FormData) {

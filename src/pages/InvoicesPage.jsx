@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { FileText } from 'lucide-react';
+import { FileText, ChevronRight } from 'lucide-react';
 import { invoiceService } from '../services/invoiceService';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
 import { Card } from '../components/ui/Card';
 import { useDateFormat } from '../hooks/useDateFormat';
+import { CURRENCY_SYMBOL } from '../constants/currency';
 
 const PAGE_SIZE = 10;
 
@@ -14,6 +16,16 @@ function customerLabel(i) {
   const p = i.customer?.profile;
   if (p?.firstName || p?.lastName) return [p.firstName, p.lastName].filter(Boolean).join(' ');
   return i.customer?.email || i.customer?.phone || i.customerId || '—';
+}
+
+/** إجمالي من بنود الفاتورة (السعر الأصلي الشامل للضريبة) أو totalAmount */
+function effectiveInvoiceTotal(inv) {
+  if (inv.effectiveTotal != null) return Number(inv.effectiveTotal);
+  const items = inv.lineItems;
+  if (items && items.length > 0) {
+    return items.reduce((s, line) => s + Number(line.totalPrice ?? 0), 0);
+  }
+  return inv.totalAmount != null ? Number(inv.totalAmount) : null;
 }
 
 export default function InvoicesPage() {
@@ -110,11 +122,16 @@ export default function InvoicesPage() {
                 </thead>
                 <tbody>
                   {list.map((inv) => (
-                    <tr key={inv.id} className="border-b border-slate-100 transition-colors hover:bg-slate-50/50">
-                      <td className="px-4 py-3 text-sm font-medium text-slate-900">{inv.invoiceNumber}</td>
+                    <tr key={inv.id} className="border-b border-slate-100 transition-colors hover:bg-slate-50/50 group">
+                      <td className="px-4 py-3 text-sm font-medium text-slate-900">
+                        <Link to={`/invoices/${inv.id}`} className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 hover:underline">
+                          {inv.invoiceNumber}
+                          <ChevronRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </Link>
+                      </td>
                       <td className="px-4 py-3 text-sm text-slate-600">{customerLabel(inv)}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">
-                        {inv.amount != null ? Number(inv.amount).toFixed(2) : '—'}
+                        {effectiveInvoiceTotal(inv) != null ? `${Number(effectiveInvoiceTotal(inv)).toFixed(2)} ${CURRENCY_SYMBOL}` : '—'}
                       </td>
                       <td className="px-4 py-3">
                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -126,7 +143,7 @@ export default function InvoicesPage() {
                            {t(`finance.status.${inv.status}`) || inv.status}
                          </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{fmt(inv.createdAt)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{fmt(inv.issuedAt ?? inv.createdAt)}</td>
                     </tr>
                   ))}
                 </tbody>

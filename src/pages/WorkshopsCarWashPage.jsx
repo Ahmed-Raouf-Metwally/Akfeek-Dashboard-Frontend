@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Search, MapPin, Phone, CheckCircle, Building2, Star, ArrowRight, Droplets, Store } from 'lucide-react';
+import { Search, MapPin, Phone, CheckCircle, Building2, Star, ArrowRight, Droplets, Store, Plus } from 'lucide-react';
 import { workshopService } from '../services/workshopService';
 import { vendorService } from '../services/vendorService';
 import { useAuthStore } from '../store/authStore';
@@ -105,11 +105,12 @@ export default function WorkshopsCarWashPage() {
         enabled: isAdmin,
     });
 
-    const { data: washVendors = [], isLoading: loadingVendors } = useQuery({
+    const { data: washVendorsResult, isLoading: loadingVendors } = useQuery({
         queryKey: ['vendors-car-wash'],
-        queryFn: () => vendorService.getVendors({ vendorType: 'CAR_WASH' }),
+        queryFn: () => vendorService.getVendors({ vendorType: 'CAR_WASH', limit: 100 }),
         enabled: isAdmin,
     });
+    const washVendors = washVendorsResult?.vendors ?? [];
 
     const filteredEntities = useMemo(() => {
         const filteredWorkshops = workshops.filter(w => {
@@ -168,6 +169,13 @@ export default function WorkshopsCarWashPage() {
                             </p>
                         </div>
                     </div>
+                    <Link
+                        to="/vendors/new?type=CAR_WASH"
+                        className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-blue-700 shadow-md hover:bg-blue-50 transition-colors"
+                    >
+                        <Plus className="size-4" />
+                        {isAr ? 'إضافة فيندور غسيل' : 'Add Car Wash Vendor'}
+                    </Link>
                 </div>
             </div>
 

@@ -11,7 +11,8 @@ export default function ProtectedRoute({ children, requireAdmin = true }) {
   const isHydrated = useAuthStore((s) => s.isHydrated);
   const isAdmin = user?.role === 'ADMIN';
   const isVendor = user?.role === 'VENDOR';
-  const canAccessDashboard = isAdmin || isVendor;
+  const isEmployee = user?.role === 'EMPLOYEE';
+  const canAccessDashboard = isAdmin || isVendor || isEmployee;
 
   if (!isHydrated) {
     return (

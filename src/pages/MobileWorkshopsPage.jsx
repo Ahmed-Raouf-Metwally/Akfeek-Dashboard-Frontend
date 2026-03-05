@@ -1,0 +1,176 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { Wrench, Plus, Search, X, Eye, Pencil, Trash2, Wifi, WifiOff } from 'lucide-react';
+import mobileWorkshopService from '../services/mobileWorkshopService';
+import { Card } from '../components/ui/Card';
+import Pagination from '../components/ui/Pagination';
+
+const PAGE_SIZE = 12;
+
+export default function MobileWorkshopsPage() {
+  const queryClient = useQueryClient();
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch]           = useState('');
+  const [available, setAvailable]     = useState('');
+  const [page, setPage]               = useState(1);
+  const debounceRef = useRef(null);
+
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => { setSearch(searchInput); setPage(1); }, 400);
+    return () => clearTimeout(debounceRef.current);
+  }, [searchInput]);
+
+  const { data: result, isLoading, isFetching } = useQuery({
+    queryKey: ['mobile-workshops', { search, available, page }],
+    queryFn: () => mobileWorkshopService.getAll({
+      search: search || undefined,
+      available: available || undefined,
+      page,
+      limit: PAGE_SIZE,
+    }),
+    staleTime: 30_000,
+    keepPreviousData: true,
+  });
+
+  const items      = result?.items ?? [];
+  const pagination = result?.pagination;
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => mobileWorkshopService.delete(id),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['mobile-workshops'] }); toast.success('تم الحذف'); },
+    onError:   (err) => toast.error(err?.message || 'فشل الحذف'),
+  });
+
+  const toggleMutation = useMutation({
+    mutationFn: ({ id, val }) => mobileWorkshopService.update(id, { isAvailable: val }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['mobile-workshops'] }),
+    onError:   (err) => toast.error(err?.message || 'فشل التحديث'),
+  });
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <Wrench className="size-6 text-indigo-600" /> الورش المتنقلة
+          </h1>
+          <p className="text-slate-500">إدارة الورش المتنقلة المرتبطة بالفيندورز</p>
+        </div>
+        <Link
+          to="/mobile-workshops/new"
+          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
+        >
+          <Plus className="size-4" /> إضافة ورشة متنقلة
+        </Link>
+      </div>
+
+      <Card className="p-4">
+        <div className="flex flex-wrap gap-3 items-center">
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+            <input
+              type="text" placeholder="ابحث بالاسم أو اللوحة أو الموديل..."
+              value={searchInput} onChange={(e) => setSearchInput(e.target.value)}
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-8 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            />
+            {searchInput && (
+              <button onClick={() => { setSearchInput(''); setSearch(''); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+          <select value={available} onChange={(e) => { setAvailable(e.target.value); setPage(1); }}
+            className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-indigo-500">
+            <option value="">كل الحالات</option>
+            <option value="true">متاحة</option>
+            <option value="false">غير متاحة</option>
+          </select>
+          {isFetching && !isLoading && <span className="text-xs text-slate-400 animate-pulse">تحديث...</span>}
+        </div>
+      </Card>
+
+      {isLoading ? (
+        <div className="space-y-3">
+          {[...Array(6)].map((_, i) => <div key={i} className="h-16 rounded-xl bg-slate-200 animate-pulse" />)}
+        </div>
+      ) : items.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 py-16 text-center">
+          <Wrench className="mx-auto size-12 text-slate-300" />
+          <h3 className="mt-4 text-lg font-semibold text-slate-900">لا توجد ورش متنقلة</h3>
+          <p className="text-slate-500 mt-1">أضف ورشة متنقلة واربطها بفيندور من نوع "ورشة متنقلة"</p>
+          <Link to="/mobile-workshops/new" className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500">
+            إضافة ورشة متنقلة
+          </Link>
+        </div>
+      ) : (
+        <>
+          <Card className="overflow-hidden p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50/80">
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">الورشة</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">الفيندور</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">المدينة</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">الأسعار</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">الحالة</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((w) => (
+                    <tr key={w.id} className="border-b border-slate-100 hover:bg-slate-50/50">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="size-10 rounded-lg bg-indigo-100 flex items-center justify-center overflow-hidden shrink-0">
+                            {w.imageUrl
+                              ? <img src={w.imageUrl} alt="" className="w-full h-full object-cover" />
+                              : <Wrench className="size-5 text-indigo-600" />}
+                          </div>
+                          <div>
+                            <p className="font-medium text-slate-900">{w.name}</p>
+                            <p className="text-xs text-slate-500">{w.vehicleType || ''} {w.vehicleModel ? `· ${w.vehicleModel}` : ''}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        {w.vendor ? (
+                          <Link to={`/vendors/${w.vendor.id}`} className="text-sm text-indigo-600 hover:underline">{w.vendor.businessName}</Link>
+                        ) : (
+                          <span className="text-xs text-slate-400">غير مرتبطة</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{w.city || '—'}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">
+                        {w.basePrice != null ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">{w.basePrice} ر.س</span> : '—'}
+                      </td>
+                      <td className="px-4 py-3">
+                        <button onClick={() => toggleMutation.mutate({ id: w.id, val: !w.isAvailable })}>
+                          {w.isAvailable
+                            ? <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700"><Wifi className="size-3" />متاحة</span>
+                            : <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500"><WifiOff className="size-3" />غير متاحة</span>}
+                        </button>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1">
+                          <Link to={`/mobile-workshops/${w.id}`} className="inline-flex size-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"><Eye className="size-4" /></Link>
+                          <Link to={`/mobile-workshops/${w.id}/edit`} className="inline-flex size-8 items-center justify-center rounded-lg border border-slate-200 text-indigo-600 hover:bg-indigo-50"><Pencil className="size-4" /></Link>
+                          <button onClick={() => window.confirm('حذف الورشة؟') && deleteMutation.mutate(w.id)}
+                            className="inline-flex size-8 items-center justify-center rounded-lg border border-slate-200 text-red-500 hover:bg-red-50"><Trash2 className="size-4" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+          <Pagination page={page} totalPages={pagination?.totalPages ?? 1} total={pagination?.total ?? items.length} pageSize={PAGE_SIZE} onPageChange={setPage} />
+        </>
+      )}
+    </div>
+  );
+}

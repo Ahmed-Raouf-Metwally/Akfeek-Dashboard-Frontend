@@ -2,40 +2,10 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { Sliders, Database, RotateCcw, Palette, Sun, Moon, Percent, Download, Globe } from 'lucide-react';
+import { Sliders, Database, RotateCcw, Palette, Sun, Moon, Globe } from 'lucide-react';
 import { settingsService } from '../services/settingsService';
 import { useDashboardSettingsStore } from '../store/dashboardSettingsStore';
 import { Card } from '../components/ui/Card';
-
-function InitPricingButton({ onSuccess, t }) {
-  const initMutation = useMutation({
-    mutationFn: () => settingsService.initPricingSettings(),
-    onSuccess: () => {
-      toast.success(t('settings.pricingInitSuccess', 'تم تهيئة إعدادات التسعير في الباكند'));
-      onSuccess?.();
-    },
-    onError: (err) => toast.error(err?.message ?? t('common.error')),
-  });
-  return (
-    <button
-      type="button"
-      onClick={() => initMutation.mutate()}
-      disabled={initMutation.isPending}
-      className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"
-    >
-      <Download className="size-4" />
-      {initMutation.isPending ? t('common.loading') : t('settings.initPricingInBackend', 'تهيئة إعدادات التسعير في الباكند')}
-    </button>
-  );
-}
-
-function findSetting(grouped, key) {
-  for (const cat of Object.keys(grouped || {})) {
-    const found = (grouped[cat] || []).find((r) => r.key === key);
-    if (found) return found;
-  }
-  return null;
-}
 
 export default function SettingsPage() {
   const { t, i18n } = useTranslation();
@@ -88,10 +58,11 @@ export default function SettingsPage() {
         { key: 'towingRequests',  label: t('nav.towingRequests',  'Towing Requests') },
         { key: 'inspections',     label: t('nav.inspections',     'Inspections') },
         { key: 'supply-requests', label: t('nav.supply-requests', 'Supply Requests') },
-        { key: 'invoices',        label: t('nav.invoices',        'Invoices') },
-        { key: 'payments',        label: t('nav.payments',        'Payments') },
-        { key: 'wallets',         label: t('nav.wallets',         'Wallets') },
-        { key: 'points',          label: t('nav.points',          'Points Audit') },
+        { key: 'invoices',          label: t('nav.invoices',          'Invoices') },
+        { key: 'payments',          label: t('nav.payments',          'Payments') },
+        { key: 'wallets',           label: t('nav.wallets',           'Wallets') },
+        { key: 'commissionReport',  label: t('nav.commissionReport',  'تقرير العمولة والضريبة') },
+        { key: 'points',            label: t('nav.points',            'Points Audit') },
         { key: 'ratings',         label: t('nav.ratings',         'Ratings') },
       ],
     },
@@ -148,23 +119,6 @@ export default function SettingsPage() {
     { value: 'long', label: t('settings.dateFormats.long') },
   ];
 
-  /*
-   * إعدادات العمولات والضرائب: الباكند يخزّن النسب بالمئة (14.5 و 10). عرض القيم القديمة (0.145) كنسبة مئوية.
-   */
-  const PRICING_KEYS = [
-    { key: 'VAT_RATE', label: t('settings.business.VAT_RATE'), type: 'NUMBER', suffix: '%', defaultValue: '14.5', displayTransform: (row) => { const v = row?.value != null && row.value !== '' ? Number(row.value) : NaN; if (Number.isNaN(v)) return '14.5'; return v <= 1 ? String(Math.round(v * 10000) / 100) : String(v); } },
-    { key: 'PLATFORM_COMMISSION_PERCENT', label: t('settings.business.PLATFORM_COMMISSION_PERCENT'), type: 'NUMBER', suffix: '%', defaultValue: '10' },
-  ];
-  const OTHER_BUSINESS_KEYS = [
-    { key: 'TECHNICIAN_COMMISSION_PERCENT', label: t('settings.business.TECHNICIAN_COMMISSION_PERCENT'), type: 'NUMBER', suffix: '%' },
-    { key: 'VAT_PERCENT', label: t('settings.business.VAT_PERCENT'), type: 'NUMBER', suffix: '%' },
-    { key: 'TAX_INCLUDED_IN_PRICE', label: t('settings.business.TAX_INCLUDED_IN_PRICE'), type: 'BOOLEAN' },
-    { key: 'SERVICE_DEFAULT_MARKUP_PERCENT', label: t('settings.business.SERVICE_DEFAULT_MARKUP_PERCENT'), type: 'NUMBER', suffix: '%' },
-    { key: 'MIN_BOOKING_AMOUNT_SAR', label: t('settings.business.MIN_BOOKING_AMOUNT_SAR'), type: 'NUMBER', suffix: ` ${t('common.currency')}` },
-    { key: 'CURRENCY_DISPLAY', label: t('settings.business.CURRENCY_DISPLAY'), type: 'STRING' },
-  ];
-  const BUSINESS_KEYS = [...PRICING_KEYS, ...OTHER_BUSINESS_KEYS];
-
   // Theme is applied globally by useTheme() in App.jsx — no local effect needed here.
 
   const [editingKey, setEditingKey] = useState(null);
@@ -194,28 +148,11 @@ export default function SettingsPage() {
 
   const saveEdit = () => {
     if (editingKey == null) return;
-    const def = BUSINESS_KEYS.find((d) => d.key === editingKey);
-    const valueToSend = def?.saveTransform ? def.saveTransform(editValue) : editValue;
-    updateMutation.mutate({ key: editingKey, value: String(valueToSend) });
-  };
-
-  const saveBusinessSetting = (key, value) => {
-    updateMutation.mutate({ key, value: String(value) });
+    updateMutation.mutate({ key: editingKey, value: String(editValue) });
   };
 
   const categories = Object.keys(grouped).sort();
-  // إعدادات النظام (جدول): نستبعد PRICING لأنها معروضة في قسم "العمولات والضرائب" فقط
-  const systemCategories = categories.filter((c) => c !== 'PRICING');
-  // إعدادات العمولات والضرائب: دائماً نعرض VAT_RATE و PLATFORM_COMMISSION_PERCENT (بقيم من API أو افتراضية)
-  const pricingItems = PRICING_KEYS.map((def) => {
-    const row = findSetting(grouped, def.key);
-    return {
-      ...def,
-      row: row || { value: def.defaultValue, isEditable: true, key: def.key },
-    };
-  });
-  const otherBusinessItems = OTHER_BUSINESS_KEYS.map((def) => ({ ...def, row: findSetting(grouped, def.key) })).filter((x) => x.row);
-  const businessItems = [...pricingItems, ...otherBusinessItems];
+  const systemCategories = categories;
 
   return (
     <div className="space-y-8">
@@ -380,116 +317,6 @@ export default function SettingsPage() {
             </select>
           </div>
         </div>
-      </Card>
-
-      {/* Business settings */}
-      <Card className="p-6">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Percent className="size-5 text-indigo-600" />
-            <h2 className="text-base font-semibold text-slate-900">
-              {t('settings.businessSettings')}
-            </h2>
-          </div>
-          <InitPricingButton
-            onSuccess={() => queryClient.invalidateQueries({ queryKey: ['admin-settings'] })}
-            t={t}
-          />
-        </div>
-        <p className="mb-6 text-sm text-slate-500">
-          {t('settings.businessSettingsSubtitle')}
-        </p>
-
-        {isLoading && <div className="py-6 text-center text-sm text-slate-500">{t('common.loading')}</div>}
-        {isError && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {error?.message ?? t('common.error')}
-          </div>
-        )}
-        {!isLoading && !isError && businessItems.length > 0 && (
-          <div className="space-y-6">
-            <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
-              {businessItems.map(({ key, label, type, suffix = '', row, displayTransform }) => {
-                const isEditing = editingKey === key;
-                const val = displayTransform ? displayTransform(row) : (row.value ?? '');
-                if (type === 'BOOLEAN') {
-                  const checked = val === 'true';
-                  return (
-                    <div key={key} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50/30 px-4 py-3">
-                      <div>
-                        <p className="text-sm font-medium text-slate-900">{label}</p>
-                      </div>
-                      <label className="flex cursor-pointer items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={(e) => row.isEditable !== false && saveBusinessSetting(key, e.target.checked ? 'true' : 'false')}
-                          disabled={row.isEditable === false}
-                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                        />
-                        <span className="text-sm text-slate-700">{checked ? t('common.yes') : t('common.no')}</span>
-                      </label>
-                    </div>
-                  );
-                }
-                return (
-                  <div key={key} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50/30 px-4 py-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-slate-900">{label}</p>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      {isEditing ? (
-                        <>
-                          <input
-                            type={type === 'NUMBER' ? 'number' : 'text'}
-                            step={type === 'NUMBER' ? '0.01' : undefined}
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
-                            className="w-28 rounded border border-slate-300 px-2 py-1.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                            autoFocus
-                          />
-                          {suffix && <span className="text-sm text-slate-500">{suffix}</span>}
-                          <button
-                            type="button"
-                            onClick={saveEdit}
-                            disabled={updateMutation.isPending}
-                            className="rounded bg-indigo-600 px-2 py-1 text-xs font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
-                          >
-                            {t('settings.saveChanges')}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => { setEditingKey(null); setEditValue(''); }}
-                            className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
-                          >
-                            {t('common.cancel')}
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <span className="text-sm font-medium text-slate-900">
-                            {val}
-                            {suffix}
-                          </span>
-                          {row.isEditable !== false && (
-                            <button
-                              type="button"
-                              onClick={() => openEdit(key, val)}
-                              className="text-xs font-medium text-indigo-600 hover:text-indigo-500"
-                            >
-                              {t('common.edit')}
-                            </button>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </Card>
 
       {/* System settings from API */}

@@ -44,7 +44,7 @@ export default function Header({ title, subtitle, onMenuClick, onToggleSidebar, 
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 transition-[padding] duration-200 sm:px-6 dark:border-slate-700 dark:bg-slate-800">
+    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 transition-[padding] duration-200 sm:px-6 dark:border-slate-700 dark:bg-slate-800 print:hidden">
       <div className="flex min-w-0 flex-1 items-center gap-4">
         <button
           type="button"

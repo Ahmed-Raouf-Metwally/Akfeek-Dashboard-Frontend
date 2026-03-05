@@ -91,16 +91,7 @@ export default function WorkshopFormFields({
         required={requireLocationUrl}
       />
       <Input
-        label={t('workshops.services')}
-        name="services"
-        value={form.services}
-        onChange={(e) => setForm((f) => ({ ...f, services: e.target.value }))}
-        placeholder='["Engine Repair", "Oil Change"]'
-        required
-        className="sm:col-span-2"
-      />
-      <Input
-        label={t('common.description')}
+        label={t('common.descriptionEn')}
         name="description"
         value={form.description}
         onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
@@ -108,7 +99,7 @@ export default function WorkshopFormFields({
         className="sm:col-span-2"
       />
       <Input
-        label={t('common.descriptionAr', 'Description (Arabic)')}
+        label={t('common.descriptionAr')}
         name="descriptionAr"
         value={form.descriptionAr}
         onChange={(e) => setForm((f) => ({ ...f, descriptionAr: e.target.value }))}

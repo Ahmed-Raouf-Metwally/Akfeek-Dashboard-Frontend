@@ -16,6 +16,7 @@ import {
   Building2,
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { dashboardService } from '../services/dashboardService';
 import { autoPartService } from '../services/autoPartService';
 import { marketplaceOrderService } from '../services/marketplaceOrderService';
 import { vendorService } from '../services/vendorService';
@@ -49,22 +50,7 @@ const CHART_COLORS = [
   'rgb(236 72 153)',
 ];
 
-const MOCK_WEEKLY = [
-  { name: 'Mon', bookings: 24, revenue: 4200 },
-  { name: 'Tue', bookings: 31, revenue: 5800 },
-  { name: 'Wed', bookings: 28, revenue: 5100 },
-  { name: 'Thu', bookings: 35, revenue: 6200 },
-  { name: 'Fri', bookings: 42, revenue: 7500 },
-  { name: 'Sat', bookings: 38, revenue: 6800 },
-  { name: 'Sun', bookings: 29, revenue: 5300 },
-];
-
-const MOCK_CATEGORY = [
-  { name: 'MAINTENANCE', value: 35 },
-  { name: 'REPAIR', value: 28 },
-  { name: 'CLEANING', value: 22 },
-  { name: 'EMERGENCY', value: 15 },
-];
+// Admin charts use dashboardService.getAnalytics(range) — timeSeries & categoryBreakdown
 
 const container = {
   hidden: { opacity: 0 },
@@ -129,6 +115,23 @@ export default function AnalyticsPage() {
   const myServicesCount = Array.isArray(myServicesList) ? myServicesList.length : (myServicesList?.length ?? 0);
   const myCareBookingsCount = careBookingsData?.pagination?.total ?? 0;
   const myWorkshopBookingsCount = workshopBookingsData?.pagination?.total ?? 0;
+
+  const { data: analyticsData, isLoading: analyticsLoading } = useQuery({
+    queryKey: ['dashboard', 'analytics', range],
+    queryFn: () => dashboardService.getAnalytics(range),
+    enabled: !isVendor,
+    staleTime: 60_000,
+  });
+  const { data: dashboardStatsData } = useQuery({
+    queryKey: ['dashboard', 'stats'],
+    queryFn: dashboardService.getStats,
+    enabled: !isVendor,
+    staleTime: 60_000,
+  });
+  const timeSeries = analyticsData?.data?.timeSeries ?? [];
+  const categoryBreakdown = analyticsData?.data?.categoryBreakdown ?? [];
+  const analyticsSummary = analyticsData?.data?.summary ?? {};
+  const totalUsers = dashboardStatsData?.data?.stats?.totalUsers ?? 0;
 
   const productsByCategory = useMemo(() => {
     if (!Array.isArray(vendorParts) || vendorParts.length === 0) return [];
@@ -397,10 +400,10 @@ export default function AnalyticsPage() {
         className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
       >
         {[
-          { title: t('dashboard.totalUsers'), value: '12,847', icon: Users, color: 'from-indigo-500 to-violet-500', bg: 'bg-indigo-500/10' },
-          { title: t('dashboard.bookings'), value: '3,291', icon: CalendarCheck, color: 'from-emerald-500 to-teal-500', bg: 'bg-emerald-500/10' },
-          { title: t('dashboard.revenueSAR'), value: '284,500', icon: DollarSign, color: 'from-amber-500 to-orange-500', bg: 'bg-amber-500/10' },
-          { title: t('dashboard.growth', 'Growth'), value: '+12.5%', icon: TrendingUp, color: 'from-blue-500 to-cyan-500', bg: 'bg-blue-500/10' },
+          { title: t('dashboard.totalUsers'), value: totalUsers.toLocaleString(), icon: Users, color: 'from-indigo-500 to-violet-500', bg: 'bg-indigo-500/10' },
+          { title: t('dashboard.bookings'), value: (analyticsSummary.totalBookings ?? 0).toLocaleString(), icon: CalendarCheck, color: 'from-emerald-500 to-teal-500', bg: 'bg-emerald-500/10' },
+          { title: t('dashboard.revenueSAR'), value: (analyticsSummary.totalRevenue ?? 0).toLocaleString(), icon: DollarSign, color: 'from-amber-500 to-orange-500', bg: 'bg-amber-500/10' },
+          { title: t('dashboard.period', 'Period'), value: `${analyticsSummary.periodDays ?? 7} ${i18n.language === 'ar' ? 'يوم' : 'days'}`, icon: TrendingUp, color: 'from-blue-500 to-cyan-500', bg: 'bg-blue-500/10' },
         ].map((stat) => {
           const Icon = stat.icon;
           return (
@@ -428,17 +431,19 @@ export default function AnalyticsPage() {
           <AnimatedCard className="overflow-hidden">
             <CardHeader
               title={t('dashboard.revenueTrend', 'Revenue trend')}
-              subtitle="Last 7 days"
+              subtitle={range === '7d' ? (i18n.language === 'ar' ? 'آخر 7 أيام' : 'Last 7 days') : range === '30d' ? (i18n.language === 'ar' ? 'آخر 30 يوماً' : 'Last 30 days') : (i18n.language === 'ar' ? 'آخر 90 يوماً' : 'Last 90 days')}
               action={
-                <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
-                  +8.2%
-                </span>
+                analyticsSummary.totalRevenue != null && (
+                  <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+                    {(analyticsSummary.totalRevenue ?? 0).toLocaleString()} SAR
+                  </span>
+                )
               }
             />
             <CardBody className="pt-0">
               <div className="relative w-full min-w-0" style={{ height: 280 }}>
                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={280} debounce={50}>
-                  <AreaChart data={MOCK_WEEKLY} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                  <AreaChart data={timeSeries.length ? timeSeries : [{ name: '-', revenue: 0 }]} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="rgb(99 102 241)" stopOpacity={0.4} />
@@ -472,12 +477,12 @@ export default function AnalyticsPage() {
           <AnimatedCard className="overflow-hidden">
             <CardHeader
               title={t('dashboard.bookingsByDay', 'Bookings by day')}
-              subtitle="Last 7 days"
+              subtitle={range === '7d' ? (i18n.language === 'ar' ? 'آخر 7 أيام' : 'Last 7 days') : range === '30d' ? (i18n.language === 'ar' ? 'آخر 30 يوماً' : 'Last 30 days') : (i18n.language === 'ar' ? 'آخر 90 يوماً' : 'Last 90 days')}
             />
             <CardBody className="pt-0">
               <div className="relative w-full min-w-0" style={{ height: 280 }}>
                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={280} debounce={50}>
-                  <BarChart data={MOCK_WEEKLY} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                  <BarChart data={timeSeries.length ? timeSeries : [{ name: '-', bookings: 0 }]} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="#94a3b8" />
                     <YAxis tick={{ fontSize: 12 }} stroke="#94a3b8" />
@@ -505,23 +510,23 @@ export default function AnalyticsPage() {
       >
         <AnimatedCard className="overflow-hidden">
           <CardHeader
-            title={t('dashboard.servicesByCategory')}
-            subtitle="Distribution by category"
+            title={t('dashboard.bookingsByStatus', 'Bookings by status')}
+            subtitle={i18n.language === 'ar' ? 'توزيع الحجوزات حسب الحالة' : 'Distribution by status'}
           />
           <CardBody className="pt-0">
             <div className="relative w-full min-w-0" style={{ height: 300 }}>
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300} debounce={50}>
                 <PieChart>
                   <Pie
-                    data={MOCK_CATEGORY}
+                    data={categoryBreakdown.filter((c) => c.value > 0).length ? categoryBreakdown.filter((c) => c.value > 0) : [{ name: i18n.language === 'ar' ? 'لا بيانات' : 'No data', value: 0 }]}
                     dataKey="value"
                     nameKey="name"
                     cx="50%"
                     cy="50%"
                     outerRadius={100}
-                    label={({ name, value }) => `${name} ${value}%`}
+                    label={({ name, value }) => `${name} (${value})`}
                   >
-                    {MOCK_CATEGORY.map((_, i) => (
+                    {(categoryBreakdown.filter((c) => c.value > 0).length ? categoryBreakdown.filter((c) => c.value > 0) : [{ name: '-', value: 0 }]).map((_, i) => (
                       <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                     ))}
                   </Pie>

@@ -2,7 +2,7 @@ import api from './api';
 
 /**
  * Vehicle models API. List is public; create/update/delete require Admin.
- * Backend accepts brandId, name, nameAr, year, size (SMALL|MEDIUM|LARGE|EXTRA_LARGE), imageUrl.
+ * Backend accepts brandId, name, nameAr, year, type (VehicleType enum), imageUrl.
  */
 export const modelService = {
   async getModels(params = {}) {

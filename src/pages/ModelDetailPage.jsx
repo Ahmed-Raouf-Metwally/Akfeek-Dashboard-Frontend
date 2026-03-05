@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Car } from 'lucide-react';
 import { modelService } from '../services/modelService';
 import { TableSkeleton } from '../components/ui/Skeleton';
@@ -18,6 +19,7 @@ function DetailRow({ label, value }) {
 export default function ModelDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const { data: model, isLoading, isError } = useQuery({
     queryKey: ['model', id],
@@ -98,7 +100,7 @@ export default function ModelDetailPage() {
           <DetailRow label="Name" value={model.name} />
           <DetailRow label="Name (Ar)" value={model.nameAr} />
           <DetailRow label="Year" value={model.year != null ? String(model.year) : null} />
-          <DetailRow label="Size / Type" value={model.size ?? model.type} />
+          <DetailRow label={t('models.type')} value={model.type ? (t(`models.types.${model.type}`) || model.type) : '—'} />
           <DetailRow label="Status" value={model.isActive !== false ? 'Active' : 'Inactive'} />
         </div>
       </Card>

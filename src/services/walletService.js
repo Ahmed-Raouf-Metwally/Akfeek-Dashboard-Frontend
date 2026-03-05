@@ -21,7 +21,11 @@ export const walletService = {
   async getRefunds(params) {
     const { data } = await api.get('/admin/finance/refunds', { params });
     if (!data.success) throw new Error(data.error || data.message || 'Failed to load refunds');
-    return data.data;
+    const payload = data.data || {};
+    return {
+      list: payload.list ?? [],
+      pagination: payload.pagination ?? { page: 1, limit: 10, total: 0, totalPages: 1 },
+    };
   },
 
   async creditWallet(payload) {

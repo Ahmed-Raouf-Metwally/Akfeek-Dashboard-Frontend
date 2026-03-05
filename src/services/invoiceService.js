@@ -13,6 +13,11 @@ export const invoiceService = {
     const pagination = data.pagination ?? { page: 1, limit: 10, total: 0, totalPages: 1 };
     return { list, pagination, message: data.message };
   },
+  /**
+   * Get invoice by ID. For tax invoice display, backend should include:
+   * - vendor (or booking.workshop.vendor) with businessName, businessNameAr, taxNumber, contactEmail, contactPhone, address, city, country, commercialLicense
+   * - customer, lineItems, booking
+   */
   async getInvoiceById(id) {
     const { data } = await api.get(`/invoices/${id}`);
     if (!data.success) throw new Error(data.error || 'Invoice not found');

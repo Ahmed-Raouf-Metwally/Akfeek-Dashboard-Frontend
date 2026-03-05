@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { CreditCard, Eye } from 'lucide-react';
+import { CreditCard, Eye, FileText } from 'lucide-react';
 import { paymentService } from '../services/paymentService';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
 import { Card } from '../components/ui/Card';
 import { useDateFormat } from '../hooks/useDateFormat';
+import { CURRENCY_SYMBOL } from '../constants/currency';
 
 const PAGE_SIZE = 10;
 
@@ -36,6 +38,15 @@ function StatusBadge({ status, t }) {
 function MethodLabel({ method, t }) {
   const label = t(`finance.methods.${method}`) || method;
   return <span>{label || '—'}</span>;
+}
+
+/** إجمالي من بنود الفاتورة (مطابق لصفحة الفاتورة) أو مبلغ الدفع */
+function effectivePaymentAmount(pay) {
+  const items = pay.invoice?.lineItems;
+  if (items && items.length > 0) {
+    return items.reduce((s, line) => s + Number(line.totalPrice ?? 0), 0);
+  }
+  return pay.amount != null ? Number(pay.amount) : null;
 }
 
 export default function PaymentsPage() {
@@ -122,29 +133,46 @@ export default function PaymentsPage() {
               <table className="w-full border-collapse" role="grid">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/80">
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('finance.paymentNumber') || 'رقم الدفع'}</th>
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('finance.invoiceNumber')}</th>
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.customer')}</th>
-                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.totalPrice')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.totalPrice')} ({CURRENCY_SYMBOL})</th>
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('finance.method')}</th>
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.status')}</th>
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.date')}</th>
+                    <th className="w-20 px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {list.map((pay) => (
                     <tr key={pay.id} className="border-b border-slate-100 transition-colors hover:bg-slate-50/50">
-                      <td className="px-4 py-3 text-sm font-medium text-slate-900" title={pay.id}>{pay.transactionId || pay.id.substring(0,8)}</td>
+                      <td className="px-4 py-3 font-mono text-sm font-medium text-slate-900" title={pay.id}>{pay.paymentNumber || pay.id?.slice(0, 8)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">
+                        {pay.invoice?.id ? (
+                          <Link to={`/invoices/${pay.invoice.id}`} className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-500">
+                            <FileText className="size-4" />
+                            {pay.invoice?.invoiceNumber || pay.invoiceId?.slice(0, 8)}
+                          </Link>
+                        ) : (pay.invoice?.invoiceNumber || '—')}
+                      </td>
                       <td className="px-4 py-3 text-sm text-slate-600">{customerLabel(pay)}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">
-                        {pay.amount != null ? Number(pay.amount).toFixed(2) : '—'}
+                        {effectivePaymentAmount(pay) != null ? `${Number(effectivePaymentAmount(pay)).toFixed(2)} ${CURRENCY_SYMBOL}` : '—'}
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600">
-                         <MethodLabel method={pay.method} t={t} />
+                        <MethodLabel method={pay.method} t={t} />
                       </td>
                       <td className="px-4 py-3">
                         <StatusBadge status={pay.status} t={t} />
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600">{fmt(pay.createdAt)}</td>
+                      <td className="px-4 py-3">
+                        {pay.invoice?.id && (
+                          <Link to={`/invoices/${pay.invoice.id}`} className="inline-flex size-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700" title={t('common.details')}>
+                            <Eye className="size-5" />
+                          </Link>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

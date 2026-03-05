@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Search, MapPin, Phone, CheckCircle, Building2, Star, ArrowRight, ShieldCheck, Store } from 'lucide-react';
+import { Search, MapPin, Phone, CheckCircle, Building2, Star, ArrowRight, ShieldCheck, Store, Plus } from 'lucide-react';
 import { workshopService } from '../services/workshopService';
 import { vendorService } from '../services/vendorService';
 import { useAuthStore } from '../store/authStore';
@@ -92,11 +92,12 @@ export default function WorkshopsComprehensiveCarePage() {
         enabled: isAdmin,
     });
 
-    const { data: careVendors = [], isLoading: loadingVendors } = useQuery({
+    const { data: careVendorsResult, isLoading: loadingVendors } = useQuery({
         queryKey: ['vendors-comprehensive-care'],
-        queryFn: () => vendorService.getVendors({ vendorType: 'COMPREHENSIVE_CARE' }),
+        queryFn: () => vendorService.getVendors({ vendorType: 'COMPREHENSIVE_CARE', limit: 100 }),
         enabled: isAdmin,
     });
+    const careVendors = careVendorsResult?.vendors ?? [];
 
     const filteredEntities = useMemo(() => {
         // Certified workshops might also offer "comprehensive care" or "detailing"
@@ -149,6 +150,13 @@ export default function WorkshopsComprehensiveCarePage() {
                             <p className="mt-2 max-w-xl text-purple-100/90">{isAr ? 'عرض كافة الفيندوز والورش التي توفر خدمات العناية الشاملة للسيارات.' : 'View all vendors and workshops providing comprehensive car care services.'}</p>
                         </div>
                     </div>
+                    <Link
+                        to="/vendors/new?type=COMPREHENSIVE_CARE"
+                        className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-purple-700 shadow-md hover:bg-purple-50 transition-colors"
+                    >
+                        <Plus className="size-4" />
+                        {isAr ? 'إضافة فيندور عناية شاملة' : 'Add Care Vendor'}
+                    </Link>
                 </div>
             </div>
 

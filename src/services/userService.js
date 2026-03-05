@@ -58,6 +58,18 @@ export const userService = {
   },
 
   /**
+   * Create user. Admin only.
+   * @param {{ email: string, password: string, role: string, firstName: string, lastName: string, phone?: string, preferredLanguage?: string }}
+   */
+  async createUser(payload) {
+    const { data } = await api.post('/users', payload);
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to create user');
+    }
+    return data.data;
+  },
+
+  /**
    * Delete user. Admin only.
    */
   async deleteUser(id) {

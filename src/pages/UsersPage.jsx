@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { Search, UserMinus, Check, Eye, Trash2, Car, MapPin, Pencil } from 'lucide-react';
+import { Search, UserMinus, Check, Eye, Trash2, Car, MapPin, Pencil, UserPlus } from 'lucide-react';
 import { userService } from '../services/userService';
 import { useConfirm } from '../hooks/useConfirm';
 import { TableSkeleton } from '../components/ui/Skeleton';
@@ -208,6 +208,16 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
       <ConfirmModal />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{t('users.title', 'المستخدمون')}</h1>
+        <Link
+          to="/users/new"
+          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-500"
+        >
+          <UserPlus className="size-5" />
+          {t('users.addUser', 'إضافة مستخدم')}
+        </Link>
+      </div>
       <Card className="overflow-hidden p-0">
         <form onSubmit={handleSearchSubmit} className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-4 py-4">
           <div className="relative flex-1 min-w-[200px]">
