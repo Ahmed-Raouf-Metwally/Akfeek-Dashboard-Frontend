@@ -27,15 +27,7 @@ const VENDOR_TYPES = [
   { value: 'CAR_WASH',           labelEn: 'Car Wash',         labelAr: 'غسيل سيارات' },
   { value: 'MOBILE_WORKSHOP',    labelEn: 'Mobile Workshop',  labelAr: 'ورشة متنقلة' },
   { value: 'TOWING_SERVICE',     labelEn: 'Towing / Winch',   labelAr: 'سحب وونش' },
-];
-
-const VENDOR_TYPES = [
-  { value: 'ALL', labelEn: 'All Types', labelAr: 'الكل' },
-  { value: 'AUTO_PARTS', labelEn: 'Auto Parts', labelAr: 'قطع غيار' },
-  { value: 'COMPREHENSIVE_CARE', labelEn: 'Comprehensive Care', labelAr: 'عناية شاملة' },
-  { value: 'CERTIFIED_WORKSHOP', labelEn: 'Certified Workshop', labelAr: 'ورش معتمدة' },
-  { value: 'CAR_WASH', labelEn: 'Car Wash', labelAr: 'غسيل سيارات' },
-  { value: 'ADHMN_AKFEEK', labelEn: 'Adhmn Akfeek', labelAr: 'أضمن أكفيك' },
+  { value: 'ADHMN_AKFEEK',       labelEn: 'Adhmn Akfeek',     labelAr: 'أضمن أكفيك' }
 ];
 
 export default function VendorsPage() {
