@@ -133,7 +133,7 @@ export default function MarketplaceOrdersPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${getStatusColor(order.status)}`}>
-                        {t(`finance.status.${order.status}`) || order.status}
+                        {t(`finance.status.${order.status}`, order.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">

@@ -57,15 +57,13 @@ export default function BookingsPage() {
   const list = data?.list ?? [];
   const pagination = data?.pagination ?? { page: 1, total: 0, totalPages: 1, limit: PAGE_SIZE };
 
-  // حالات أساسية للفلتر فقط — الحجوزات قد تحمل حالات أخرى في النظام لكن نعرض الأكثر استخداماً
+  // 5 حالات مبسطة فقط — الباكند يوسّع الفلتر تلقائياً للحالات التفصيلية
   const STATUS_OPTIONS = [
     { value: 'PENDING', label: i18n.language === 'ar' ? 'قيد الانتظار' : 'Pending' },
     { value: 'CONFIRMED', label: i18n.language === 'ar' ? 'مؤكد' : 'Confirmed' },
-    { value: 'IN_PROGRESS', label: i18n.language === 'ar' ? 'جارٍ التنفيذ' : 'In Progress' },
+    { value: 'IN_PROGRESS', label: i18n.language === 'ar' ? 'قيد التنفيذ' : 'In Progress' },
     { value: 'COMPLETED', label: i18n.language === 'ar' ? 'مكتمل' : 'Completed' },
-    { value: 'DELIVERED', label: i18n.language === 'ar' ? 'تم التسليم' : 'Delivered' },
     { value: 'CANCELLED', label: i18n.language === 'ar' ? 'ملغى' : 'Cancelled' },
-    { value: 'REJECTED', label: i18n.language === 'ar' ? 'مرفوض' : 'Rejected' },
   ];
 
   if (isLoading) {
@@ -168,7 +166,7 @@ export default function BookingsPage() {
                       )}
                       <td className="px-4 py-3">
                         <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
-                          {b.status ?? '—'}
+                          {b.displayStatus ? t(`bookings.statusValues.${b.displayStatus}`, b.displayStatus) : (b.status ?? '—')}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600">{fmt(b.scheduledDate)}</td>

@@ -130,7 +130,6 @@
     "vehicles": "Vehicles",
     "broadcasts": "Broadcasts",
     "towingRequests": "Towing Requests",
-    "inspections": "Inspections",
     "supply-requests": "Supply Requests",
     "invoices": "Invoices",
     "payments": "Payments",
@@ -169,6 +168,7 @@
     "refunds": "Refunds",
     "commissionReport": "Commission Report",
     "winches": "Winches",
+    "mobile-workshop-types": "Mobile Workshop Types",
     "mobile-workshops": "Mobile Workshops"
   },
   "language": {
@@ -345,6 +345,7 @@
     "bookings": "Bookings",
     "services": "Services",
     "revenueSAR": "Revenue (SAR)",
+    "platformCommissionSAR": "Platform Commission (SAR)",
     "analytics": "Analytics",
     "analyticsSubtitle": "Platform metrics and performance",
     "growth": "Growth",
@@ -424,7 +425,9 @@
     "roles": {
       "ADMIN": "Admin",
       "CUSTOMER": "Customer",
+      "EMPLOYEE": "Akfeek Employee",
       "TECHNICIAN": "Technician",
+      "VENDOR": "Vendor",
       "SUPPLIER": "Supplier"
     },
     "status": {
@@ -450,7 +453,6 @@
       "MAINTENANCE": "Maintenance",
       "REPAIR": "Repair",
       "EMERGENCY": "Emergency",
-      "INSPECTION": "Inspection",
       "CUSTOMIZATION": "Customization",
       "COMPREHENSIVE_CARE": "Comprehensive Care"
     },
@@ -458,7 +460,6 @@
       "FIXED": "Fixed",
       "CATALOG": "Catalog",
       "EMERGENCY": "Emergency",
-      "INSPECTION": "Inspection",
       "MOBILE_CAR_SERVICE": "Mobile Car Service"
     },
     "parentService": "Parent service",
@@ -482,10 +483,19 @@
     "customer": "Customer",
     "service": "Service",
     "date": "Date",
+    "time": "Time",
+    "provider": "Service provider / Vendor",
     "status": "Status",
     "totalPrice": "Total Price",
     "noBookings": "No bookings found",
-    "noBookingsDesc": "There are no bookings matching your filters"
+    "noBookingsDesc": "There are no bookings matching your filters",
+    "statusValues": {
+      "PENDING": "Pending",
+      "CONFIRMED": "Confirmed",
+      "IN_PROGRESS": "In Progress",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled"
+    }
   },
   "products": {
     "title": "Products",
@@ -790,7 +800,10 @@
       "PARTIALLY_PAID": "Partially Paid",
       "OVERDUE": "Overdue",
       "CANCELLED": "Cancelled",
+      "CONFIRMED": "Confirmed",
       "PROCESSING": "Processing",
+      "SHIPPED": "Shipped",
+      "DELIVERED": "Delivered",
       "COMPLETED": "Completed",
       "FAILED": "Failed",
       "REFUNDED": "Refunded"
@@ -819,12 +832,6 @@
     "pointsAudit": "Points Transaction Audit",
     "pointsAuditDesc": "View all loyalty point transactions",
     "type": "Type"
-  },
-  "inspections": {
-    "title": "Inspection Reports",
-    "subtitle": "View and manage vehicle inspection reports and quotes",
-    "emptyStateTitle": "Inspections Page",
-    "emptyStateDesc": "This page will display vehicle inspection reports, inspection items, quotes, and customer responses."
   },
   "supply": {
     "title": "Supply Requests",
@@ -867,7 +874,42 @@
     "searchPlaceholder": "Search order # or customer...",
     "noOrders": "No orders found",
     "noOrdersDesc": "Try adjusting your search or filters",
-    "orderNumber": "Order #"
+    "orderNumber": "Order #",
+    "detail": {
+      "backToOrders": "Back to Orders",
+      "loading": "Loading order details...",
+      "notFound": "Order not found",
+      "placedOn": "Placed on",
+      "printInvoice": "Print Invoice",
+      "viewInvoice": "View Invoice",
+      "orderItems": "Order Items",
+      "qty": "Qty",
+      "itemStatus": "Item Status",
+      "subtotal": "Subtotal",
+      "subtotalInclusive": "Subtotal (incl. VAT)",
+      "shipping": "Shipping",
+      "tax": "Tax (15%)",
+      "total": "Total",
+      "customerDetails": "Customer Details",
+      "shippingAddress": "Shipping Address",
+      "noAddress": "No address provided",
+      "phone": "Phone",
+      "paymentInfo": "Payment Info",
+      "method": "Method",
+      "status": "Status",
+      "unknown": "Unknown",
+      "invoiceTitle": "Invoice",
+      "date": "Date",
+      "item": "Item",
+      "price": "Price",
+      "customer": "Customer",
+      "shippingAddressLabel": "Shipping Address",
+      "payment": "Payment",
+      "orderStatusUpdated": "Order status updated",
+      "itemStatusUpdated": "Item status updated",
+      "updateStatusFailed": "Failed to update status",
+      "allowPopupsToPrint": "Please allow pop-ups to print the invoice."
+    }
   },
   "pagination": {
     "page": "Page",

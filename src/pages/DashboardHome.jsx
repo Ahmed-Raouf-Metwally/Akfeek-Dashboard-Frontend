@@ -9,6 +9,7 @@ import {
   Users,
   CalendarCheck,
   TrendingUp,
+  CircleDollarSign,
   Wrench,
   ExternalLink,
   Plus,
@@ -142,6 +143,7 @@ export default function DashboardHome() {
   const totalUsers = stats.totalUsers ?? 0;
   const totalBookingsCount = stats.totalBookings ?? 0;
   const revenue = stats.revenue ?? 0;
+  const totalCommission = stats.totalCommission ?? 0;
 
   return (
     <div className="space-y-8">
@@ -439,6 +441,15 @@ export default function DashboardHome() {
             colorClass="bg-blue-500"
             loading={statsLoading}
           />
+          <Link to="/commission-report" className="block transition-transform hover:scale-[1.02]">
+            <StatCard
+              title={t('dashboard.platformCommissionSAR')}
+              value={totalCommission.toLocaleString()}
+              icon={CircleDollarSign}
+              colorClass="bg-amber-500"
+              loading={statsLoading}
+            />
+          </Link>
         </div>
       </section>
 
@@ -523,7 +534,7 @@ export default function DashboardHome() {
                     </div>
                     <div className="text-right">
                       <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
-                        {booking.status}
+                        {booking.displayStatus ? t(`bookings.statusValues.${booking.displayStatus}`, booking.displayStatus) : booking.status}
                       </span>
                     </div>
                   </div>

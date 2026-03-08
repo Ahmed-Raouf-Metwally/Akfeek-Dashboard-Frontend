@@ -11,17 +11,33 @@ import { API_BASE_URL } from '../config/env';
 import { Card } from '../components/ui/Card';
 import Input from '../components/Input';
 
+/** تسطيح شجرة الفئات إلى قائمة للقائمة المنسدلة (جذر + كل الفرعية) */
+function flattenCategoryTree(tree) {
+  const out = [];
+  function walk(nodes, depth = 0) {
+    if (!Array.isArray(nodes)) return;
+    for (const node of nodes) {
+      out.push({ ...node, _depth: depth });
+      if (node.children?.length) walk(node.children, depth + 1);
+    }
+  }
+  walk(tree);
+  return out;
+}
+
 export default function CreateAutoPartPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'ADMIN';
 
-  // Data Fetching
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories-tree'],
-    queryFn: () => autoPartCategoryService.getCategoryTree(),
+  const [categoryType, setCategoryType] = useState('CAR'); // CAR | MOTORCYCLE
+
+  const { data: categoryTree = [] } = useQuery({
+    queryKey: ['categories-tree', categoryType],
+    queryFn: () => autoPartCategoryService.getCategoryTree({ vehicleType: categoryType }),
   });
+  const categoriesFlat = flattenCategoryTree(categoryTree);
 
   const { data: vendorsResult } = useQuery({
     queryKey: ['vendors-list'],
@@ -40,6 +56,11 @@ export default function CreateAutoPartPage() {
     stockQuantity: '',
     description: '',
   });
+
+  const handleCategoryTypeChange = (type) => {
+    setCategoryType(type);
+    setFormData((prev) => ({ ...prev, categoryId: '' }));
+  };
 
   const [portfolioImageUrl, setPortfolioImageUrl] = useState('');
   const [portfolioUploading, setPortfolioUploading] = useState(false);
@@ -248,9 +269,28 @@ export default function CreateAutoPartPage() {
 
           <div className="space-y-6">
             <Card className="p-6 space-y-6">
-              <h3 className="font-semibold text-slate-900">Organization</h3>
+              <h3 className="font-semibold text-slate-900">التصنيف</h3>
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">Category</label>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">نوع الفئة</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleCategoryTypeChange('CAR')}
+                    className={`flex-1 rounded-lg border-2 px-3 py-2.5 text-sm font-semibold transition-all ${categoryType === 'CAR' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'}`}
+                  >
+                    قطع غيار سيارات
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleCategoryTypeChange('MOTORCYCLE')}
+                    className={`flex-1 rounded-lg border-2 px-3 py-2.5 text-sm font-semibold transition-all ${categoryType === 'MOTORCYCLE' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'}`}
+                  >
+                    دراجات نارية
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">الفئة</label>
                 <select
                   name="categoryId"
                   value={formData.categoryId}
@@ -258,11 +298,14 @@ export default function CreateAutoPartPage() {
                   className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   required
                 >
-                  <option value="">Select Category</option>
-                  {categories.map(c => (
-                    <option key={c.id} value={c.id}>{c.nameAr || c.name}</option>
+                  <option value="">اختر الفئة</option>
+                  {categoriesFlat.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {(c._depth ? '— '.repeat(c._depth) : '') + (c.nameAr || c.name)}
+                    </option>
                   ))}
                 </select>
+                <p className="mt-1 text-xs text-slate-500">فقط الفئات المرتبطة بنوع «{categoryType === 'CAR' ? 'قطع غيار سيارات' : 'دراجات نارية'}»</p>
               </div>
 
               {isAdmin && (

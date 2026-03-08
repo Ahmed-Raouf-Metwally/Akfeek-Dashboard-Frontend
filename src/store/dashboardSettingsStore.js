@@ -18,6 +18,8 @@ const DEFAULT_NAV = {
   vendorMyServices: true,
   vendorBookings: true,
   mobileCarService: true,
+  'mobile-workshop-types': true,
+  'mobile-workshops': true,
   brands: true,
   models: true,
   bookings: true,

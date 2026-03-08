@@ -78,7 +78,7 @@ export default function TaxInvoiceView({ invoice }) {
   const summaryTax = lineItems.reduce((s, r) => s + r.taxAmount, 0);
   const summaryTotal = lineItems.reduce((s, r) => s + r.total, 0);
 
-  const invoiceUrl = typeof window !== 'undefined' ? `${window.location.origin}/invoices/${invoice?.id}` : '';
+  const invoiceUrl = invoice?.invoiceUrl || (typeof window !== 'undefined' ? `${window.location.origin}/invoices/${invoice?.id}` : '');
   const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(invoiceUrl)}`;
 
   return (

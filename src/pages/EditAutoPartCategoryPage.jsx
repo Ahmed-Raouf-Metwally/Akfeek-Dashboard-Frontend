@@ -22,7 +22,7 @@ export default function EditAutoPartCategoryPage() {
         description: '',
         descriptionAr: '',
         imageUrl: '',
-        vehicleType: 'SEDAN',
+        rootType: 'CAR',
         icon: '',
     });
 
@@ -43,7 +43,7 @@ export default function EditAutoPartCategoryPage() {
                 description: category.description || '',
                 descriptionAr: category.descriptionAr || '',
                 imageUrl: category.imageUrl || '',
-                vehicleType: category.vehicleType || 'SEDAN',
+                rootType: category.rootType || 'CAR',
                 icon: category.icon || '',
             });
         }
@@ -196,19 +196,19 @@ export default function EditAutoPartCategoryPage() {
                     <Card className="p-6 space-y-4">
                         <h3 className="font-semibold text-slate-900">تصنيف القسم (Classification)</h3>
                         <div>
-                            <label className="mb-1.5 block text-sm font-medium text-slate-700">نوع المركبات</label>
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">نوع القسم (للفئات الجذرية)</label>
                             <div className="grid grid-cols-2 gap-2">
                                 <button
                                     type="button"
-                                    onClick={() => setFormData({ ...formData, vehicleType: 'SEDAN' })}
-                                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${formData.vehicleType !== 'MOTORCYCLE' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-100 bg-white text-slate-500 hover:border-slate-200'}`}
+                                    onClick={() => setFormData({ ...formData, rootType: 'CAR' })}
+                                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${formData.rootType === 'CAR' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-100 bg-white text-slate-500 hover:border-slate-200'}`}
                                 >
                                     <span className="text-sm font-bold">قطع غيار سيارات</span>
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setFormData({ ...formData, vehicleType: 'MOTORCYCLE' })}
-                                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${formData.vehicleType === 'MOTORCYCLE' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-100 bg-white text-slate-500 hover:border-slate-200'}`}
+                                    onClick={() => setFormData({ ...formData, rootType: 'MOTORCYCLE' })}
+                                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${formData.rootType === 'MOTORCYCLE' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-100 bg-white text-slate-500 hover:border-slate-200'}`}
                                 >
                                     <span className="text-sm font-bold">دراجات نارية</span>
                                 </button>

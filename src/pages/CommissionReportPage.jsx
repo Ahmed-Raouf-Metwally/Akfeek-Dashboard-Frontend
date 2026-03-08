@@ -15,8 +15,12 @@ import { useDateFormat } from '../hooks/useDateFormat';
 import { CURRENCY_SYMBOL } from '../constants/currency';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
+// أرقام إنجليزية (0–9) وليس عربية — en-US
 function fmt2(n) {
-  return Number(n ?? 0).toLocaleString('ar-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return Number(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtNum(n) {
+  return Number(n ?? 0).toLocaleString('en-US');
 }
 
 function SummaryCard({ icon: Icon, label, value, sub, color = 'indigo', highlight = false }) {
@@ -219,7 +223,7 @@ export default function CommissionReportPage() {
             </div>
           ) : (
             <div className="flex items-end gap-1">
-              <span className="text-3xl font-bold text-amber-600">{vatRate}</span>
+              <span className="text-3xl font-bold text-amber-600">{fmtNum(vatRate)}</span>
               <span className="mb-1 text-lg text-amber-400">%</span>
             </div>
           )}
@@ -237,7 +241,7 @@ export default function CommissionReportPage() {
           <ul className="space-y-0.5 text-xs text-blue-700">
             <li>• <strong>عمولة الموقع</strong> = قيمة (حجز أو طلب متجر) × نسبة العمولة ÷ 100</li>
             <li>• <strong>نسبة العمولة</strong> تُحدَّد <strong>لكل فيندور</strong> من صفحة تعديل الفيندور (حقل نسبة العمولة). لا توجد نسبة افتراضية للمنصة.</li>
-            <li>• <strong>ضريبة القيمة المضافة المستحقة</strong> = عمولة الموقع × {vatRate}% ÷ 100</li>
+            <li>• <strong>ضريبة القيمة المضافة المستحقة</strong> = عمولة الموقع × {fmtNum(vatRate)}% ÷ 100</li>
             <li>• <strong>صافي العمولة بعد الضريبة</strong> = عمولة الموقع − ضريبة القيمة المضافة</li>
             <li>• الحجوزات: حالات <strong>مكتمل / تم التسليم / جاهز للتسليم</strong></li>
             <li>• طلبات المتجر: <strong>مُوصّل أو شُحِن</strong> و<strong>مدفوعة</strong> فقط (للدقة)</li>
@@ -309,7 +313,7 @@ export default function CommissionReportPage() {
               color="indigo"
               label="إجمالي الإيرادات (حجوزات + متجر)"
               value={fmt2(summary.totalRevenue)}
-              sub={`${summary.totalBookings ?? 0} حجز · ${summary.totalMarketplaceOrders ?? 0} طلب متجر`}
+              sub={`${fmtNum(summary.totalBookings)} حجز · ${fmtNum(summary.totalMarketplaceOrders)} طلب متجر`}
             />
             <SummaryCard
               icon={TrendingUp}
@@ -324,7 +328,7 @@ export default function CommissionReportPage() {
               color="amber"
               label="ضريبة القيمة المضافة المستحقة"
               value={fmt2(summary.totalVat)}
-              sub={`${summary.vatRate}% من العمولة`}
+              sub={`${fmtNum(summary.vatRate)}% من العمولة`}
             />
             <SummaryCard
               icon={CheckCircle2}
@@ -353,7 +357,7 @@ export default function CommissionReportPage() {
         <div className="border-b border-slate-100 px-5 py-4 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-slate-800">
             تفاصيل الحجوزات وطلبات المتجر
-            {pgn && <span className="mr-2 text-slate-400 font-normal text-xs">({pgn.total} عنصر)</span>}
+            {pgn && <span className="mr-2 text-slate-400 font-normal text-xs">({fmtNum(pgn.total)} عنصر)</span>}
           </h2>
         </div>
 
@@ -389,7 +393,7 @@ export default function CommissionReportPage() {
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">العمولة</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    ضريبة القيمة المضافة ({summary?.vatRate ?? vatRate}%)
+                    ضريبة القيمة المضافة ({fmtNum(summary?.vatRate ?? vatRate)}%)
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">صافي العمولة</th>
                   <th className="w-10 px-4 py-3" />
@@ -418,7 +422,7 @@ export default function CommissionReportPage() {
                     <td className="px-4 py-3">
                       {row.commissionPercent != null ? (
                         <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700">
-                          {Number(row.commissionPercent).toFixed(1)}%
+                          {Number(row.commissionPercent).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
                         </span>
                       ) : (
                         <span className="text-xs text-slate-400">—</span>
@@ -439,7 +443,7 @@ export default function CommissionReportPage() {
               {summary && (
                 <tfoot>
                   <tr className="border-t-2 border-slate-200 bg-slate-50 font-semibold">
-                    <td colSpan={4} className="px-4 py-3 text-sm text-slate-700">الإجمالي ({pgn?.total} عنصر)</td>
+                    <td colSpan={4} className="px-4 py-3 text-sm text-slate-700">الإجمالي ({fmtNum(pgn?.total)} عنصر)</td>
                     <td className="px-4 py-3 text-sm text-slate-900">{fmt2(summary.totalRevenue)} {CURRENCY_SYMBOL}</td>
                     <td className="px-4 py-3" />
                     <td className="px-4 py-3 text-sm text-emerald-700">{fmt2(summary.totalCommission)} {CURRENCY_SYMBOL}</td>
@@ -457,7 +461,7 @@ export default function CommissionReportPage() {
         {pgn && pgn.totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-slate-100 px-5 py-3 print:hidden">
             <span className="text-xs text-slate-500">
-              صفحة {pgn.page} من {pgn.totalPages}
+              صفحة {fmtNum(pgn.page)} من {fmtNum(pgn.totalPages)}
             </span>
             <div className="flex gap-2">
               <button

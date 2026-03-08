@@ -39,7 +39,6 @@ import RatingsPage from './pages/RatingsPage';
 import JobBroadcastsPage from './pages/JobBroadcastsPage';
 import BroadcastDetailPage from './pages/BroadcastDetailPage';
 import TowingRequestsPage from './pages/TowingRequestsPage';
-import InspectionsPage from './pages/InspectionsPage';
 import SettingsPage from './pages/SettingsPage';
 import ProfilePage from './pages/ProfilePage';
 import NotificationsPage from './pages/NotificationsPage';
@@ -55,6 +54,7 @@ import CreateEditWinchPage from './pages/CreateEditWinchPage';
 import MobileWorkshopsPage from './pages/MobileWorkshopsPage';
 import MobileWorkshopDetailPage from './pages/MobileWorkshopDetailPage';
 import CreateEditMobileWorkshopPage from './pages/CreateEditMobileWorkshopPage';
+import MobileWorkshopTypesPage from './pages/MobileWorkshopTypesPage';
 import MyVendorRedirectPage from './pages/MyVendorRedirectPage';
 import VendorOnboardingPage from './pages/VendorOnboardingPage';
 import AutoPartsPage from './pages/AutoPartsPage';
@@ -66,6 +66,7 @@ import CreateAutoPartCategoryPage from './pages/CreateAutoPartCategoryPage';
 import EditAutoPartCategoryPage from './pages/EditAutoPartCategoryPage';
 import MarketplaceOrdersPage from './pages/MarketplaceOrdersPage';
 import MarketplaceOrderDetailPage from './pages/MarketplaceOrderDetailPage';
+import MarketplaceOrderInvoicePage from './pages/MarketplaceOrderInvoicePage';
 import MobileCarServicePage from './pages/MobileCarServicePage';
 import MobileCarSubServiceNewPage from './pages/MobileCarSubServiceNewPage';
 import MobileCarSubServiceDetailPage from './pages/MobileCarSubServiceDetailPage';
@@ -167,7 +168,6 @@ function App() {
             <Route path="broadcasts" element={<JobBroadcastsPage />} />
             <Route path="broadcasts/:id" element={<BroadcastDetailPage />} />
             <Route path="towing-requests" element={<TowingRequestsPage />} />
-            <Route path="inspections" element={<InspectionsPage />} />
             <Route path="invoices" element={<InvoicesPage />} />
             <Route path="invoices/:id" element={<InvoiceDetailPage />} />
             <Route path="commission-report" element={<CommissionReportPage />} />
@@ -192,6 +192,7 @@ function App() {
             <Route path="winches/new" element={<CreateEditWinchPage />} />
             <Route path="winches/:id" element={<WinchDetailPage />} />
             <Route path="winches/:id/edit" element={<CreateEditWinchPage />} />
+            <Route path="mobile-workshop-types" element={<MobileWorkshopTypesPage />} />
             <Route path="mobile-workshops" element={<MobileWorkshopsPage />} />
             <Route path="mobile-workshops/new" element={<CreateEditMobileWorkshopPage />} />
             <Route path="mobile-workshops/:id" element={<MobileWorkshopDetailPage />} />
@@ -205,6 +206,7 @@ function App() {
             <Route path="auto-part-categories/:id/edit" element={<EditAutoPartCategoryPage />} />
             <Route path="marketplace-orders" element={<MarketplaceOrdersPage />} />
             <Route path="marketplace-orders/:id" element={<MarketplaceOrderDetailPage />} />
+            <Route path="marketplace-orders/:id/invoice" element={<MarketplaceOrderInvoicePage />} />
             <Route path="coupons" element={<AdminOnlyRoute><AdminCouponsPage /></AdminOnlyRoute>} />
 
             {/* Workshops Routes */}

@@ -129,7 +129,6 @@
     "vehicles": "المركبات",
     "broadcasts": "البث المباشر",
     "towingRequests": "طلبات الونش",
-    "inspections": "الفحوصات",
     "supply-requests": "طلبات التوريد",
     "invoices": "الفواتير",
     "payments": "المدفوعات",
@@ -168,6 +167,7 @@
     "refunds": "الاستردادات",
     "commissionReport": "تقرير العمولة والضريبة",
     "winches": "الوينشات",
+    "mobile-workshop-types": "أنواع الورش المتنقلة",
     "mobile-workshops": "الورش المتنقلة"
   },
   "language": {
@@ -344,6 +344,7 @@
     "bookings": "الحجوزات",
     "services": "الخدمات",
     "revenueSAR": "الإيرادات (ريال)",
+    "platformCommissionSAR": "إجمالي عمولة المنصة (ريال)",
     "analytics": "التحليلات",
     "analyticsSubtitle": "مقاييس المنصة والأداء",
     "growth": "النمو",
@@ -423,7 +424,9 @@
     "roles": {
       "ADMIN": "مسؤول",
       "CUSTOMER": "عميل",
+      "EMPLOYEE": "موظف اكفيك",
       "TECHNICIAN": "فني",
+      "VENDOR": "مورد",
       "SUPPLIER": "مورد"
     },
     "status": {
@@ -450,7 +453,6 @@
       "MAINTENANCE": "صيانة",
       "REPAIR": "إصلاح",
       "EMERGENCY": "طوارئ",
-      "INSPECTION": "فحص",
       "CUSTOMIZATION": "تخصيص",
       "COMPREHENSIVE_CARE": "العناية الشاملة"
     },
@@ -458,7 +460,6 @@
       "FIXED": "ثابت",
       "CATALOG": "كتالوج",
       "EMERGENCY": "طوارئ",
-      "INSPECTION": "فحص",
       "MOBILE_CAR_SERVICE": "خدمة الزرَش / الصيانة المتنقلة"
     },
     "parentService": "الخدمة الأم",
@@ -481,10 +482,19 @@
     "customer": "العميل",
     "service": "الخدمة",
     "date": "التاريخ",
+    "time": "الوقت",
+    "provider": "مقدم الخدمة / الفيندور",
     "status": "الحالة",
     "totalPrice": "السعر الإجمالي",
     "noBookings": "لا توجد حجوزات",
-    "noBookingsDesc": "لا توجد حجوزات تطابق الفلاتر"
+    "noBookingsDesc": "لا توجد حجوزات تطابق الفلاتر",
+    "statusValues": {
+      "PENDING": "قيد الانتظار",
+      "CONFIRMED": "مؤكد",
+      "IN_PROGRESS": "قيد التنفيذ",
+      "COMPLETED": "مكتمل",
+      "CANCELLED": "ملغي"
+    }
   },
   "products": {
     "title": "المنتجات",
@@ -789,7 +799,10 @@
       "PARTIALLY_PAID": "مدفوع جزئياً",
       "OVERDUE": "متأخر",
       "CANCELLED": "ملغي",
+      "CONFIRMED": "مؤكد",
       "PROCESSING": "قيد المعالجة",
+      "SHIPPED": "تم الشحن",
+      "DELIVERED": "تم التوصيل",
       "COMPLETED": "مكتمل",
       "FAILED": "فشل",
       "REFUNDED": "مسترد"
@@ -818,12 +831,6 @@
     "pointsAudit": "سجل عمليات النقاط",
     "pointsAuditDesc": "عرض جميع عمليات نقاط الولاء",
     "type": "النوع"
-  },
-  "inspections": {
-    "title": "تقارير الفحص",
-    "subtitle": "عرض وإدارة تقارير فحص المركبات وعروض الأسعار",
-    "emptyStateTitle": "صفحة الفحص",
-    "emptyStateDesc": "ستعرض هذه الصفحة تقارير فحص المركبات، عناصر الفحص، عروض الأسعار، وردود العملاء."
   },
   "supply": {
     "title": "طلبات التوريد",
@@ -866,7 +873,42 @@
     "searchPlaceholder": "بحث برقم الطلب أو العميل...",
     "noOrders": "لا توجد طلبات",
     "noOrdersDesc": "حاول تعديل البحث أو الفلاتر",
-    "orderNumber": "رقم الطلب"
+    "orderNumber": "رقم الطلب",
+    "detail": {
+      "backToOrders": "العودة للطلبات",
+      "loading": "جاري تحميل تفاصيل الطلب...",
+      "notFound": "الطلب غير موجود",
+      "placedOn": "تاريخ الطلب",
+      "printInvoice": "طباعة الفاتورة",
+      "viewInvoice": "عرض الفاتورة",
+      "orderItems": "عناصر الطلب",
+      "qty": "الكمية",
+      "itemStatus": "حالة الصنف",
+      "subtotal": "المجموع الفرعي",
+      "subtotalInclusive": "المجموع الفرعي (شامل الضريبة)",
+      "shipping": "الشحن",
+      "tax": "الضريبة (15%)",
+      "total": "الإجمالي",
+      "customerDetails": "بيانات العميل",
+      "shippingAddress": "عنوان الشحن",
+      "noAddress": "لم يُذكر عنوان",
+      "phone": "الهاتف",
+      "paymentInfo": "معلومات الدفع",
+      "method": "طريقة الدفع",
+      "status": "الحالة",
+      "unknown": "غير معروف",
+      "invoiceTitle": "فاتورة",
+      "date": "التاريخ",
+      "item": "المنتج",
+      "price": "السعر",
+      "customer": "العميل",
+      "shippingAddressLabel": "عنوان الشحن",
+      "payment": "الدفع",
+      "orderStatusUpdated": "تم تحديث حالة الطلب",
+      "itemStatusUpdated": "تم تحديث حالة الصنف",
+      "updateStatusFailed": "فشل تحديث الحالة",
+      "allowPopupsToPrint": "السماح بالنوافذ المنبثقة لطباعة الفاتورة."
+    }
   },
   "pagination": {
     "page": "صفحة",

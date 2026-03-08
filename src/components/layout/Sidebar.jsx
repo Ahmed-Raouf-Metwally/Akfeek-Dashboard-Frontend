@@ -27,6 +27,7 @@ import {
   Store,
   ShoppingBag,
   Layers,
+  List,
   Truck,
   Building2,
   MessageSquare,
@@ -42,12 +43,12 @@ import { useAuthStore } from '../../store/authStore';
 
 /** موظف أكفيك: كل صلاحية (من الباكند) تُترجم لواحد أو أكثر من مفاتيح القائمة الجانبية */
 const EMPLOYEE_PERMISSION_TO_SIDEBAR_KEYS = {
-  bookings: ['bookings', 'broadcasts', 'towingRequests', 'inspections'],
+  bookings: ['bookings', 'broadcasts', 'towingRequests'],
   vendors: ['vendors', 'vendorRequests', 'auto-part-categories', 'auto-parts', 'marketplace-orders', 'allCoupons'],
   vehicles: ['vehicles', 'brands', 'models'],
   workshops: ['workshops', 'carWashWorkshops', 'comprehensiveCareWorkshops'],
   winches: ['winches'],
-  mobile_workshops: ['mobile-workshops'],
+  mobile_workshops: ['mobile-workshop-types', 'mobile-workshops'],
   invoices: ['invoices'],
   payments: ['payments'],
   users: ['users', 'roles'],
@@ -101,6 +102,7 @@ const SECTIONS = [
       { key: 'carWashWorkshops', to: '/car-wash', icon: Droplets, label: 'Car Wash Workshops', labelAr: 'ورش الغسيل' },
       { key: 'comprehensiveCareWorkshops', to: '/comprehensive-care', icon: ShieldCheck, label: 'Comprehensive Care', labelAr: 'العناية الشاملة' },
       { key: 'winches', to: '/winches', icon: Truck, label: 'الوينشات' },
+      { key: 'mobile-workshop-types', to: '/mobile-workshop-types', icon: List, label: 'أنواع الورش المتنقلة' },
       { key: 'mobile-workshops', to: '/mobile-workshops', icon: Wrench, label: 'الورش المتنقلة' },
       { key: 'technicalSupportRequests', to: '/technical-support-requests', icon: Headphones, label: 'Technical Support Requests' },
       { key: 'brands', to: '/brands', icon: Car, label: 'Vehicle Brands' },
@@ -116,7 +118,6 @@ const SECTIONS = [
       { key: 'bookings', to: '/bookings', icon: CalendarCheck, label: 'Bookings' },
       { key: 'broadcasts', to: '/broadcasts', icon: Radio, label: 'Broadcasts' },
       { key: 'towingRequests', to: '/towing-requests', icon: Truck, label: 'Towing Requests', labelAr: 'طلبات الونش' },
-      { key: 'inspections', to: '/inspections', icon: ClipboardCheck, label: 'Inspections' },
       { key: 'invoices', to: '/invoices', icon: FileText, label: 'Invoices' },
       { key: 'payments', to: '/payments', icon: CreditCard, label: 'Payments' },
       { key: 'refunds', to: '/refunds', icon: RotateCcw, label: 'Refunds', labelAr: 'الاستردادات' },

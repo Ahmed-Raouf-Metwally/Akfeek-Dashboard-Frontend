@@ -21,7 +21,7 @@ export default function CreateAutoPartCategoryPage() {
         description: '',
         descriptionAr: '',
         imageUrl: '',
-        vehicleType: 'SEDAN', // Default to car (standard sedan)
+        rootType: 'CAR', // قطع غيار سيارات | دراجات نارية (CAR | MOTORCYCLE)
         icon: '',
     });
 
@@ -41,7 +41,8 @@ export default function CreateAutoPartCategoryPage() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        createMutation.mutate(formData);
+        const { rootType, ...rest } = formData;
+        createMutation.mutate({ ...rest, rootType: rootType || 'CAR' });
     };
 
     const handleFileSelect = async (e) => {
@@ -172,24 +173,24 @@ export default function CreateAutoPartCategoryPage() {
                         <h3 className="font-semibold text-slate-900">تصنيف القسم (Classification)</h3>
 
                         <div>
-                            <label className="mb-1.5 block text-sm font-medium text-slate-700">نوع المركبات الأساسي</label>
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">نوع القسم (للفئات الجذرية)</label>
                             <div className="grid grid-cols-2 gap-2">
                                 <button
                                     type="button"
-                                    onClick={() => setFormData({ ...formData, vehicleType: 'SEDAN' })}
-                                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${formData.vehicleType !== 'MOTORCYCLE' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-100 bg-white text-slate-500 hover:border-slate-200'}`}
+                                    onClick={() => setFormData({ ...formData, rootType: 'CAR' })}
+                                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${formData.rootType === 'CAR' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-100 bg-white text-slate-500 hover:border-slate-200'}`}
                                 >
                                     <span className="text-sm font-bold">قطع غيار سيارات</span>
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setFormData({ ...formData, vehicleType: 'MOTORCYCLE' })}
-                                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${formData.vehicleType === 'MOTORCYCLE' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-100 bg-white text-slate-500 hover:border-slate-200'}`}
+                                    onClick={() => setFormData({ ...formData, rootType: 'MOTORCYCLE' })}
+                                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${formData.rootType === 'MOTORCYCLE' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-100 bg-white text-slate-500 hover:border-slate-200'}`}
                                 >
                                     <span className="text-sm font-bold">دراجات نارية</span>
                                 </button>
                             </div>
-                            <p className="mt-2 text-[10px] text-slate-500 text-center">يستخدم هذا التصنيف لتوجيه العميل في المتجر</p>
+                            <p className="mt-2 text-[10px] text-slate-500 text-center">يُستخدم لتقسيم الفئات في المتجر: سيارات أو دراجات نارية</p>
                         </div>
                     </Card>
 

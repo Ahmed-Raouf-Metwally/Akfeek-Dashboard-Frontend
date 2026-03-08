@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Save, Wrench, Plus, Trash2, Pencil, Check, X, Car, User, Phone, Mail, MapPin, ImagePlus, Upload } from 'lucide-react';
 import mobileWorkshopService from '../services/mobileWorkshopService';
+import mobileWorkshopTypeService from '../services/mobileWorkshopTypeService';
 import { vendorService } from '../services/vendorService';
 import { Card } from '../components/ui/Card';
 import Input from '../components/Input';
@@ -32,10 +33,9 @@ function mwImageSrc(url) {
   return base ? `${base}${url}` : url;
 }
 
-const EMPTY_SVC = { serviceType: 'GENERAL', name: '', nameAr: '', description: '', price: '', currency: 'SAR', estimatedDuration: '' };
-
 const EMPTY = {
   name: '', nameAr: '', description: '',
+  workshopTypeId: '',
   vehicleType: '', vehicleModel: '', year: '', plateNumber: '',
   city: '', latitude: '', longitude: '', serviceRadius: '',
   basePrice: '', pricePerKm: '', hourlyRate: '', minPrice: '', currency: 'SAR',
@@ -44,10 +44,11 @@ const EMPTY = {
 };
 
 // ── Inline Service Row (edit mode) ──────────────────────────────────────────
-function ServiceRow({ svc, workshopId, onSaved, onDeleted }) {
+function ServiceRow({ svc, workshopId, typeServices = [], onSaved, onDeleted }) {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(!svc.id);
   const [form, setForm] = useState({
+    workshopTypeServiceId: svc.workshopTypeServiceId ?? '',
     serviceType:       svc.serviceType       || 'GENERAL',
     name:              svc.name              || '',
     nameAr:            svc.nameAr            || '',
@@ -59,9 +60,12 @@ function ServiceRow({ svc, workshopId, onSaved, onDeleted }) {
   });
 
   const saveMutation = useMutation({
-    mutationFn: () => svc.id
-      ? mobileWorkshopService.updateService(workshopId, svc.id, { ...form, price: parseFloat(form.price), estimatedDuration: form.estimatedDuration ? parseInt(form.estimatedDuration) : null })
-      : mobileWorkshopService.addService(workshopId, { ...form, price: parseFloat(form.price), estimatedDuration: form.estimatedDuration ? parseInt(form.estimatedDuration) : null }),
+    mutationFn: () => {
+      const payload = { ...form, price: parseFloat(form.price), estimatedDuration: form.estimatedDuration ? parseInt(form.estimatedDuration) : null, workshopTypeServiceId: form.workshopTypeServiceId || null };
+      return svc.id
+        ? mobileWorkshopService.updateService(workshopId, svc.id, payload)
+        : mobileWorkshopService.addService(workshopId, payload);
+    },
     onSuccess: (saved) => { setEditing(false); onSaved(saved); queryClient.invalidateQueries({ queryKey: ['mobile-workshop', workshopId] }); },
     onError: (err) => toast.error(err?.response?.data?.error || err?.message || 'خطأ'),
   });
@@ -81,6 +85,11 @@ function ServiceRow({ svc, workshopId, onSaved, onDeleted }) {
           <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
             {SERVICE_TYPES.find(s => s.value === form.serviceType)?.label || form.serviceType}
           </span>
+          {svc.workshopTypeService && (
+            <span className="rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-medium text-violet-700" title="مرتبط بنوع الورشة">
+              {svc.workshopTypeService.nameAr || svc.workshopTypeService.name}
+            </span>
+          )}
           <span className="font-semibold text-slate-900">{form.name}</span>
           {form.nameAr && <span className="text-slate-500 text-sm">{form.nameAr}</span>}
           <span className={`rounded-full px-2 py-0.5 text-xs ${form.isActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-400'}`}>
@@ -102,6 +111,18 @@ function ServiceRow({ svc, workshopId, onSaved, onDeleted }) {
 
   return (
     <div className="rounded-xl border-2 border-indigo-200 bg-indigo-50/30 p-4 space-y-3">
+      {typeServices.length > 0 && (
+        <div>
+          <label className="mb-1 block text-xs font-medium text-slate-600">ربط بخدمة من نوع الورشة (اختياري)</label>
+          <select name="workshopTypeServiceId" value={form.workshopTypeServiceId} onChange={h}
+            className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+            <option value="">— بدون نوع —</option>
+            {typeServices.map((ts) => (
+              <option key={ts.id} value={ts.id}>{ts.nameAr || ts.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label className="mb-1 block text-xs font-medium text-slate-600">نوع الخدمة</label>
@@ -154,6 +175,34 @@ function ServiceRow({ svc, workshopId, onSaved, onDeleted }) {
   );
 }
 
+// ── صف إضافة سعر لخدمة نوع (وضع التعديل — الخدمة غير مضافة بعد) ──
+function TypeServicePriceRow({ typeService, workshopId, onAdded }) {
+  const [price, setPrice] = useState('');
+  const [estimatedDuration, setEstimatedDuration] = useState('');
+  const addMutation = useMutation({
+    mutationFn: () => mobileWorkshopService.addService(workshopId, {
+      workshopTypeServiceId: typeService.id,
+      name: typeService.name,
+      nameAr: typeService.nameAr || null,
+      description: typeService.description || null,
+      serviceType: 'GENERAL',
+      price: parseFloat(price),
+      currency: 'SAR',
+      estimatedDuration: estimatedDuration ? parseInt(estimatedDuration, 10) : null,
+    }),
+    onSuccess: () => { toast.success('تمت إضافة الخدمة'); onAdded(); setPrice(''); setEstimatedDuration(''); },
+    onError: (err) => toast.error(err?.message || 'فشل'),
+  });
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-xl border border-dashed border-indigo-200 bg-indigo-50/30 p-3">
+      <div className="min-w-[140px] font-medium text-slate-800">{typeService.nameAr || typeService.name}</div>
+      <input type="number" min="0" step="0.5" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="السعر (ر.س)" className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
+      <input type="number" min="0" value={estimatedDuration} onChange={(e) => setEstimatedDuration(e.target.value)} placeholder="المدة (دقيقة)" className="w-20 rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
+      <button type="button" onClick={() => { if (!price || Number(price) <= 0) return toast.error('أدخل السعر'); addMutation.mutate(); }} disabled={addMutation.isPending} className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50">إضافة</button>
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 export default function CreateEditMobileWorkshopPage() {
   const { id } = useParams();
@@ -161,9 +210,9 @@ export default function CreateEditMobileWorkshopPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [form, setForm] = useState(EMPTY);
-  const [localServices, setLocalServices] = useState([]);
-  const [addingNew, setAddingNew] = useState(false);
   const [selectedVendorId, setSelectedVendorId] = useState('');
+  // أسعار خدمات النوع (عند الإنشاء): { [typeServiceId]: { price: '', estimatedDuration: '' } }
+  const [typeServicePrices, setTypeServicePrices] = useState({});
   const fileInputLogoRef = useRef(null);
   const fileInputVehicleRef = useRef(null);
 
@@ -172,6 +221,15 @@ export default function CreateEditMobileWorkshopPage() {
     queryFn: () => mobileWorkshopService.getById(id),
     enabled: isEdit,
   });
+
+  const { data: workshopTypes = [] } = useQuery({
+    queryKey: ['mobile-workshop-types'],
+    queryFn: () => mobileWorkshopTypeService.getAll({ includeInactive: 'true' }),
+    staleTime: 60_000,
+  });
+
+  const selectedType = workshopTypes.find((t) => t.id === form.workshopTypeId);
+  const typeServicesList = selectedType?.typeServices ?? [];
 
   const { data: vendorsResult } = useQuery({
     queryKey: ['vendors', { vendorType: 'MOBILE_WORKSHOP', limit: 100 }],
@@ -202,6 +260,7 @@ export default function CreateEditMobileWorkshopPage() {
       // eslint-disable-next-line
       setForm({
         name: item.name || '', nameAr: item.nameAr || '', description: item.description || '',
+        workshopTypeId: item.workshopTypeId || '',
         vehicleType: item.vehicleType || '', vehicleModel: item.vehicleModel || '',
         year: item.year ?? '', plateNumber: item.plateNumber || '',
         city: item.city || '', latitude: item.latitude ?? '', longitude: item.longitude ?? '',
@@ -228,11 +287,24 @@ export default function CreateEditMobileWorkshopPage() {
   const mutation = useMutation({
     mutationFn: (data) => isEdit ? mobileWorkshopService.update(id, data) : mobileWorkshopService.create(data),
     onSuccess: async (saved) => {
-      // If creating new, save any pending local services
-      if (!isEdit && localServices.length > 0) {
-        await Promise.all(localServices.map(svc =>
-          mobileWorkshopService.addService(saved.id, svc).catch(() => {})
-        ));
+      if (!isEdit) {
+        // خدمات نوع الورشة — أضف كل خدمة لها سعر
+        const typeServicesListForSubmit = workshopTypes.find((t) => t.id === form.workshopTypeId)?.typeServices ?? [];
+        for (const ts of typeServicesListForSubmit) {
+          const p = typeServicePrices[ts.id];
+          if (p && p.price != null && p.price !== '' && Number(p.price) > 0) {
+            await mobileWorkshopService.addService(saved.id, {
+              workshopTypeServiceId: ts.id,
+              name: ts.name,
+              nameAr: ts.nameAr || null,
+              description: ts.description || null,
+              serviceType: 'GENERAL',
+              price: Number(p.price),
+              currency: 'SAR',
+              estimatedDuration: p.estimatedDuration ? parseInt(p.estimatedDuration, 10) : null,
+            }).catch((err) => toast.error(err?.message || 'فشل إضافة خدمة'));
+          }
+        }
       }
       queryClient.invalidateQueries({ queryKey: ['mobile-workshops'] });
       if (isEdit) queryClient.invalidateQueries({ queryKey: ['mobile-workshop', id] });
@@ -246,6 +318,14 @@ export default function CreateEditMobileWorkshopPage() {
     const { name, value, type, checked } = e.target;
     setForm(p => ({ ...p, [name]: type === 'checkbox' ? checked : value }));
     if (name === 'vendorId') setSelectedVendorId(value);
+    if (name === 'workshopTypeId') setTypeServicePrices({});
+  };
+
+  const setTypeServicePrice = (typeServiceId, field, value) => {
+    setTypeServicePrices((prev) => ({
+      ...prev,
+      [typeServiceId]: { ...(prev[typeServiceId] || {}), [field]: value },
+    }));
   };
 
   // Auto-fill form when vendor is selected and has a mobile workshop registered
@@ -280,6 +360,7 @@ export default function CreateEditMobileWorkshopPage() {
     e.preventDefault();
     mutation.mutate({
       ...form,
+      workshopTypeId: form.workshopTypeId || null,
       year: form.year ? parseInt(form.year) : null,
       latitude: form.latitude ? parseFloat(form.latitude) : null,
       longitude: form.longitude ? parseFloat(form.longitude) : null,
@@ -433,6 +514,22 @@ export default function CreateEditMobileWorkshopPage() {
             <span className="flex size-6 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">2</span>
             <h3 className="font-semibold text-slate-800">البيانات الأساسية</h3>
           </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">نوع الورشة (من كاتالوج الأدمن)</label>
+            <select name="workshopTypeId" value={form.workshopTypeId} onChange={handleChange}
+              className="block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+              <option value="">-- اختر نوع الورشة --</option>
+              {workshopTypes.map((t) => (
+                <option key={t.id} value={t.id}>{t.nameAr || t.name}{!t.isActive ? ' (موقوف)' : ''}</option>
+              ))}
+            </select>
+            {workshopTypes.length === 0 && (
+              <p className="mt-1 text-xs text-amber-600">
+                لا توجد أنواع ورش — <Link to="/mobile-workshop-types" className="underline">أضف أنواع الورش المتنقلة من هنا</Link>
+              </p>
+            )}
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Input label="الاسم *" name="name" value={form.name} onChange={handleChange} required />
             <Input label="الاسم بالعربي" name="nameAr" value={form.nameAr} onChange={handleChange} dir="rtl" />
@@ -554,111 +651,85 @@ export default function CreateEditMobileWorkshopPage() {
           </div>
         </Card>
 
-        {/* Visit Pricing */}
-        <Card className="p-6 space-y-4">
-          <div className="border-b pb-2">
-            <div className="flex items-center gap-2">
-              <span className="flex size-6 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">5</span>
-              <h3 className="font-semibold text-slate-800">رسوم الزيارة / التنقل</h3>
-            </div>
-            <p className="text-xs text-slate-400 mt-0.5">أسعار ثابتة للزيارة وليست أسعار الخدمات</p>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-4">
-            {[
-              { name: 'basePrice',  label: 'سعر الزيارة (ر.س)', placeholder: '50' },
-              { name: 'pricePerKm', label: 'سعر الكيلومتر',      placeholder: '3' },
-              { name: 'hourlyRate', label: 'سعر الساعة',          placeholder: '100' },
-              { name: 'minPrice',   label: 'الحد الأدنى',         placeholder: '80' },
-            ].map(({ name, label, placeholder }) => (
-              <div key={name}>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">{label}</label>
-                <input type="number" name={name} value={form[name]} onChange={handleChange}
-                  placeholder={placeholder} min="0" step="0.5"
-                  className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
-              </div>
-            ))}
-          </div>
-        </Card>
-
         {/* ── Services with Prices ───────────────────────────────────────── */}
         <Card className="p-6 space-y-4">
-          <div className="flex items-center justify-between border-b pb-2">
-            <div className="flex items-center gap-2">
-              <span className="flex size-6 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">6</span>
-              <div>
-                <h3 className="font-semibold text-slate-800">الخدمات والأسعار</h3>
-                <p className="text-xs text-slate-400 mt-0.5">أضف كل خدمة بسعرها وتفاصيلها</p>
-              </div>
-            </div>
-            {!addingNew && (
-              <button type="button" onClick={() => setAddingNew(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500">
-                <Plus className="size-4" /> إضافة خدمة
-              </button>
-            )}
+          <div className="border-b pb-2">
+            <span className="inline-flex size-6 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white mr-2">5</span>
+            <h3 className="font-semibold text-slate-800 inline">الخدمات والأسعار</h3>
+            <p className="text-xs text-slate-400 mt-0.5">اختر نوع الورشة أولاً فتظهر خدمات النوع — أدخل السعر والمدة لكل خدمة</p>
           </div>
 
-          {/* Saved services (edit mode) */}
-          {isEdit && (
-            <div className="space-y-3">
-              {savedServices.length === 0 && !addingNew && (
-                <div className="rounded-lg border border-dashed border-slate-300 py-8 text-center">
-                  <Wrench className="mx-auto size-8 text-slate-300" />
-                  <p className="mt-2 text-sm text-slate-400">لا توجد خدمات مضافة بعد</p>
-                </div>
-              )}
-              {savedServices.map(svc => (
-                <ServiceRow key={svc.id} svc={svc} workshopId={id}
-                  onSaved={() => queryClient.invalidateQueries({ queryKey: ['mobile-workshop', id] })}
-                  onDeleted={() => queryClient.invalidateQueries({ queryKey: ['mobile-workshop', id] })}
-                />
-              ))}
-              {addingNew && (
-                <ServiceRow
-                  svc={EMPTY_SVC}
-                  workshopId={id}
-                  onSaved={() => { setAddingNew(false); queryClient.invalidateQueries({ queryKey: ['mobile-workshop', id] }); }}
-                  onDeleted={() => setAddingNew(false)}
-                />
-              )}
+          {!form.workshopTypeId ? (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+              اختر نوع الورشة من الخطوة 2 (البيانات الأساسية) لتظهر قائمة خدمات النوع وتحديد السعر لكل خدمة.
             </div>
-          )}
-
-          {/* New workshop — collect services locally before saving */}
-          {!isEdit && (
-            <div className="space-y-3">
-              {localServices.length === 0 && !addingNew && (
-                <div className="rounded-lg border border-dashed border-slate-300 py-8 text-center">
-                  <Wrench className="mx-auto size-8 text-slate-300" />
-                  <p className="mt-2 text-sm text-slate-400">أضف خدمات بعد حفظ الورشة أو أضفها الآن</p>
-                </div>
-              )}
-              {localServices.map((svc, i) => (
-                <div key={i} className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
-                        {SERVICE_TYPES.find(s => s.value === svc.serviceType)?.label || svc.serviceType}
-                      </span>
-                      <span className="font-semibold text-slate-900">{svc.name}</span>
-                    </div>
-                    {svc.description && <p className="mt-0.5 text-xs text-slate-500">{svc.description}</p>}
-                    <p className="mt-1 text-sm font-bold text-emerald-700">{svc.price} ر.س{svc.estimatedDuration ? ` · ${svc.estimatedDuration} دقيقة` : ''}</p>
-                  </div>
-                  <button type="button" onClick={() => setLocalServices(p => p.filter((_, j) => j !== i))}
-                    className="size-8 flex items-center justify-center rounded-lg border border-slate-200 text-red-500 hover:bg-red-50">
-                    <Trash2 className="size-4" />
-                  </button>
-                </div>
-              ))}
-              {addingNew && (
-                <NewServiceInlineForm
-                  onAdd={(svc) => { setLocalServices(p => [...p, svc]); setAddingNew(false); }}
-                  onCancel={() => setAddingNew(false)}
-                />
-              )}
+          ) : typeServicesList.length === 0 ? (
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+              نوع الورشة المختار لا يحتوي على خدمات. أضف خدمات لهذا النوع من صفحة <Link to="/mobile-workshop-types" className="text-indigo-600 underline">أنواع الورش المتنقلة</Link> ثم حدد السعر هنا، أو أضف خدمات إضافية أدناه.
             </div>
+          ) : (
+            <>
+              <div>
+                <h4 className="text-sm font-medium text-slate-700 mb-2">خدمات نوع &quot;{selectedType?.nameAr || selectedType?.name}&quot; — حدد السعر والمدة لكل خدمة</h4>
+                <div className="space-y-3">
+                  {typeServicesList.map((ts) => {
+                    if (isEdit) {
+                      const existingSvc = savedServices.find((s) => s.workshopTypeServiceId === ts.id);
+                      if (existingSvc) {
+                        return (
+                          <ServiceRow
+                            key={ts.id}
+                            svc={existingSvc}
+                            workshopId={id}
+                            typeServices={typeServicesList}
+                            onSaved={() => queryClient.invalidateQueries({ queryKey: ['mobile-workshop', id] })}
+                            onDeleted={() => queryClient.invalidateQueries({ queryKey: ['mobile-workshop', id] })}
+                          />
+                        );
+                      }
+                      return (
+                        <TypeServicePriceRow
+                          key={ts.id}
+                          typeService={ts}
+                          workshopId={id}
+                          onAdded={() => queryClient.invalidateQueries({ queryKey: ['mobile-workshop', id] })}
+                        />
+                      );
+                    }
+                    const p = typeServicePrices[ts.id] || {};
+                    return (
+                      <div key={ts.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
+                        <div className="min-w-[140px] font-medium text-slate-800">{ts.nameAr || ts.name}</div>
+                        {ts.description && <span className="text-xs text-slate-500 max-w-[200px] truncate">{ts.description}</span>}
+                        <div className="flex items-center gap-2">
+                          <label className="text-xs text-slate-500">السعر (ر.س)</label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.5"
+                            value={p.price ?? ''}
+                            onChange={(e) => setTypeServicePrice(ts.id, 'price', e.target.value)}
+                            className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+                            placeholder="0"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="text-xs text-slate-500">المدة (دقيقة)</label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={p.estimatedDuration ?? ''}
+                            onChange={(e) => setTypeServicePrice(ts.id, 'estimatedDuration', e.target.value)}
+                            className="w-20 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+                            placeholder="—"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
           )}
         </Card>
 
@@ -693,54 +764,6 @@ export default function CreateEditMobileWorkshopPage() {
           اختر الفيندور أولاً لتتمكن من رفع المستندات
         </Card>
       )}
-    </div>
-  );
-}
-
-// ── New Service inline form (for new workshop before saving) ─────────────────
-function NewServiceInlineForm({ onAdd, onCancel }) {
-  const [form, setForm] = useState(EMPTY_SVC);
-  const h = (e) => { const { name, value } = e.target; setForm(p => ({ ...p, [name]: value })); };
-  const submit = () => {
-    if (!form.name || !form.price) return toast.error('الاسم والسعر مطلوبان');
-    onAdd({ ...form, price: parseFloat(form.price), estimatedDuration: form.estimatedDuration ? parseInt(form.estimatedDuration) : null });
-  };
-
-  return (
-    <div className="rounded-xl border-2 border-indigo-200 bg-indigo-50/30 p-4 space-y-3">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600">نوع الخدمة</label>
-          <select name="serviceType" value={form.serviceType} onChange={h}
-            className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
-            {SERVICE_TYPES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600">اسم الخدمة *</label>
-          <input name="name" value={form.name} onChange={h} placeholder="مثال: تغيير زيت وفلتر"
-            className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600">السعر (ر.س) *</label>
-          <input name="price" type="number" value={form.price} onChange={h} min="0" step="0.5" placeholder="مثال: 120"
-            className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600">المدة (دقيقة)</label>
-          <input name="estimatedDuration" type="number" value={form.estimatedDuration} onChange={h} min="5" step="5" placeholder="مثال: 45"
-            className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
-        </div>
-      </div>
-      <div>
-        <label className="mb-1 block text-xs font-medium text-slate-600">تفاصيل الخدمة</label>
-        <textarea name="description" value={form.description} onChange={h} rows={2} placeholder="ماذا تشمل هذه الخدمة..."
-          className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
-      </div>
-      <div className="flex justify-end gap-2">
-        <button type="button" onClick={onCancel} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"><X className="size-4" />إلغاء</button>
-        <button type="button" onClick={submit} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"><Check className="size-4" />إضافة</button>
-      </div>
     </div>
   );
 }
