@@ -1,50 +1,82 @@
 import api from './api';
 
-const winchService = {
-  getWinches: async (params = {}) => {
+/**
+ * Winch (Towing) API
+ * - أدمن: قائمة الوينشات GET /api/winches، تفاصيل، إنشاء، تحديث، حذف
+ * - فيندور: /api/winches/my, /api/winches/my/broadcasts, /api/winches/my/jobs
+ */
+export const winchService = {
+  /** [أدمن] قائمة الوينشات مع بحث وتصفية وصفحات */
+  async getWinches(params = {}) {
     const { data } = await api.get('/winches', { params });
     if (!data.success) throw new Error(data.error || 'Failed to load winches');
-    return { winches: data.data ?? [], pagination: data.pagination ?? null };
+    return {
+      winches: data.data ?? [],
+      pagination: data.pagination ?? { page: 1, limit: 12, total: 0, totalPages: 1 },
+    };
   },
 
-  getWinchById: async (id) => {
+  /** [أدمن] تفاصيل ونش بالمعرف */
+  async getWinch(id) {
     const { data } = await api.get(`/winches/${id}`);
     if (!data.success) throw new Error(data.error || 'Failed to load winch');
     return data.data;
   },
 
-  createWinch: async (payload) => {
+  /** [أدمن] إنشاء ونش */
+  async createWinch(payload) {
     const { data } = await api.post('/winches', payload);
     if (!data.success) throw new Error(data.error || 'Failed to create winch');
     return data.data;
   },
 
-  updateWinch: async (id, payload) => {
+  /** [أدمن] تحديث ونش */
+  async updateWinch(id, payload) {
     const { data } = await api.put(`/winches/${id}`, payload);
     if (!data.success) throw new Error(data.error || 'Failed to update winch');
     return data.data;
   },
 
-  deleteWinch: async (id) => {
+  /** [أدمن] حذف ونش */
+  async deleteWinch(id) {
     const { data } = await api.delete(`/winches/${id}`);
     if (!data.success) throw new Error(data.error || 'Failed to delete winch');
-    return data;
+    return data.data;
   },
 
-  /**
-   * رفع صورة للوينش (Admin)
-   * @param {string} id - Winch ID
-   * @param {File} file - image file
-   * @returns {{ imageUrl: string }}
-   */
-  uploadImage: async (id, file) => {
-    const formData = new FormData();
-    formData.append('image', file);
-    const { data } = await api.post(`/winches/${id}/upload-image`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    if (!data.success) throw new Error(data.error || 'Failed to upload image');
-    return data.imageUrl;
+  /** بيانات ونشي المرتبط بحساب الفيندور */
+  async getMyWinch() {
+    const { data } = await api.get('/winches/my');
+    if (!data.success) throw new Error(data.error || 'Failed to load winch');
+    return data.data;
+  },
+
+  /** طلبات السحب القريبة من موقع الوينش (للمزايدة) */
+  async getMyBroadcasts() {
+    const { data } = await api.get('/winches/my/broadcasts');
+    if (!data.success) throw new Error(data.error || 'Failed to load broadcasts');
+    return data.data;
+  },
+
+  /** إرسال عرض على طلب سحب */
+  async submitOffer(broadcastId, body = {}) {
+    const { data } = await api.post(`/winches/my/broadcasts/${broadcastId}/offer`, body);
+    if (!data.success) throw new Error(data.error || 'Failed to submit offer');
+    return data.data;
+  },
+
+  /** المهام المعينة لوينشي (حجوزات قبل العميل عرضي) */
+  async getMyJobs() {
+    const { data } = await api.get('/winches/my/jobs');
+    if (!data.success) throw new Error(data.error || 'Failed to load jobs');
+    return data.data;
+  },
+
+  /** تحديث حالة المهمة: TECHNICIAN_EN_ROUTE | ARRIVED | IN_PROGRESS | COMPLETED */
+  async updateJobStatus(jobId, status) {
+    const { data } = await api.patch(`/winches/my/jobs/${jobId}/status`, { status });
+    if (!data.success) throw new Error(data.error || 'Failed to update status');
+    return data.data;
   },
 };
 

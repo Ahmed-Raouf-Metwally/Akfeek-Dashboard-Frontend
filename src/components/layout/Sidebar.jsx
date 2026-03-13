@@ -65,6 +65,10 @@ const VENDOR_COMPREHENSIVE_CARE_KEYS = new Set(['dashboard', 'analytics', 'myVen
 const VENDOR_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyWorkshop', 'vendorWorkshopBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
 /** ٤ – فيندور خدمة الغسيل */
 const VENDOR_CAR_WASH_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
+/** ٥ – فيندور الورش المتنقلة */
+const VENDOR_MOBILE_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyMobileWorkshop', 'vendorMobileWorkshopRequests', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
+/** ٦ – فيندور الونش (السطحه) */
+const VENDOR_WINCH_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyWinch', 'vendorWinchRequests', 'vendorWinchJobs', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
 
 const SECTION_LABEL_KEYS = {
   main: 'sectionMain',
@@ -72,6 +76,9 @@ const SECTION_LABEL_KEYS = {
   orders: 'sectionOrders',
   vendorServices: 'sectionVendorServices',
   vendorWorkshop: 'sectionVendorWorkshop',
+  vendorMobileWorkshop: 'sectionVendorMobileWorkshop',
+  vendorWinch: 'sectionVendorWinch',
+  customerMobileWorkshop: 'sectionCustomerMobileWorkshop',
   marketplace: 'sectionMarketplace',
   management: 'sectionManagement',
   system: 'sectionSystem',
@@ -143,6 +150,33 @@ const SECTIONS = [
     items: [
       { key: 'vendorMyWorkshop', to: '/vendor/workshop', icon: Building2, label: 'My Workshop' },
       { key: 'vendorWorkshopBookings', to: '/vendor/workshop/bookings', icon: CalendarCheck, label: 'Workshop Bookings' },
+    ],
+  },
+  {
+    key: 'vendorMobileWorkshop',
+    labelEn: 'Mobile Workshop (Vendor)',
+    labelAr: 'الورش المتنقلة',
+    items: [
+      { key: 'vendorMyMobileWorkshop', to: '/vendor/mobile-workshop', icon: Truck, label: 'My Mobile Workshop', labelAr: 'ورشتي المتنقلة' },
+      { key: 'vendorMobileWorkshopRequests', to: '/vendor/mobile-workshop/requests', icon: CalendarCheck, label: 'Requests', labelAr: 'طلبات ورشتي' },
+    ],
+  },
+  {
+    key: 'vendorWinch',
+    labelEn: 'Winch / Towing (Vendor)',
+    labelAr: 'الونش / السطحه',
+    items: [
+      { key: 'vendorMyWinch', to: '/vendor/winch', icon: Truck, label: 'My Winch', labelAr: 'صفحة الونش' },
+      { key: 'vendorWinchRequests', to: '/vendor/winch/requests', icon: Radio, label: 'Nearby Requests', labelAr: 'طلبات قريبة' },
+      { key: 'vendorWinchJobs', to: '/vendor/winch/jobs', icon: CalendarCheck, label: 'My Jobs', labelAr: 'مهامي' },
+    ],
+  },
+  {
+    key: 'customerMobileWorkshop',
+    labelEn: 'Mobile Workshop (Customer)',
+    labelAr: 'طلبات الورش المتنقلة',
+    items: [
+      { key: 'myMobileWorkshopRequests', to: '/my-mobile-workshop-requests', icon: Truck, label: 'My Requests', labelAr: 'طلباتي — العروض والموافقات' },
     ],
   },
   {
@@ -286,8 +320,8 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
         {SECTIONS.map((section) => {
           let visibleItems = section.items.filter((item) => navVisibility[item.key] !== false);
           const vt = user?.vendorType;
-          if (section.key === 'services-vehicles' && isVendor && vt === 'CERTIFIED_WORKSHOP') {
-            // فيندور الورش المعتمدة يشوف قسم "الورش المعتمدة" فقط، مش "الخدمات والمركبات"
+          if (section.key === 'services-vehicles' && isVendor && (vt === 'CERTIFIED_WORKSHOP' || vt === 'MOBILE_WORKSHOP' || vt === 'TOWING_SERVICE')) {
+            // فيندور الورش المعتمدة أو الورش المتنقلة أو الونش يشوف قسمه الخاص فقط، مش "الخدمات والمركبات"
             visibleItems = [];
           }
           if (section.key === 'vendorServices') {
@@ -296,16 +330,32 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
             if (!showServicesSection) visibleItems = [];
           }
           if (section.key === 'vendorWorkshop') {
-            // للأدمن: الورش تظهر مرة واحدة تحت "الخدمات والمركبات" فقط. هذا القسم لفيندور الورش فقط.
+            // للأدمن: الورش تظهر مرة واحدة تحت "الخدمات والمركبات" فقط. هذا القسم لفيندور الورش المعتمدة فقط.
             if (!isVendor) visibleItems = [];
             else if (isVendor && vt !== 'CERTIFIED_WORKSHOP') visibleItems = [];
+          }
+          if (section.key === 'vendorMobileWorkshop') {
+            // قسم الورش المتنقلة — لفيندور الورش المتنقلة فقط
+            if (!isVendor) visibleItems = [];
+            else if (isVendor && vt !== 'MOBILE_WORKSHOP') visibleItems = [];
+          }
+          if (section.key === 'vendorWinch') {
+            // قسم الونش / السطحه — لفيندور الونش فقط
+            if (!isVendor) visibleItems = [];
+            else if (isVendor && vt !== 'TOWING_SERVICE') visibleItems = [];
+          }
+          if (section.key === 'customerMobileWorkshop') {
+            // طلبات الورش المتنقلة — للعميل فقط (يشوف كل الفيندورز اللي وافقوا + السعر والتفاصيل)
+            if (user?.role !== 'CUSTOMER') visibleItems = [];
           }
           if (isVendor) {
             const vendorKeys =
               vt === 'COMPREHENSIVE_CARE' ? VENDOR_COMPREHENSIVE_CARE_KEYS
                 : vt === 'CERTIFIED_WORKSHOP' ? VENDOR_WORKSHOP_KEYS
                   : vt === 'CAR_WASH' ? VENDOR_CAR_WASH_KEYS
-                    : VENDOR_AUTO_PARTS_KEYS;
+                    : vt === 'MOBILE_WORKSHOP' ? VENDOR_MOBILE_WORKSHOP_KEYS
+                      : vt === 'TOWING_SERVICE' ? VENDOR_WINCH_KEYS
+                        : VENDOR_AUTO_PARTS_KEYS;
             visibleItems = visibleItems.filter((item) => vendorKeys.has(item.key));
           } else if (isEmployee && employeeAllowedSidebarKeys) {
             // موظف أكفيك: يعرض فقط الأقسام التي له فيها صلاحية (ديناميكي)

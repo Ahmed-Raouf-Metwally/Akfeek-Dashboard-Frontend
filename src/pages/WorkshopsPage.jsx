@@ -12,7 +12,7 @@ import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
 import { Card } from '../components/ui/Card';
 import { ImageOrPlaceholder } from '../components/ui/ImageOrPlaceholder';
-import { defaultWorkingHoursByDay, buildWorkingHoursPayload } from '../utils/workshopFormShared';
+import { defaultWorkingHoursByDay, buildWorkingHoursPayload, WORKING_DAYS } from '../utils/workshopFormShared';
 import WorkshopFormFields from '../components/workshops/WorkshopFormFields';
 
 const emptyForm = () => ({

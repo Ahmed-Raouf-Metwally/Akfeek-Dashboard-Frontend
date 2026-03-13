@@ -20,6 +20,7 @@ import {
   Package,
   UserCircle,
   Star,
+  Truck,
 } from 'lucide-react';
 import { dashboardService } from '../services/dashboardService';
 import { autoPartService } from '../services/autoPartService';
@@ -80,7 +81,9 @@ export default function DashboardHome() {
   const isCareVendor = isVendor && vt === 'COMPREHENSIVE_CARE';
   const isCarWashVendor = isVendor && vt === 'CAR_WASH';
   const isWorkshopVendor = isVendor && vt === 'CERTIFIED_WORKSHOP';
-  const isAutoPartsVendor = isVendor && !isCareVendor && !isCarWashVendor && !isWorkshopVendor;
+  const isMobileWorkshopVendor = isVendor && vt === 'MOBILE_WORKSHOP';
+  const isWinchVendor = isVendor && vt === 'TOWING_SERVICE';
+  const isAutoPartsVendor = isVendor && !isCareVendor && !isCarWashVendor && !isWorkshopVendor && !isMobileWorkshopVendor && !isWinchVendor;
 
   const { data: vendorParts = [], isLoading: partsLoading } = useQuery({
     queryKey: ['auto-parts', 'dashboard-count'],
@@ -159,6 +162,8 @@ export default function DashboardHome() {
           {isCareVendor ? t('dashboard.vendorManageCare')
             : isCarWashVendor ? t('dashboard.vendorManageCarWash')
               : isWorkshopVendor ? t('dashboard.vendorManageWorkshop')
+                : isMobileWorkshopVendor ? (i18n.language === 'ar' ? 'إدارة ورشتك المتنقلة والرد على الطلبات' : 'Manage your mobile workshop and respond to requests')
+                : isWinchVendor ? (i18n.language === 'ar' ? 'إدارة الونش والرد على طلبات السحب' : 'Manage your winch and respond to towing requests')
                 : isAutoPartsVendor ? t('dashboard.vendorManageAutoParts')
                   : t('dashboard.platformActivity')}
         </p>
@@ -285,6 +290,90 @@ export default function DashboardHome() {
         </motion.section>
       )}
 
+      {/* فيندور الورش المتنقلة: قسمه الخاص */}
+      {isMobileWorkshopVendor && (
+        <motion.section
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+          aria-labelledby="mobile-workshop-section-heading"
+          className="rounded-2xl border border-sky-100 bg-sky-50/50 p-6"
+        >
+          <h2 id="mobile-workshop-section-heading" className="mb-4 text-lg font-semibold text-slate-900">
+            {i18n.language === 'ar' ? 'الورش المتنقلة' : 'Mobile Workshop'}
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Link to="/vendor/mobile-workshop" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-sky-200 hover:shadow-md">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-sky-100">
+                <Wrench className="size-6 text-sky-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'ورشتي المتنقلة' : 'My Mobile Workshop'}</p>
+                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? 'عرض بيانات ورشتي' : 'View my workshop details'}</p>
+              </div>
+              <ExternalLink className="size-5 shrink-0 text-slate-400" />
+            </Link>
+            <Link to="/vendor/mobile-workshop/requests" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-sky-200 hover:shadow-md">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-sky-100">
+                <CalendarCheck className="size-6 text-sky-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'طلبات ورشتي' : 'Requests'}</p>
+                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? 'الرد على الطلبات بعروض' : 'Respond to requests with offers'}</p>
+              </div>
+              <ExternalLink className="size-5 shrink-0 text-slate-400" />
+            </Link>
+          </div>
+        </motion.section>
+      )}
+
+      {/* فيندور الونش (السطحه): قسمه الخاص */}
+      {isWinchVendor && (
+        <motion.section
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+          aria-labelledby="winch-section-heading"
+          className="rounded-2xl border border-slate-200 bg-slate-50/50 p-6"
+        >
+          <h2 id="winch-section-heading" className="mb-4 text-lg font-semibold text-slate-900">
+            {i18n.language === 'ar' ? 'الونش / السطحه' : 'Winch / Towing'}
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Link to="/vendor/winch" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-slate-200 hover:shadow-md">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+                <Truck className="size-6 text-slate-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'صفحة الونش' : 'My Winch'}</p>
+                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? 'عرض بيانات الوينش' : 'View winch details'}</p>
+              </div>
+              <ExternalLink className="size-5 shrink-0 text-slate-400" />
+            </Link>
+            <Link to="/vendor/winch/requests" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-slate-200 hover:shadow-md">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-indigo-100">
+                <CalendarCheck className="size-6 text-indigo-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'طلبات قريبة' : 'Nearby requests'}</p>
+                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? 'إرسال عرض على الطلبات' : 'Submit offers on requests'}</p>
+              </div>
+              <ExternalLink className="size-5 shrink-0 text-slate-400" />
+            </Link>
+            <Link to="/vendor/winch/jobs" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-slate-200 hover:shadow-md">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-emerald-100">
+                <CalendarCheck className="size-6 text-emerald-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'مهامي' : 'My jobs'}</p>
+                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? 'الحجوزات المعينة لوينشي' : 'Assigned bookings'}</p>
+              </div>
+              <ExternalLink className="size-5 shrink-0 text-slate-400" />
+            </Link>
+          </div>
+        </motion.section>
+      )}
+
       {/* متوسط التقييم — يظهر لكل الفيندورات */}
       {isVendor && (myVendorProfile || vendorProfileLoading) && (
         <motion.section
@@ -366,6 +455,33 @@ export default function DashboardHome() {
                 <UserCircle className="size-4 text-slate-500" /> {t('nav.profile', 'Profile')}
               </Link>
             </>
+          ) : isMobileWorkshopVendor ? (
+            <>
+              <Link to="/vendor/mobile-workshop" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
+                <Wrench className="size-4 text-slate-500" /> {i18n.language === 'ar' ? 'ورشتي المتنقلة' : 'My Mobile Workshop'}
+              </Link>
+              <Link to="/vendor/mobile-workshop/requests" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
+                <CalendarCheck className="size-4 text-slate-500" /> {i18n.language === 'ar' ? 'طلبات ورشتي' : 'Requests'}
+              </Link>
+              <Link to="/profile" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
+                <UserCircle className="size-4 text-slate-500" /> {t('nav.profile', 'Profile')}
+              </Link>
+            </>
+          ) : isWinchVendor ? (
+            <>
+              <Link to="/vendor/winch" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
+                <Truck className="size-4 text-slate-500" /> {i18n.language === 'ar' ? 'صفحة الونش' : 'My Winch'}
+              </Link>
+              <Link to="/vendor/winch/requests" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
+                <CalendarCheck className="size-4 text-slate-500" /> {i18n.language === 'ar' ? 'طلبات قريبة' : 'Nearby requests'}
+              </Link>
+              <Link to="/vendor/winch/jobs" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
+                <CalendarCheck className="size-4 text-slate-500" /> {i18n.language === 'ar' ? 'مهامي' : 'My jobs'}
+              </Link>
+              <Link to="/profile" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
+                <UserCircle className="size-4 text-slate-500" /> {t('nav.profile', 'Profile')}
+              </Link>
+            </>
           ) : (
             quickLinks.map(({ to, label, icon: linkIcon }) => {
               const LinkIcon = linkIcon;
@@ -411,7 +527,7 @@ export default function DashboardHome() {
         </section>
       )}
 
-      <section aria-labelledby="overview-heading" className={isAutoPartsVendor ? 'hidden' : ''}>
+      <section aria-labelledby="overview-heading" className={isAutoPartsVendor || isMobileWorkshopVendor || isWinchVendor ? 'hidden' : ''}>
         <h2 id="overview-heading" className="mb-4 text-lg font-semibold text-slate-900">
           {t('dashboard.overview')}
         </h2>
@@ -453,7 +569,7 @@ export default function DashboardHome() {
         </div>
       </section>
 
-      <div className={`grid grid-cols-1 gap-6 lg:grid-cols-2 ${isAutoPartsVendor ? 'hidden' : ''}`}>
+      <div className={`grid grid-cols-1 gap-6 lg:grid-cols-2 ${isAutoPartsVendor || isWinchVendor ? 'hidden' : ''}`}>
         {/* Recent Activity */}
         <section aria-labelledby="activity-heading">
           <div className="mb-4 flex items-center justify-between">
@@ -545,7 +661,7 @@ export default function DashboardHome() {
         </section>
       </div>
 
-      <section aria-labelledby="chart-heading" className={`min-h-[320px] ${isAutoPartsVendor ? 'hidden' : ''}`}>
+      <section aria-labelledby="chart-heading" className={`min-h-[320px] ${isAutoPartsVendor || isWinchVendor ? 'hidden' : ''}`}>
         <h2 id="chart-heading" className="mb-4 text-lg font-semibold text-slate-900">
           {t('dashboard.activityDistribution')}
         </h2>

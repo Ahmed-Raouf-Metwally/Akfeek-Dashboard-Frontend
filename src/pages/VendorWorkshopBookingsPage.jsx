@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { ArrowLeft, CheckCircle, CircleCheck, Play } from 'lucide-react';
 import { workshopService } from '../services/workshopService';
 import { useAuthStore } from '../store/authStore';
 import { Card } from '../components/ui/Card';
@@ -20,8 +21,9 @@ function customerLabel(b) {
 
 export default function VendorWorkshopBookingsPage() {
   const { t, i18n } = useTranslation();
-  const { fmt, fmtDT } = useDateFormat();
+  const { fmt } = useDateFormat();
   const user = useAuthStore((s) => s.user);
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
 
@@ -30,6 +32,33 @@ export default function VendorWorkshopBookingsPage() {
     queryFn: () => workshopService.getMyWorkshopBookings({ page, limit: PAGE_SIZE, status: statusFilter || undefined }),
     staleTime: 30_000,
     retry: (_, err) => err?.response?.status !== 403,
+  });
+
+  const confirmMutation = useMutation({
+    mutationFn: (id) => workshopService.confirmBooking(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vendor-workshop-bookings'] });
+      toast.success(i18n.language === 'ar' ? 'تم تأكيد الحجز' : 'Booking confirmed');
+    },
+    onError: (err) => toast.error(err?.response?.data?.errorAr || err?.message || (i18n.language === 'ar' ? 'فشل التأكيد' : 'Failed to confirm')),
+  });
+
+  const startMutation = useMutation({
+    mutationFn: (id) => workshopService.startBooking(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vendor-workshop-bookings'] });
+      toast.success(i18n.language === 'ar' ? 'تم بدء تنفيذ الحجز' : 'Booking started');
+    },
+    onError: (err) => toast.error(err?.response?.data?.errorAr || err?.message || (i18n.language === 'ar' ? 'فشل بدء الحجز' : 'Failed to start')),
+  });
+
+  const completeMutation = useMutation({
+    mutationFn: (id) => workshopService.completeBooking(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vendor-workshop-bookings'] });
+      toast.success(i18n.language === 'ar' ? 'تم إكمال الحجز' : 'Booking completed');
+    },
+    onError: (err) => toast.error(err?.response?.data?.errorAr || err?.message || (i18n.language === 'ar' ? 'فشل الإكمال' : 'Failed to complete')),
   });
 
   const list = data?.list ?? [];
@@ -92,6 +121,7 @@ export default function VendorWorkshopBookingsPage() {
           <option value="">{isAr ? 'كل الحالات' : 'All statuses'}</option>
           <option value="PENDING">PENDING</option>
           <option value="CONFIRMED">CONFIRMED</option>
+          <option value="IN_PROGRESS">{isAr ? 'قيد التنفيذ' : 'In progress'}</option>
           <option value="COMPLETED">COMPLETED</option>
           <option value="CANCELLED">CANCELLED</option>
         </select>
@@ -118,22 +148,57 @@ export default function VendorWorkshopBookingsPage() {
                 <tbody className="divide-y divide-slate-200 bg-white">
                   {list.map((b) => (
                     <tr key={b.id} className="hover:bg-slate-50/50">
-                      <td className="px-4 py-3 text-sm font-medium text-slate-900">{b.id?.slice(0, 8) || '—'}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-slate-900">{b.bookingNumber || b.id?.slice(0, 8) || '—'}</td>
                       <td className="px-4 py-3 text-sm text-slate-700">{customerLabel(b)}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{fmt(b.scheduledDate)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{fmt(b.scheduledDate)}{b.scheduledTime ? ` ${b.scheduledTime}` : ''}</td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
                           b.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                          b.status === 'CONFIRMED' ? 'bg-blue-100 text-blue-800' :
+                          b.status === 'CONFIRMED' || b.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
                           b.status === 'CANCELLED' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
                         }`}>
-                          {b.status}
+                          {b.status === 'IN_PROGRESS' && isAr ? 'قيد التنفيذ' : b.status}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-end">
-                        <Link to={`/bookings/${b.id}`} className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
-                          {isAr ? 'عرض' : 'View'}
-                        </Link>
+                        <div className="flex items-center justify-end gap-2">
+                          {b.status === 'PENDING' && (
+                            <button
+                              type="button"
+                              onClick={() => confirmMutation.mutate(b.id)}
+                              disabled={confirmMutation.isPending}
+                              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+                            >
+                              <CheckCircle className="size-4" />
+                              {isAr ? 'تأكيد' : 'Confirm'}
+                            </button>
+                          )}
+                          {b.status === 'CONFIRMED' && (
+                            <button
+                              type="button"
+                              onClick={() => startMutation.mutate(b.id)}
+                              disabled={startMutation.isPending}
+                              className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+                            >
+                              <Play className="size-4" />
+                              {isAr ? 'بدء' : 'Start'}
+                            </button>
+                          )}
+                          {(b.status === 'CONFIRMED' || b.status === 'IN_PROGRESS') && (
+                            <button
+                              type="button"
+                              onClick={() => completeMutation.mutate(b.id)}
+                              disabled={completeMutation.isPending}
+                              className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-500 disabled:opacity-50"
+                            >
+                              <CircleCheck className="size-4" />
+                              {isAr ? 'إكمال' : 'Complete'}
+                            </button>
+                          )}
+                          <Link to={`/bookings/${b.id}`} className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
+                            {isAr ? 'عرض' : 'View'}
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ))}

@@ -69,11 +69,14 @@ export default function InvoiceDetailPage() {
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'ADMIN';
+  const isVendor = user?.role === 'VENDOR';
 
   const { data: invoice, isLoading, isError } = useQuery({
-    queryKey: ['invoice', id],
-    queryFn: () => invoiceService.getInvoiceById(id),
+    queryKey: ['invoice', id, isVendor ? 'vendor' : 'admin'],
+    queryFn: () =>
+      isVendor ? invoiceService.getInvoiceByIdForVendor(id) : invoiceService.getInvoiceById(id),
     enabled: !!id,
+    retry: (_, err) => err?.response?.status !== 403,
   });
 
   const [payMethod, setPayMethod] = useState('CASH');

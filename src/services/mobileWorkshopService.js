@@ -7,6 +7,59 @@ const mobileWorkshopService = {
     return { items: data.data ?? [], pagination: data.pagination ?? null };
   },
 
+  /** Vendor (MOBILE_WORKSHOP): ورشتي المتنقلة */
+  getMyWorkshop: async () => {
+    const { data } = await api.get('/mobile-workshops/my');
+    if (!data.success) throw new Error(data.error || 'Failed to load');
+    return data.data;
+  },
+
+  /** Vendor: طلبات ورشتي (للرد بعروض) */
+  getMyRequests: async (params = {}) => {
+    const res = await api.get('/mobile-workshops/my/requests', { params });
+    const data = res.data;
+    if (!data.success) throw new Error(data.error || 'Failed to load requests');
+    return {
+      data: data.data ?? [],
+      myWorkshopId: data.myWorkshopId ?? null,
+      pagination: data.pagination ?? { page: 1, total: 0, totalPages: 0 },
+    };
+  },
+
+  /** Vendor: إرسال عرض لطلب (موافق + سعر وتفاصيل) */
+  submitOffer: async (workshopId, requestId, payload) => {
+    const { data } = await api.post(`/mobile-workshops/${workshopId}/requests/${requestId}/offer`, payload);
+    if (!data.success) throw new Error(data.error || 'Failed to submit offer');
+    return data.data ?? data;
+  },
+
+  /** Vendor: رفض الطلب (لا يظهر في قائمة طلباتي بعد ذلك) */
+  rejectRequest: async (workshopId, requestId) => {
+    const { data } = await api.post(`/mobile-workshops/${workshopId}/requests/${requestId}/reject`);
+    if (!data.success) throw new Error(data.error || 'Failed to reject');
+    return data;
+  },
+
+  // ─── عميل: طلبات الورش المتنقلة (يرى كل الفيندورز اللي وافقوا + السعر والتفاصيل) ───
+  /** Customer: قائمة طلباتي */
+  getMyRequestsAsCustomer: async (params = {}) => {
+    const { data } = await api.get('/mobile-workshop-requests', { params });
+    if (!data.success) throw new Error(data.error || 'Failed to load');
+    return { data: data.data ?? [], pagination: data.pagination ?? { page: 1, limit: 20, total: 0, totalPages: 0 } };
+  },
+  /** Customer: تفاصيل الطلب مع كل العروض (الفيندورز اللي وافقوا + سعر وتفاصيل كل واحد) */
+  getRequestByIdAsCustomer: async (requestId) => {
+    const { data } = await api.get(`/mobile-workshop-requests/${requestId}`);
+    if (!data.success) throw new Error(data.error || 'Request not found');
+    return data.data;
+  },
+  /** Customer: اختيار عرض (فيندور معين) → ينشئ الحجز والفاتورة */
+  selectOfferAsCustomer: async (requestId, offerId, body = {}) => {
+    const { data } = await api.post(`/mobile-workshop-requests/${requestId}/select-offer`, { offerId, ...body });
+    if (!data.success) throw new Error(data.error || 'Failed to select offer');
+    return data;
+  },
+
   getById: async (id) => {
     const { data } = await api.get(`/mobile-workshops/${id}`);
     if (!data.success) throw new Error(data.error || 'Failed to load');

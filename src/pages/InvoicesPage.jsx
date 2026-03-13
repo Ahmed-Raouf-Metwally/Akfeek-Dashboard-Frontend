@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { FileText, ChevronRight } from 'lucide-react';
 import { invoiceService } from '../services/invoiceService';
+import { useAuthStore } from '../store/authStore';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
 import { Card } from '../components/ui/Card';
@@ -31,12 +32,18 @@ function effectiveInvoiceTotal(inv) {
 export default function InvoicesPage() {
   const { t } = useTranslation();
   const { fmt } = useDateFormat();
+  const user = useAuthStore((s) => s.user);
+  const isVendor = user?.role === 'VENDOR';
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['invoices', page, statusFilter],
-    queryFn: () => invoiceService.getInvoices({ page, limit: PAGE_SIZE, status: statusFilter || undefined }),
+    queryKey: ['invoices', isVendor ? 'vendor' : 'admin', page, statusFilter],
+    queryFn: () =>
+      isVendor
+        ? invoiceService.getMyInvoicesAsVendor({ page, limit: PAGE_SIZE, status: statusFilter || undefined })
+        : invoiceService.getInvoices({ page, limit: PAGE_SIZE, status: statusFilter || undefined }),
     staleTime: 60_000,
+    retry: (_, err) => err?.response?.status !== 403,
   });
 
   const list = data?.list ?? [];

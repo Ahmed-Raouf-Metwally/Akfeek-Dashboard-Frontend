@@ -88,6 +88,13 @@ import VendorWorkshopEditPage from './pages/VendorWorkshopEditPage';
 import VendorWorkshopServicesPage from './pages/VendorWorkshopServicesPage';
 import VendorCouponsPage from './pages/VendorCouponsPage';
 import VendorCarWashBookingsPage from './pages/VendorCarWashBookingsPage';
+import VendorMobileWorkshopPage from './pages/VendorMobileWorkshopPage';
+import VendorMobileWorkshopRequestsPage from './pages/VendorMobileWorkshopRequestsPage';
+import VendorWinchPage from './pages/VendorWinchPage';
+import VendorWinchRequestsPage from './pages/VendorWinchRequestsPage';
+import VendorWinchJobsPage from './pages/VendorWinchJobsPage';
+import CustomerMobileWorkshopRequestsPage from './pages/CustomerMobileWorkshopRequestsPage';
+import CustomerMobileWorkshopRequestDetailPage from './pages/CustomerMobileWorkshopRequestDetailPage';
 
 
 const queryClient = new QueryClient({
@@ -227,6 +234,16 @@ function App() {
             <Route path="vendor/workshop/services" element={<VendorWorkshopServicesPage />} />
             {/* Vendor – Car Wash Bookings (CAR_WASH vendor) */}
             <Route path="vendor/car-wash/bookings" element={<VendorCarWashBookingsPage />} />
+            {/* Vendor – Mobile Workshop (MOBILE_WORKSHOP vendor) */}
+            <Route path="vendor/mobile-workshop" element={<VendorMobileWorkshopPage />} />
+            <Route path="vendor/mobile-workshop/requests" element={<VendorMobileWorkshopRequestsPage />} />
+            {/* Vendor – Winch / Towing (TOWING_SERVICE vendor) */}
+            <Route path="vendor/winch" element={<VendorWinchPage />} />
+            <Route path="vendor/winch/requests" element={<VendorWinchRequestsPage />} />
+            <Route path="vendor/winch/jobs" element={<VendorWinchJobsPage />} />
+            {/* Customer – طلبات الورش المتنقلة (يرى كل الفيندورز اللي وافقوا + السعر والتفاصيل) */}
+            <Route path="my-mobile-workshop-requests" element={<CustomerMobileWorkshopRequestsPage />} />
+            <Route path="my-mobile-workshop-requests/:id" element={<CustomerMobileWorkshopRequestDetailPage />} />
           </Route>
         </Routes>
       </Router>

@@ -118,6 +118,24 @@ export const workshopService = {
         if (!data.success) throw new Error(data.error || 'Failed to load bookings');
         return { list: data.data ?? [], pagination: data.pagination ?? { page: 1, limit: 10, total: 0, totalPages: 1 } };
     },
+    /** Vendor: confirm a pending booking (PENDING → CONFIRMED) */
+    async confirmBooking(bookingId) {
+        const { data } = await api.patch(`/bookings/${bookingId}/confirm`);
+        if (!data.success) throw new Error(data.error || 'Failed to confirm booking');
+        return data.data;
+    },
+    /** Vendor: start booking (CONFIRMED → IN_PROGRESS) */
+    async startBooking(bookingId) {
+        const { data } = await api.patch(`/bookings/${bookingId}/start`);
+        if (!data.success) throw new Error(data.error || 'Failed to start booking');
+        return data.data;
+    },
+    /** Vendor: mark booking as completed */
+    async completeBooking(bookingId) {
+        const { data } = await api.patch(`/bookings/${bookingId}/complete`);
+        if (!data.success) throw new Error(data.error || 'Failed to complete booking');
+        return data.data;
+    },
 
     // ── Vendor: إدارة الخدمات (مع الأسعار) ─────────────────────────────────────
     async getMyWorkshopServices() {
