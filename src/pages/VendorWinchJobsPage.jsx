@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Truck, MapPin, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Truck, MapPin, CheckCircle, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { winchService } from '../services/winchService';
 import { useAuthStore } from '../store/authStore';
@@ -116,8 +116,25 @@ export default function VendorWinchJobsPage() {
                       <p className="text-sm text-slate-500">#{job.bookingNumber}</p>
                     )}
                     {job.pickupAddress && (
-                      <p className="flex items-start gap-2 text-sm text-slate-600">
-                        <MapPin className="size-4 shrink-0 mt-0.5" /> {job.pickupAddress}
+                      <div className="flex items-start gap-2">
+                        <MapPin className="size-4 shrink-0 mt-0.5 text-indigo-500" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-slate-600">{job.pickupAddress}</p>
+                          {job.pickupLatitude && job.pickupLongitude && (
+                             <a
+                                href={`https://www.google.com/maps/dir/?api=1&destination=${job.pickupLatitude},${job.pickupLongitude}`}
+                                target="_blank" rel="noreferrer"
+                                className="text-[10px] text-indigo-600 hover:underline flex items-center gap-1"
+                             >
+                               {isAr ? 'نقلات للعميل' : 'Navigate to Pickup'}
+                             </a>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {job.agreedPrice != null && (
+                      <p className="text-sm font-bold text-emerald-700">
+                        {job.agreedPrice} {job.currency || 'SAR'}
                       </p>
                     )}
                     <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${

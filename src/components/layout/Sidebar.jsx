@@ -37,6 +37,7 @@ import {
   ShieldCheck,
   TrendingUp,
   RotateCcw,
+  Images,
 } from 'lucide-react';
 import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
 import { useAuthStore } from '../../store/authStore';
@@ -209,8 +210,10 @@ const SECTIONS = [
     key: 'system',
     labelEn: 'System',
     labelAr: 'النظام',
-    items: [{ key: 'settings', to: '/settings', icon: Settings, label: 'Settings' },
-    { key: 'profile', to: '/profile', icon: UserCircle, label: 'Profile' },
+    items: [
+      { key: 'banners', to: '/banners', icon: Images, label: 'Banners', labelAr: 'البنرات' },
+      { key: 'settings', to: '/settings', icon: Settings, label: 'Settings' },
+      { key: 'profile', to: '/profile', icon: UserCircle, label: 'Profile' },
     ],
 
   },

@@ -38,6 +38,7 @@ function getTitleForPath(pathname, t, user) {
     '/winches/:id': [t('winch.detailTitle'), ''],
     '/winches/:id/edit': [t('winch.editTitle'), ''],
     '/vendors/new': [t('common.addVendor', 'Add Vendor'), t('common.createVendorProfile', 'Create new vendor profile')],
+    '/banners': ['Banners', 'Top & bottom app banners'],
     '/auto-parts': [t('nav.auto-parts', 'Auto Parts'), t('common.managePartsCatalog', 'Manage parts catalog')],
     '/auto-parts/new': [t('common.addAutoPart', 'Add Auto Part'), t('common.createPartListing', 'Create new part listing')],
     '/auto-part-categories': [t('nav.auto-part-categories', 'Categories'), t('common.manageCategories', 'Manage auto part categories')],

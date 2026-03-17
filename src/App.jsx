@@ -90,11 +90,14 @@ import VendorCouponsPage from './pages/VendorCouponsPage';
 import VendorCarWashBookingsPage from './pages/VendorCarWashBookingsPage';
 import VendorMobileWorkshopPage from './pages/VendorMobileWorkshopPage';
 import VendorMobileWorkshopRequestsPage from './pages/VendorMobileWorkshopRequestsPage';
+import VendorMobileWorkshopEditPage from './pages/VendorMobileWorkshopEditPage';
 import VendorWinchPage from './pages/VendorWinchPage';
+import VendorWinchEditPage from './pages/VendorWinchEditPage';
 import VendorWinchRequestsPage from './pages/VendorWinchRequestsPage';
 import VendorWinchJobsPage from './pages/VendorWinchJobsPage';
 import CustomerMobileWorkshopRequestsPage from './pages/CustomerMobileWorkshopRequestsPage';
 import CustomerMobileWorkshopRequestDetailPage from './pages/CustomerMobileWorkshopRequestDetailPage';
+import BannersPage from './pages/BannersPage';
 
 
 const queryClient = new QueryClient({
@@ -215,6 +218,7 @@ function App() {
             <Route path="marketplace-orders/:id" element={<MarketplaceOrderDetailPage />} />
             <Route path="marketplace-orders/:id/invoice" element={<MarketplaceOrderInvoicePage />} />
             <Route path="coupons" element={<AdminOnlyRoute><AdminCouponsPage /></AdminOnlyRoute>} />
+            <Route path="banners" element={<AdminOnlyRoute><BannersPage /></AdminOnlyRoute>} />
 
             {/* Workshops Routes */}
             <Route path="workshops" element={<WorkshopsPage />} />
@@ -236,9 +240,11 @@ function App() {
             <Route path="vendor/car-wash/bookings" element={<VendorCarWashBookingsPage />} />
             {/* Vendor – Mobile Workshop (MOBILE_WORKSHOP vendor) */}
             <Route path="vendor/mobile-workshop" element={<VendorMobileWorkshopPage />} />
+            <Route path="vendor/mobile-workshop/edit" element={<VendorMobileWorkshopEditPage />} />
             <Route path="vendor/mobile-workshop/requests" element={<VendorMobileWorkshopRequestsPage />} />
             {/* Vendor – Winch / Towing (TOWING_SERVICE vendor) */}
             <Route path="vendor/winch" element={<VendorWinchPage />} />
+            <Route path="vendor/winch/edit" element={<VendorWinchEditPage />} />
             <Route path="vendor/winch/requests" element={<VendorWinchRequestsPage />} />
             <Route path="vendor/winch/jobs" element={<VendorWinchJobsPage />} />
             {/* Customer – طلبات الورش المتنقلة (يرى كل الفيندورز اللي وافقوا + السعر والتفاصيل) */}

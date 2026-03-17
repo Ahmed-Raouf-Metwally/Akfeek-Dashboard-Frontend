@@ -23,6 +23,11 @@ export const winchService = {
     return data.data;
   },
 
+  /** alias — used by WinchDetailPage & CreateEditWinchPage */
+  async getWinchById(id) {
+    return this.getWinch(id);
+  },
+
   /** [أدمن] إنشاء ونش */
   async createWinch(payload) {
     const { data } = await api.post('/winches', payload);
@@ -51,6 +56,38 @@ export const winchService = {
     return data.data;
   },
 
+  /** فيندور: إنشاء ونش جديد */
+  async createMyWinch(payload) {
+    const { data } = await api.post('/winches/my', payload);
+    if (!data.success) throw new Error(data.error || 'Failed to create winch');
+    return data.data;
+  },
+
+  /** فيندور: تحديث بيانات ونشه */
+  async updateMyWinch(payload) {
+    const { data } = await api.put('/winches/my', payload);
+    if (!data.success) throw new Error(data.error || 'Failed to update winch');
+    return data.data;
+  },
+
+  /** فيندور: حذف ونشه */
+  async deleteMyWinch() {
+    const { data } = await api.delete('/winches/my');
+    if (!data.success) throw new Error(data.error || 'Failed to delete winch');
+    return data;
+  },
+
+  /** فيندور: رفع صورة ونشه */
+  async uploadMyWinchImage(file) {
+    const fd = new FormData();
+    fd.append('image', file);
+    const { data } = await api.post('/winches/my/upload-image', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    if (!data.success) throw new Error(data.error || 'Failed to upload image');
+    return data.imageUrl;
+  },
+
   /** طلبات السحب القريبة من موقع الوينش (للمزايدة) */
   async getMyBroadcasts() {
     const { data } = await api.get('/winches/my/broadcasts');
@@ -77,6 +114,17 @@ export const winchService = {
     const { data } = await api.patch(`/winches/my/jobs/${jobId}/status`, { status });
     if (!data.success) throw new Error(data.error || 'Failed to update status');
     return data.data;
+  },
+
+  /** [أدمن] رفع صورة ونش بمعرفه */
+  async uploadImage(id, file) {
+    const fd = new FormData();
+    fd.append('image', file);
+    const { data } = await api.post(`/winches/${id}/upload-image`, fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    if (!data.success) throw new Error(data.error || 'Failed to upload image');
+    return data.imageUrl;
   },
 };
 

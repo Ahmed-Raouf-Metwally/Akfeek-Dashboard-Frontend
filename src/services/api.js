@@ -50,11 +50,14 @@ api.interceptors.request.use(
     }
     // Let browser set Content-Type with boundary for FormData (file uploads)
     if (config.data instanceof FormData) {
-      delete config.headers['Content-Type'];
-    }
-    // Let browser set Content-Type with boundary for FormData (file uploads)
-    if (config.data instanceof FormData) {
-      delete config.headers['Content-Type'];
+      if (config.headers) {
+        // Use delete and set to null to be safe across different versions of axios
+        delete config.headers['Content-Type'];
+        delete config.headers['content-type'];
+        if (typeof config.headers.set === 'function') {
+           config.headers.set('Content-Type', null);
+        }
+      }
     }
     return config;
   },

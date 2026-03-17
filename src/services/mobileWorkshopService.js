@@ -84,6 +84,39 @@ const mobileWorkshopService = {
     return data;
   },
 
+  /** Vendor: إنشاء ورشتي */
+  createMyWorkshop: async (payload) => {
+    const { data } = await api.post('/mobile-workshops/my', payload);
+    if (!data.success) throw new Error(data.error || 'Failed to create workshop');
+    return data.data;
+  },
+
+  /** Vendor: تحديث ورشتي */
+  updateMyWorkshop: async (payload) => {
+    const { data } = await api.put('/mobile-workshops/my', payload);
+    if (!data.success) throw new Error(data.error || 'Failed to update workshop');
+    return data.data;
+  },
+
+  /** Vendor: حذف ورشتي */
+  deleteMyWorkshop: async () => {
+    const { data } = await api.delete('/mobile-workshops/my');
+    if (!data.success) throw new Error(data.error || 'Failed to delete workshop');
+    return data;
+  },
+
+  /** Vendor: رفع صورة ورشتي */
+  uploadMyWorkshopImage: async (file, type = 'logo') => {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('type', type);
+    const { data } = await api.post('/mobile-workshops/my/upload-image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    if (!data.success) throw new Error(data.error || 'Failed to upload image');
+    return { imageUrl: data.imageUrl, field: data.field };
+  },
+
   addService: async (workshopId, payload) => {
     const { data } = await api.post(`/mobile-workshops/${workshopId}/services`, payload);
     if (!data.success) throw new Error(data.error || 'Failed to add service');

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Truck, MapPin, Send } from 'lucide-react';
+import { ArrowLeft, Truck, MapPin, Send, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { winchService } from '../services/winchService';
 import { useAuthStore } from '../store/authStore';
@@ -93,19 +93,61 @@ export default function VendorWinchRequestsPage() {
                 <div className="min-w-0 flex-1 space-y-2">
                   <p className="font-medium text-slate-900">{b.customer?.name || (isAr ? 'عميل' : 'Customer')}</p>
                   {b.pickupLocation?.address && (
-                    <p className="flex items-start gap-2 text-sm text-slate-600">
-                      <MapPin className="size-4 shrink-0 mt-0.5" /> {b.pickupLocation.address}
-                    </p>
+                    <div className="flex items-start gap-2">
+                      <MapPin className="size-4 shrink-0 mt-0.5 text-indigo-500" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-slate-700">{b.pickupLocation.address}</p>
+                        {b.pickupLocation.latitude && b.pickupLocation.longitude && (
+                          <a
+                            href={`https://www.google.com/maps?q=${b.pickupLocation.latitude},${b.pickupLocation.longitude}`}
+                            target="_blank" rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-[10px] text-indigo-600 hover:underline"
+                          >
+                            {isAr ? 'فتح في الخرائط' : 'Open in Maps'} <ExternalLink className="size-3" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
                   )}
                   {b.destinationLocation?.address && (
-                    <p className="flex items-start gap-2 text-sm text-slate-500">
-                      <Truck className="size-4 shrink-0 mt-0.5" /> {b.destinationLocation.address}
-                    </p>
+                    <div className="flex items-start gap-2">
+                      <Truck className="size-4 shrink-0 mt-0.5 text-slate-400" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-slate-500">{b.destinationLocation.address}</p>
+                        {b.destinationLocation.latitude && b.destinationLocation.longitude && (
+                          <a
+                            href={`https://www.google.com/maps?q=${b.destinationLocation.latitude},${b.destinationLocation.longitude}`}
+                            target="_blank" rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-[10px] text-slate-400 hover:underline"
+                          >
+                            {isAr ? 'فتح في الخرائط' : 'Open in Maps'} <ExternalLink className="size-3" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
                   )}
-                  <div className="flex flex-wrap gap-2 text-xs text-slate-500">
-                    {b.tripDistanceKm != null && <span>{b.tripDistanceKm} km</span>}
-                    {b.yourPrice != null && <span className="font-medium text-slate-700">{b.yourPrice} {b.currency || 'SAR'}</span>}
-                    {b.expiresAt && <span>{isAr ? 'ينتهي: ' : 'Expires: '}{new Date(b.expiresAt).toLocaleString()}</span>}
+                  <div className="flex flex-wrap gap-3 pt-1 border-t border-slate-50 mt-2">
+                    {b.tripDistanceKm != null && (
+                      <span className="inline-flex items-center gap-1 text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                        {b.tripDistanceKm} {isAr ? 'كم' : 'km'}
+                      </span>
+                    )}
+                    {b.yourPrice != null && (
+                      <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                        {b.yourPrice} {b.currency || 'SAR'}
+                      </span>
+                    )}
+                    {b.urgency && (
+                      <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded ${b.urgency === 'URGENT' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                        }`}>
+                        {b.urgency}
+                      </span>
+                    )}
+                    {b.expiresAt && (
+                      <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                        {isAr ? 'ينتهي: ' : 'Exp: '}{new Date(b.expiresAt).toLocaleTimeString()}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div>
