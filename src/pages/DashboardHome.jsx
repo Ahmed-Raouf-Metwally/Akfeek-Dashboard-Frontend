@@ -323,6 +323,16 @@ export default function DashboardHome() {
               </div>
               <ExternalLink className="size-5 shrink-0 text-slate-400" />
             </Link>
+            <Link to="/vendor/mobile-workshop/jobs" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-sky-200 hover:shadow-md sm:col-span-2">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-emerald-100">
+                <CalendarCheck className="size-6 text-emerald-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'مهام الإصلاح' : 'Repair Jobs'}</p>
+                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? 'تحديث حالة الحجز: في الطريق -> وصل -> جاري الإصلاح -> تم' : 'Update booking progress from en route to completed'}</p>
+              </div>
+              <ExternalLink className="size-5 shrink-0 text-slate-400" />
+            </Link>
           </div>
         </motion.section>
       )}
@@ -462,6 +472,9 @@ export default function DashboardHome() {
               </Link>
               <Link to="/vendor/mobile-workshop/requests" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
                 <CalendarCheck className="size-4 text-slate-500" /> {i18n.language === 'ar' ? 'طلبات ورشتي' : 'Requests'}
+              </Link>
+              <Link to="/vendor/mobile-workshop/jobs" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
+                <CalendarCheck className="size-4 text-slate-500" /> {i18n.language === 'ar' ? 'مهام الإصلاح' : 'Repair Jobs'}
               </Link>
               <Link to="/profile" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
                 <UserCircle className="size-4 text-slate-500" /> {t('nav.profile', 'Profile')}

@@ -22,7 +22,11 @@ export async function deleteBanner(id) {
 
 export async function uploadBannerImages(bannerId, files, linkUrl) {
   const form = new FormData();
-  Array.from(files).forEach((f) => form.append('images', f));
+  const list = Array.isArray(files) ? files : Array.from(files || []);
+  if (!list.length) {
+    throw new Error('No files selected');
+  }
+  list.forEach((f) => form.append('images', f));
   if (linkUrl) form.append('linkUrl', linkUrl);
   const res = await api.post(`/admin/banners/${bannerId}/images`, form);
   return res.data?.data;

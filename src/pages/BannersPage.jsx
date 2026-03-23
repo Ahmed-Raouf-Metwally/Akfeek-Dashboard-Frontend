@@ -102,7 +102,8 @@ function BannerCard({ banner, onUpdate, onDelete, onUploadImages, onDeleteImage 
                 multiple
                 accept="image/jpeg,image/jpg,image/png,image/webp"
                 onChange={(e) => {
-                  if (e.target.files?.length) onUploadImages(e.target.files, linkUrl);
+                  const selectedFiles = e.target.files ? Array.from(e.target.files) : [];
+                  if (selectedFiles.length) onUploadImages(selectedFiles, linkUrl);
                   e.target.value = '';
                 }}
               />
@@ -127,7 +128,8 @@ function BannerCard({ banner, onUpdate, onDelete, onUploadImages, onDeleteImage 
               multiple
               accept="image/*"
               onChange={(e) => {
-                if (e.target.files?.length) onUploadImages(e.target.files, linkUrl);
+                const selectedFiles = e.target.files ? Array.from(e.target.files) : [];
+                if (selectedFiles.length) onUploadImages(selectedFiles, linkUrl);
                 e.target.value = '';
               }}
             />

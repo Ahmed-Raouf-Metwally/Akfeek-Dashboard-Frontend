@@ -1,4 +1,5 @@
 import api from './api';
+import { invoiceService } from './invoiceService';
 
 const mobileWorkshopService = {
   getAll: async (params = {}) => {
@@ -38,6 +39,29 @@ const mobileWorkshopService = {
     const { data } = await api.post(`/mobile-workshops/${workshopId}/requests/${requestId}/reject`);
     if (!data.success) throw new Error(data.error || 'Failed to reject');
     return data;
+  },
+
+  /** Vendor: jobs where customer selected offer (built from vendor invoices) */
+  getMyJobs: async () => {
+    const { list } = await invoiceService.getMyInvoicesAsVendor({ limit: 100 });
+    const jobs = (list || [])
+      .map((inv) => ({
+        id: inv.booking?.id,
+        bookingNumber: inv.booking?.bookingNumber,
+        status: inv.booking?.status,
+        customer: inv.customer,
+        agreedPrice: inv.effectiveTotal ?? inv.totalAmount,
+        currency: 'SAR',
+      }))
+      .filter((j) => j.id && ['TECHNICIAN_ASSIGNED', 'TECHNICIAN_EN_ROUTE', 'ARRIVED', 'IN_PROGRESS', 'COMPLETED'].includes(j.status));
+    return { jobs };
+  },
+
+  /** Vendor: update mobile workshop booking status */
+  updateBookingStatus: async (bookingId, status, reason) => {
+    const { data } = await api.patch(`/bookings/${bookingId}/mobile-workshop-status`, { status, reason });
+    if (!data.success) throw new Error(data.error || 'Failed to update booking status');
+    return data.data;
   },
 
   // ─── عميل: طلبات الورش المتنقلة (يرى كل الفيندورز اللي وافقوا + السعر والتفاصيل) ───

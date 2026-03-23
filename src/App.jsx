@@ -90,6 +90,7 @@ import VendorCouponsPage from './pages/VendorCouponsPage';
 import VendorCarWashBookingsPage from './pages/VendorCarWashBookingsPage';
 import VendorMobileWorkshopPage from './pages/VendorMobileWorkshopPage';
 import VendorMobileWorkshopRequestsPage from './pages/VendorMobileWorkshopRequestsPage';
+import VendorMobileWorkshopJobsPage from './pages/VendorMobileWorkshopJobsPage';
 import VendorMobileWorkshopEditPage from './pages/VendorMobileWorkshopEditPage';
 import VendorWinchPage from './pages/VendorWinchPage';
 import VendorWinchEditPage from './pages/VendorWinchEditPage';
@@ -242,6 +243,7 @@ function App() {
             <Route path="vendor/mobile-workshop" element={<VendorMobileWorkshopPage />} />
             <Route path="vendor/mobile-workshop/edit" element={<VendorMobileWorkshopEditPage />} />
             <Route path="vendor/mobile-workshop/requests" element={<VendorMobileWorkshopRequestsPage />} />
+            <Route path="vendor/mobile-workshop/jobs" element={<VendorMobileWorkshopJobsPage />} />
             {/* Vendor – Winch / Towing (TOWING_SERVICE vendor) */}
             <Route path="vendor/winch" element={<VendorWinchPage />} />
             <Route path="vendor/winch/edit" element={<VendorWinchEditPage />} />

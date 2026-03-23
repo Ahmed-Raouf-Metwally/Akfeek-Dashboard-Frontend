@@ -22,7 +22,6 @@ export default function VendorMobileWorkshopRequestsPage() {
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
   const [offerModal, setOfferModal] = useState(null); // { request, workshopId }
-  const [offerPrice, setOfferPrice] = useState('');
   const [offerMessage, setOfferMessage] = useState('');
 
   const { data, isLoading, isError, error } = useQuery({
@@ -38,9 +37,8 @@ export default function VendorMobileWorkshopRequestsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendor-mobile-workshop-requests'] });
       setOfferModal(null);
-      setOfferPrice('');
       setOfferMessage('');
-      toast.success(i18n.language === 'ar' ? 'تم الموافقة وإرسال العرض للعميل' : 'Offer submitted');
+      toast.success(i18n.language === 'ar' ? 'تمت الموافقة وإرسال العرض للعميل' : 'Request approved and sent');
     },
     onError: (err) => toast.error(err?.message || (i18n.language === 'ar' ? 'فشل إرسال العرض' : 'Failed to submit offer')),
   });
@@ -95,7 +93,6 @@ export default function VendorMobileWorkshopRequestsPage() {
 
   const openOfferModal = (request) => {
     setOfferModal({ request, workshopId: myWorkshopId });
-    setOfferPrice('');
     setOfferMessage('');
   };
 
@@ -107,15 +104,10 @@ export default function VendorMobileWorkshopRequestsPage() {
 
   const handleSubmitOffer = () => {
     if (!offerModal?.workshopId || !offerModal?.request?.id) return;
-    const price = parseFloat(offerPrice);
-    if (isNaN(price) || price < 0) {
-      toast.error(isAr ? 'أدخل سعراً صحيحاً' : 'Enter a valid price');
-      return;
-    }
     submitOfferMutation.mutate({
       workshopId: offerModal.workshopId,
       requestId: offerModal.request.id,
-      payload: { price, message: offerMessage || undefined },
+      payload: { message: offerMessage || undefined },
     });
   };
 
@@ -135,7 +127,7 @@ export default function VendorMobileWorkshopRequestsPage() {
               {isAr ? 'طلبات ورشتي' : 'My Workshop Requests'}
             </h1>
             <p className="text-sm text-slate-500">
-              {isAr ? 'يمكنك الموافقة على الطلب (مع إدخال سعر الخدمة وتفاصيلك) أو رفضه' : 'You can approve with your price and details, or reject the request'}
+              {isAr ? 'يمكنك الموافقة مباشرة (يُستخدم سعر خدمتك تلقائياً) أو رفض الطلب' : 'Approve directly (your service price is used automatically) or reject'}
             </p>
           </div>
         </div>
@@ -193,7 +185,7 @@ export default function VendorMobileWorkshopRequestsPage() {
                             onClick={() => openOfferModal(req)}
                             className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-500"
                           >
-                            <ThumbsUp className="size-4" /> {isAr ? 'موافق (سعر وتفاصيل)' : 'Approve (price & details)'}
+                            <ThumbsUp className="size-4" /> {isAr ? 'موافق' : 'Approve'}
                           </button>
                           <button
                             type="button"
@@ -235,19 +227,10 @@ export default function VendorMobileWorkshopRequestsPage() {
               {offerModal.request?.requestNumber || offerModal.request?.id?.slice(0, 8)}
             </p>
             <div className="space-y-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  {isAr ? 'السعر (ريال)' : 'Price (SAR)'} *
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={offerPrice}
-                  onChange={(e) => setOfferPrice(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                  placeholder={isAr ? '0.00' : '0.00'}
-                />
+              <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-sm text-indigo-700">
+                {isAr
+                  ? 'عند الموافقة سيتم إرسال عرض للعميل بسعر الخدمة المطابقة من ورشتك تلقائياً.'
+                  : 'On approval, an offer is sent using your matching workshop service price automatically.'}
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
@@ -277,7 +260,7 @@ export default function VendorMobileWorkshopRequestsPage() {
                 className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
               >
                 <Send className="size-4" />
-                {submitOfferMutation.isPending ? (isAr ? 'جاري الإرسال...' : 'Sending...') : (isAr ? 'موافق وإرسال للعميل' : 'Approve & send to customer')}
+                {submitOfferMutation.isPending ? (isAr ? 'جاري الإرسال...' : 'Sending...') : (isAr ? 'موافق وإرسال' : 'Approve & send')}
               </button>
             </div>
           </Card>

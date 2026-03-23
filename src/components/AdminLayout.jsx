@@ -53,6 +53,7 @@ function getTitleForPath(pathname, t, user) {
         ? [t('nav.vendorCarWashBookings', 'Car wash appointments'), t('carWash.vendorBookingsSubtitle', 'Bookings for your car wash services')]
         : [t('nav.vendorComprehensiveBookings', 'Appointments'), t('comprehensiveCare.vendorBookingsSubtitle', 'Bookings for your comprehensive care services')],
     '/vendor/coupons': [t('nav.vendorCoupons', 'Coupons'), t('vendorCoupons.subtitle', 'Coupon applies only to your services')],
+    '/vendor/mobile-workshop/jobs': [t('nav.vendorMobileWorkshopJobs', 'Mobile workshop jobs'), t('mobileWorkshop.jobsSubtitle', 'Track and update repair execution status')],
     '/coupons': [t('nav.allCoupons', 'All Coupons'), t('allCoupons.subtitle', 'Manage and monitor all platform coupons')],
   };
 
