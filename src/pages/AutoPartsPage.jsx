@@ -8,6 +8,7 @@ import { Search, Plus, Filter, LayoutGrid, List, Pencil, Eye } from 'lucide-reac
 import { useAuthStore } from '../store/authStore';
 import { autoPartService } from '../services/autoPartService';
 import { autoPartCategoryService } from '../services/autoPartCategoryService';
+import { brandService } from '../services/brandService';
 import { useConfirm } from '../hooks/useConfirm';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
@@ -26,6 +27,7 @@ export default function AutoPartsPage() {
   const [categoryId, setCategoryId] = useState('');
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState('grid');
+  const [vehicleBrandId, setVehicleBrandId] = useState('');
 
   // Fetch Categories
   const { data: categories = [] } = useQuery({
@@ -33,6 +35,12 @@ export default function AutoPartsPage() {
     queryFn: () => autoPartCategoryService.getCategoryTree(),
     staleTime: 600_000,
   });
+  const { data: brandsResult } = useQuery({
+    queryKey: ['brands-for-filter'],
+    queryFn: () => brandService.getBrands({ activeOnly: true, limit: 200 }),
+    staleTime: 600_000,
+  });
+  const brands = brandsResult?.brands ?? [];
 
   // Flat category list for dropdown (simplification)
   const flatCategories = useMemo(() => {
@@ -42,10 +50,11 @@ export default function AutoPartsPage() {
 
   // Fetch Parts
   const { data: parts = [], isLoading } = useQuery({
-    queryKey: ['auto-parts', { search, categoryId }],
+    queryKey: ['auto-parts', { search, categoryId, vehicleBrandId }],
     queryFn: () => autoPartService.getAutoParts({ 
       search: search || undefined, 
-      category: categoryId || undefined
+      category: categoryId || undefined,
+      vehicleBrandId: vehicleBrandId || undefined,
     }),
     staleTime: 60_000,
   });
@@ -114,6 +123,16 @@ export default function AutoPartsPage() {
               <option value="">{t('autoParts.allCategories')}</option>
               {flatCategories.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            <select
+              value={vehicleBrandId}
+              onChange={(e) => setVehicleBrandId(e.target.value)}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 max-w-[200px]"
+            >
+              <option value="">{t('common.brand')} ({t('common.all', 'All')})</option>
+              {brands.map((b) => (
+                <option key={b.id} value={b.id}>{b.nameAr || b.name}</option>
               ))}
             </select>
           </div>

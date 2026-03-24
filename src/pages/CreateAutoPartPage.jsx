@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { ArrowLeft, Save, Plus, X, Upload } from 'lucide-react';
 import { autoPartService } from '../services/autoPartService';
 import { autoPartCategoryService } from '../services/autoPartCategoryService';
+import { brandService } from '../services/brandService';
 import { vendorService } from '../services/vendorService';
 import { useAuthStore } from '../store/authStore';
 import { API_BASE_URL } from '../config/env';
@@ -44,6 +45,11 @@ export default function CreateAutoPartPage() {
     queryFn: () => vendorService.getVendors({ status: 'ACTIVE', limit: 100 }),
   });
   const vendors = vendorsResult?.vendors ?? [];
+  const { data: brandsResult } = useQuery({
+    queryKey: ['brands-for-auto-part'],
+    queryFn: () => brandService.getBrands({ activeOnly: true, limit: 200 }),
+  });
+  const brands = brandsResult?.brands ?? [];
 
   const [formData, setFormData] = useState({
     name: '',
@@ -167,7 +173,21 @@ export default function CreateAutoPartPage() {
                 <Input label="Name (Arabic)" name="nameAr" value={formData.nameAr} onChange={handleChange} dir="rtl" required />
 
                 <Input label="SKU" name="sku" value={formData.sku} onChange={handleChange} required />
-                <Input label="Brand" name="brand" value={formData.brand} onChange={handleChange} required />
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Car Brand</label>
+                  <select
+                    name="brand"
+                    value={formData.brand}
+                    onChange={handleChange}
+                    className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    required
+                  >
+                    <option value="">Select brand</option>
+                    {brands.map((b) => (
+                      <option key={b.id} value={b.name}>{b.nameAr || b.name}</option>
+                    ))}
+                  </select>
+                </div>
 
                 <div className="sm:col-span-2">
                   <label className="mb-1.5 block text-sm font-medium text-slate-700">Description</label>
