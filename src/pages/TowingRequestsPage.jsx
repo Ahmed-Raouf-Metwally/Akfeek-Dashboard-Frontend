@@ -17,12 +17,56 @@ function customerLabel(b) {
   return b.customer?.email || b.customer?.phone || '—';
 }
 
-function getSelectedDriver(b) {
+/** سائق/منفّذ السحب: فيندور الوينش (اسم النشاط) أو فني من العرض المختار أو الملف الشخصي */
+function getSelectedDriver(b, isAr) {
   const offer = b.offers?.find((o) => o.isSelected);
-  if (!offer?.technician) return null;
-  const p = offer.technician.profile;
-  const name = p?.firstName || p?.lastName ? [p.firstName, p.lastName].filter(Boolean).join(' ') : offer.technician.email;
-  return { name, phone: offer.technician.phone, email: offer.technician.email };
+  const booking = b.booking;
+  const tech = booking?.technician;
+
+  if (offer?.winch) {
+    const w = offer.winch;
+    const v = w.vendor;
+    const trade =
+      v && (isAr && v.businessNameAr ? v.businessNameAr : v?.businessName);
+    const name = trade || w.nameAr || w.name || w.vendorName || w.vendorNameAr || tech?.email;
+    const phone = v?.contactPhone ?? tech?.phone;
+    if (name) return { name, phone, email: tech?.email };
+  }
+
+  if (tech?.vendorProfile?.vendorType === 'TOWING_SERVICE') {
+    const vp = tech.vendorProfile;
+    const name =
+      (isAr && vp.businessNameAr ? vp.businessNameAr : null) || vp.businessName || tech.email;
+    return {
+      name,
+      phone: vp.contactPhone || tech.phone,
+      email: tech.email,
+    };
+  }
+
+  if (offer?.technician) {
+    const p = offer.technician.profile;
+    const name =
+      p?.firstName || p?.lastName
+        ? [p.firstName, p.lastName].filter(Boolean).join(' ')
+        : offer.technician.email;
+    return { name, phone: offer.technician.phone, email: offer.technician.email };
+  }
+
+  if (tech?.profile && (tech.profile.firstName || tech.profile.lastName)) {
+    const p = tech.profile;
+    return {
+      name: [p.firstName, p.lastName].filter(Boolean).join(' ') || tech.email,
+      phone: tech.phone,
+      email: tech.email,
+    };
+  }
+
+  if (tech?.email) {
+    return { name: tech.email, phone: tech.phone, email: tech.email };
+  }
+
+  return null;
 }
 
 function StatusBadge({ status, t }) {
@@ -151,8 +195,10 @@ export default function TowingRequestsPage() {
                 </thead>
                 <tbody>
                   {list.map((b) => {
-                    const driver = getSelectedDriver(b);
+                    const driver = getSelectedDriver(b, isAr);
                     const booking = b.booking;
+                    const pickupText = booking?.pickupAddress || b.locationAddress || '';
+                    const destinationText = booking?.destinationAddress || '';
                     return (
                       <tr key={b.id} className="border-b border-slate-100 transition-colors hover:bg-slate-50/50">
                         <td className="px-4 py-3">
@@ -168,21 +214,21 @@ export default function TowingRequestsPage() {
                           <span className="font-medium">{customerLabel(b)}</span>
                           {b.customer?.phone && <div className="text-xs text-slate-500">{b.customer.phone}</div>}
                         </td>
-                        <td className="max-w-[180px] px-4 py-3 text-sm text-slate-600" title={booking?.pickupAddress}>
-                          {booking?.pickupAddress ? (
+                        <td className="max-w-[180px] px-4 py-3 text-sm text-slate-600" title={pickupText || undefined}>
+                          {pickupText ? (
                             <span className="flex items-center gap-1 truncate">
                               <MapPin className="size-3.5 shrink-0 text-slate-400" />
-                              {booking.pickupAddress}
+                              {pickupText}
                             </span>
                           ) : (
                             '—'
                           )}
                         </td>
-                        <td className="max-w-[180px] px-4 py-3 text-sm text-slate-600" title={booking?.destinationAddress}>
-                          {booking?.destinationAddress ? (
+                        <td className="max-w-[180px] px-4 py-3 text-sm text-slate-600" title={destinationText || undefined}>
+                          {destinationText ? (
                             <span className="flex items-center gap-1 truncate">
                               <ArrowRight className="size-3.5 shrink-0 text-slate-400" />
-                              {booking.destinationAddress}
+                              {destinationText}
                             </span>
                           ) : (
                             '—'
@@ -199,7 +245,6 @@ export default function TowingRequestsPage() {
                             <span className="flex items-center gap-1">
                               <User className="size-3.5 shrink-0 text-slate-400" />
                               {driver.name}
-                              {driver.phone && <span className="text-xs text-slate-500"> · {driver.phone}</span>}
                             </span>
                           ) : (
                             <span className="text-slate-400">{isAr ? 'لم يُعيَّن بعد' : 'Not assigned'}</span>

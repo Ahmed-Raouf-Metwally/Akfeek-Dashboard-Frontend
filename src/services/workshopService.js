@@ -118,6 +118,22 @@ export const workshopService = {
         if (!data.success) throw new Error(data.error || 'Failed to load bookings');
         return { list: data.data ?? [], pagination: data.pagination ?? { page: 1, limit: 10, total: 0, totalPages: 1 } };
     },
+    /** Vendor: مستندات تأمين رحلة أكفيك المرتبطة بحجز الورشة */
+    async getAkfeekJourneyDocuments(bookingId) {
+        const { data } = await api.get(
+            `/workshops/profile/me/bookings/${bookingId}/akfeek-journey/documents`
+        );
+        if (!data.success) throw new Error(data.error || 'Failed to load Akfeek documents');
+        return data.data;
+    },
+    /** Vendor: تنزيل ملف مستند (blob) */
+    async downloadAkfeekJourneyDocumentFile(bookingId, documentId) {
+        const { data } = await api.get(
+            `/workshops/profile/me/bookings/${bookingId}/akfeek-journey/documents/${documentId}/file`,
+            { responseType: 'blob' }
+        );
+        return data;
+    },
     /** Vendor: confirm a pending booking (PENDING → CONFIRMED) */
     async confirmBooking(bookingId) {
         const { data } = await api.patch(`/bookings/${bookingId}/confirm`);

@@ -38,6 +38,8 @@ import PointsPage from './pages/PointsPage';
 import RatingsPage from './pages/RatingsPage';
 import JobBroadcastsPage from './pages/JobBroadcastsPage';
 import BroadcastDetailPage from './pages/BroadcastDetailPage';
+import AkfeekJourneysPage from './pages/AkfeekJourneysPage';
+import AkfeekJourneyDetailPage from './pages/AkfeekJourneyDetailPage';
 import TowingRequestsPage from './pages/TowingRequestsPage';
 import SettingsPage from './pages/SettingsPage';
 import ProfilePage from './pages/ProfilePage';
@@ -178,6 +180,8 @@ function App() {
             <Route path="bookings/:id" element={<BookingDetailPage />} />
             <Route path="broadcasts" element={<JobBroadcastsPage />} />
             <Route path="broadcasts/:id" element={<BroadcastDetailPage />} />
+            <Route path="akfeek-journeys" element={<AdminOnlyRoute><AkfeekJourneysPage /></AdminOnlyRoute>} />
+            <Route path="akfeek-journeys/:id" element={<AdminOnlyRoute><AkfeekJourneyDetailPage /></AdminOnlyRoute>} />
             <Route path="towing-requests" element={<TowingRequestsPage />} />
             <Route path="invoices" element={<InvoicesPage />} />
             <Route path="invoices/:id" element={<InvoiceDetailPage />} />

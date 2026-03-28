@@ -23,6 +23,7 @@ const DEFAULT_NAV = {
   brands: true,
   models: true,
   bookings: true,
+  akfeekJourneys: true,
   invoices: true,
   settings: true,
 };

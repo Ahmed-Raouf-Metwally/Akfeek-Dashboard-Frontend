@@ -38,6 +38,7 @@ import {
   TrendingUp,
   RotateCcw,
   Images,
+  Route,
 } from 'lucide-react';
 import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
 import { useAuthStore } from '../../store/authStore';
@@ -125,6 +126,7 @@ const SECTIONS = [
     items: [
       { key: 'bookings', to: '/bookings', icon: CalendarCheck, label: 'Bookings' },
       { key: 'broadcasts', to: '/broadcasts', icon: Radio, label: 'Broadcasts' },
+      { key: 'akfeekJourneys', to: '/akfeek-journeys', icon: Route, label: 'Akfeek journeys', labelAr: 'رحلات خدمة أكفيك' },
       { key: 'towingRequests', to: '/towing-requests', icon: Truck, label: 'Towing Requests', labelAr: 'طلبات الونش' },
       { key: 'invoices', to: '/invoices', icon: FileText, label: 'Invoices' },
       { key: 'payments', to: '/payments', icon: CreditCard, label: 'Payments' },
@@ -370,6 +372,9 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
             // إخفاء "صفحة متجري" وتدبير الكوبونات الخاصة عن الأدمن — للفيندور فقط
             visibleItems = visibleItems.filter((item) => item.key !== 'myVendorDetail' && item.key !== 'vendorCoupons');
           }
+          visibleItems = visibleItems.filter(
+            (item) => item.key !== 'akfeekJourneys' || user?.role === 'ADMIN'
+          );
           if (visibleItems.length === 0) return null;
           return (
             <div key={section.key} className="space-y-1">

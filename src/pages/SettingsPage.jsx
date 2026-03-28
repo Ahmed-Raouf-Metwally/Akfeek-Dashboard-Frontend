@@ -55,6 +55,7 @@ export default function SettingsPage() {
       items: [
         { key: 'bookings',        label: t('nav.bookings',        'Bookings') },
         { key: 'broadcasts',      label: t('nav.broadcasts',      'Broadcasts') },
+        { key: 'akfeekJourneys',  label: t('nav.akfeekJourneys',  'Akfeek journeys') },
         { key: 'towingRequests',  label: t('nav.towingRequests',  'Towing Requests') },
         { key: 'inspections',     label: t('nav.inspections',     'Inspections') },
         { key: 'supply-requests', label: t('nav.supply-requests', 'Supply Requests') },

@@ -28,7 +28,9 @@
     "view": "عرض",
     "download": "تحميل",
     "upload": "رفع",
+    "id": "المعرّف",
     "status": "الحالة",
+    "offers": "العروض",
     "actions": "الإجراءات",
     "details": "التفاصيل",
     "total": "الإجمالي",
@@ -128,6 +130,7 @@
     "models": "موديلات السيارات",
     "vehicles": "المركبات",
     "broadcasts": "البث المباشر",
+    "akfeekJourneys": "رحلات خدمة أكفيك",
     "towingRequests": "طلبات الونش",
     "supply-requests": "طلبات التوريد",
     "invoices": "الفواتير",
@@ -747,7 +750,13 @@
     "subtitle": "إدارة بث خدمات الطوارئ وعروض الفنيين",
     "bookingNumber": "رقم الحجز",
     "location": "الموقع",
-    "urgency": "الأهمية",
+    "urgency": {
+      "title": "الأهمية",
+      "LOW": "منخفضة",
+      "MEDIUM": "متوسطة",
+      "HIGH": "عالية",
+      "NORMAL": "عادية"
+    },
     "budget": "الميزانية",
     "offers": "العروض",
     "expires": "ينتهي في",
@@ -759,11 +768,55 @@
       "TECHNICIAN_SELECTED": "تم اختيار فني",
       "CANCELLED": "ملغي",
       "EXPIRED": "منتهي"
+    }
+  },
+  "akfeekJourney": {
+    "title": "رحلات خدمة أكفيك",
+    "subtitle": "رحلات التأمين والورشة الموجّهة",
+    "detailTitle": "تفاصيل الرحلة",
+    "detailSubtitle": "الخطوات، التخطي، والحجوزات المرتبطة",
+    "backToList": "العودة لقائمة الرحلات",
+    "viewDetails": "تفاصيل",
+    "openUser": "فتح ملف المستخدم",
+    "created": "تاريخ البدء",
+    "stepsTimeline": "الخطوات — ما تم إنجازه وما تم تخطيه",
+    "currentBadge": "الحالية",
+    "workshopBookingSection": "حجز الورشة",
+    "workshopInvoice": "فاتورة الورشة",
+    "openWorkshopBooking": "فتح حجز الورشة",
+    "openLinkedBooking": "فتح الحجز المرتبط",
+    "invoicePaid": "الفاتورة مدفوعة (اكتملت خطوة الورشة)",
+    "invoiceNotPaid": "الفاتورة غير مدفوعة بالكامل",
+    "noInvoiceYet": "لا يوجد سجل فاتورة بعد",
+    "noDocuments": "لا توجد مستندات مرفوعة",
+    "openFile": "فتح الملف",
+    "empty": "لا توجد رحلات",
+    "emptyDesc": "لا توجد رحلات تطابق الفلتر المحدد.",
+    "currentStep": "الخطوة الحالية",
+    "documents": "المستندات",
+    "status": {
+      "ACTIVE": "نشطة",
+      "COMPLETED": "مكتملة",
+      "ABANDONED": "متروكة"
     },
-    "urgencyLevels": {
-      "LOW": "منخفضة",
-      "MEDIUM": "متوسطة",
-      "HIGH": "عالية"
+    "steps": {
+      "INSURANCE_TOW": "سحب التأمين",
+      "INSURANCE_DOCS": "وثائق التأمين",
+      "TOW_TO_WORKSHOP": "السحب إلى الورشة",
+      "WORKSHOP_BOOKING": "حجز الورشة والإصلاح",
+      "POST_REPAIR_TOW_HOME": "العودة للمنزل بعد الإصلاح"
+    },
+    "outcome": {
+      "SKIPPED": "تم تخطي هذه الخطوة من قبل العميل",
+      "BOOKING": "مرتبط بحجز (سحب / ورشة / عودة)",
+      "DOCS_COMPLETED": "اكتملت خطوة وثائق التأمين",
+      "WORKSHOP_PAID": "يوجد حجز ورشة والفاتورة مدفوعة — الخطوة مكتملة",
+      "WORKSHOP_PENDING_PAYMENT": "يوجد حجز ورشة — بانتظار دفع الفاتورة",
+      "RETURN_DECLINED": "العميل رفض أو تخطّى سحب العودة للمنزل",
+      "IN_PROGRESS": "قيد التنفيذ (الخطوة الحالية)",
+      "NOT_YET": "لم يبدأ بعد",
+      "PENDING": "معلّق",
+      "COMPLETED": "مكتمل"
     }
   },
   "towingRequests": {

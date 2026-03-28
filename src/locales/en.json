@@ -30,7 +30,9 @@
     "view": "View",
     "download": "Download",
     "upload": "Upload",
+    "id": "ID",
     "status": "Status",
+    "offers": "Offers",
     "actions": "Actions",
     "details": "Details",
     "total": "Total",
@@ -129,6 +131,7 @@
     "models": "Vehicle Models",
     "vehicles": "Vehicles",
     "broadcasts": "Broadcasts",
+    "akfeekJourneys": "Akfeek journeys",
     "towingRequests": "Towing Requests",
     "supply-requests": "Supply Requests",
     "invoices": "Invoices",
@@ -748,7 +751,13 @@
     "subtitle": "Manage emergency service broadcasts and technician offers",
     "bookingNumber": "Booking #",
     "location": "Location",
-    "urgency": "Urgency",
+    "urgency": {
+      "title": "Urgency",
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "NORMAL": "Normal"
+    },
     "budget": "Budget",
     "offers": "Offers",
     "expires": "Expires",
@@ -760,11 +769,55 @@
       "TECHNICIAN_SELECTED": "Technician Selected",
       "CANCELLED": "Cancelled",
       "EXPIRED": "Expired"
+    }
+  },
+  "akfeekJourney": {
+    "title": "Akfeek journeys",
+    "subtitle": "Insurance and workshop guided journeys",
+    "detailTitle": "Journey details",
+    "detailSubtitle": "Steps, skips, and linked bookings",
+    "backToList": "Back to journeys",
+    "viewDetails": "Details",
+    "openUser": "Open user profile",
+    "created": "Created",
+    "stepsTimeline": "Steps — what was done and what was skipped",
+    "currentBadge": "Current",
+    "workshopBookingSection": "Workshop booking",
+    "workshopInvoice": "Workshop invoice",
+    "openWorkshopBooking": "Open workshop booking",
+    "openLinkedBooking": "Open linked booking",
+    "invoicePaid": "Invoice paid (workshop step complete)",
+    "invoiceNotPaid": "Invoice not paid yet",
+    "noInvoiceYet": "No invoice record yet",
+    "noDocuments": "No documents uploaded",
+    "openFile": "Open file",
+    "empty": "No journeys",
+    "emptyDesc": "No Akfeek journeys match the selected filter.",
+    "currentStep": "Current step",
+    "documents": "Documents",
+    "status": {
+      "ACTIVE": "Active",
+      "COMPLETED": "Completed",
+      "ABANDONED": "Abandoned"
     },
-    "urgencyLevels": {
-      "LOW": "Low",
-      "MEDIUM": "Medium",
-      "HIGH": "High"
+    "steps": {
+      "INSURANCE_TOW": "Insurance tow",
+      "INSURANCE_DOCS": "Insurance documents",
+      "TOW_TO_WORKSHOP": "Tow to workshop",
+      "WORKSHOP_BOOKING": "Workshop booking & repair",
+      "POST_REPAIR_TOW_HOME": "Tow home after repair"
+    },
+    "outcome": {
+      "SKIPPED": "Step was skipped by the customer",
+      "BOOKING": "Linked to a booking (tow/workshop/return)",
+      "DOCS_COMPLETED": "Insurance documents step completed",
+      "WORKSHOP_PAID": "Workshop booking exists and invoice is paid — step complete",
+      "WORKSHOP_PENDING_PAYMENT": "Workshop booking exists — waiting for invoice payment",
+      "RETURN_DECLINED": "Customer declined / skipped return-home tow",
+      "IN_PROGRESS": "In progress (current step)",
+      "NOT_YET": "Not started yet",
+      "PENDING": "Pending",
+      "COMPLETED": "Completed"
     }
   },
   "towingRequests": {

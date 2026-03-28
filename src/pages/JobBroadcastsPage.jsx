@@ -150,7 +150,7 @@ export default function JobBroadcastsPage() {
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600">{fmt(b.createdAt)}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">
-                        {b._count?.offers ?? 0}
+                        {b.offersCount ?? b._count?.offers ?? 0}
                       </td>
                     </tr>
                   ))}

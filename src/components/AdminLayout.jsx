@@ -27,6 +27,7 @@ function getTitleForPath(pathname, t, user) {
     '/vehicles': [t('nav.vehicles', 'Vehicles'), t('vehicles.subtitle', 'All registered vehicles')],
     '/bookings': [t('nav.bookings', 'Bookings'), t('common.manageBookings', 'Manage bookings')],
     '/broadcasts': [t('nav.broadcasts', 'Broadcasts'), t('broadcasts.subtitle', 'Manage emergency broadcasts')],
+    '/akfeek-journeys': [t('nav.akfeekJourneys', 'Akfeek journeys'), t('akfeekJourney.subtitle', 'Insurance and workshop guided journeys')],
     '/towing-requests': [t('nav.towingRequests', 'Towing Requests'), t('towingRequests.subtitle', 'All towing requests and assigned driver')],
     '/invoices': [t('nav.invoices', 'Invoices'), t('common.viewInvoices', 'View invoices')],
     '/settings': [t('nav.settings', 'Settings'), t('common.appSettings', 'App settings')],
@@ -65,6 +66,9 @@ function getTitleForPath(pathname, t, user) {
   if (pathname.startsWith('/invoices/')) return [t('common.invoiceDetails', 'Invoice details'), ''];
   if (pathname.startsWith('/vendors/')) return [t('common.vendorProfile', 'Vendor Profile'), t('common.manageVendorCatalog', 'Manage vendor and catalog')];
   if (pathname.startsWith('/auto-parts/')) return [t('common.autoPartDetails', 'Auto Part Details'), t('common.managePartListing', 'Manage part listing')];
+  if (pathname.startsWith('/akfeek-journeys/')) {
+    return [t('akfeekJourney.detailTitle', 'Journey details'), t('akfeekJourney.detailSubtitle', 'Steps, skips, and linked bookings')];
+  }
   return ['', ''];
 }
 

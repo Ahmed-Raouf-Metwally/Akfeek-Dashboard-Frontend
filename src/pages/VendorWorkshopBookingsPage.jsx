@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { ArrowLeft, CheckCircle, CircleCheck, Play } from 'lucide-react';
+import { ArrowLeft, CheckCircle, CircleCheck, FileText, Play } from 'lucide-react';
 import { workshopService } from '../services/workshopService';
 import { useAuthStore } from '../store/authStore';
 import { Card } from '../components/ui/Card';
+import Modal from '../components/ui/Modal';
 import { Skeleton, TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
 import { useDateFormat } from '../hooks/useDateFormat';
@@ -26,6 +27,7 @@ export default function VendorWorkshopBookingsPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
+  const [akfeekDocsBookingId, setAkfeekDocsBookingId] = useState(null);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['vendor-workshop-bookings', page, statusFilter],
@@ -33,6 +35,29 @@ export default function VendorWorkshopBookingsPage() {
     staleTime: 30_000,
     retry: (_, err) => err?.response?.status !== 403,
   });
+
+  const {
+    data: akfeekDocs,
+    isLoading: akfeekDocsLoading,
+    isError: akfeekDocsError,
+    error: akfeekDocsErr,
+  } = useQuery({
+    queryKey: ['vendor-akfeek-docs', akfeekDocsBookingId],
+    queryFn: () => workshopService.getAkfeekJourneyDocuments(akfeekDocsBookingId),
+    enabled: Boolean(akfeekDocsBookingId),
+    staleTime: 60_000,
+  });
+
+  const openAkfeekDocFile = async (bookingId, documentId) => {
+    try {
+      const blob = await workshopService.downloadAkfeekJourneyDocumentFile(bookingId, documentId);
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank', 'noopener,noreferrer');
+      setTimeout(() => URL.revokeObjectURL(url), 120_000);
+    } catch (e) {
+      toast.error(e?.message || (isAr ? 'تعذر فتح الملف' : 'Could not open file'));
+    }
+  };
 
   const confirmMutation = useMutation({
     mutationFn: (id) => workshopService.confirmBooking(id),
@@ -161,7 +186,15 @@ export default function VendorWorkshopBookingsPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-end">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex flex-wrap items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setAkfeekDocsBookingId(b.id)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                          >
+                            <FileText className="size-4 shrink-0 text-indigo-600" />
+                            {isAr ? 'مستندات أكفيك' : 'Akfeek docs'}
+                          </button>
                           {b.status === 'PENDING' && (
                             <button
                               type="button"
@@ -208,8 +241,10 @@ export default function VendorWorkshopBookingsPage() {
             {pagination.totalPages > 1 && (
               <div className="border-t border-slate-200 px-4 py-3">
                 <Pagination
-                  currentPage={pagination.page}
+                  page={pagination.page}
                   totalPages={pagination.totalPages}
+                  total={pagination.total}
+                  pageSize={pagination.limit}
                   onPageChange={setPage}
                 />
               </div>
@@ -217,6 +252,69 @@ export default function VendorWorkshopBookingsPage() {
           </>
         )}
       </Card>
+
+      <Modal
+        open={Boolean(akfeekDocsBookingId)}
+        onClose={() => setAkfeekDocsBookingId(null)}
+        title={isAr ? 'مستندات التأمين (خدمة أكفيك)' : 'Insurance documents (Akfeek)'}
+        size="lg"
+      >
+        {!akfeekDocsBookingId ? null : akfeekDocsLoading ? (
+          <Skeleton className="h-24 w-full" />
+        ) : akfeekDocsError ? (
+          <p className="text-sm text-red-600">{akfeekDocsErr?.message || (isAr ? 'فشل التحميل' : 'Failed to load')}</p>
+        ) : !akfeekDocs?.hasAkfeekJourney || !(akfeekDocs.documents?.length > 0) ? (
+          <p className="text-sm text-slate-600">
+            {isAr
+              ? 'لا توجد رحلة أكفيك مرتبطة بهذا الحجز أو لا توجد مستندات مرفوعة.'
+              : 'No Akfeek journey linked to this booking, or no documents uploaded.'}
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {akfeekDocs.journey && (
+              <p className="text-xs text-slate-500">
+                {isAr ? 'الخطوة الحالية:' : 'Current step:'}{' '}
+                <span className="font-medium text-slate-700">{akfeekDocs.journey.currentStep}</span>
+                {' · '}
+                {isAr ? 'الحالة:' : 'Status:'}{' '}
+                <span className="font-medium text-slate-700">{akfeekDocs.journey.status}</span>
+              </p>
+            )}
+            <div className="overflow-x-auto rounded-lg border border-slate-200">
+              <table className="min-w-full text-sm">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th className="px-3 py-2 text-start font-medium text-slate-600">{isAr ? 'النوع' : 'Label'}</th>
+                    <th className="px-3 py-2 text-start font-medium text-slate-600">{isAr ? 'الاسم' : 'File'}</th>
+                    <th className="px-3 py-2 text-start font-medium text-slate-600">{isAr ? 'التاريخ' : 'Date'}</th>
+                    <th className="px-3 py-2 text-end font-medium text-slate-600">{isAr ? 'عرض' : 'Open'}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {akfeekDocs.documents.map((d) => (
+                    <tr key={d.id}>
+                      <td className="px-3 py-2 text-slate-800">{d.label}</td>
+                      <td className="max-w-[200px] truncate px-3 py-2 text-slate-600" title={d.originalName || ''}>
+                        {d.originalName || '—'}
+                      </td>
+                      <td className="px-3 py-2 text-slate-600">{fmt(d.createdAt)}</td>
+                      <td className="px-3 py-2 text-end">
+                        <button
+                          type="button"
+                          onClick={() => openAkfeekDocFile(akfeekDocsBookingId, d.id)}
+                          className="font-medium text-indigo-600 hover:text-indigo-500"
+                        >
+                          {isAr ? 'فتح' : 'Open'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
