@@ -1,0 +1,205 @@
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { CalendarCheck, Eye } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
+import { bookingService } from '../services/bookingService';
+import { TableSkeleton } from '../components/ui/Skeleton';
+import Pagination from '../components/ui/Pagination';
+import { Card } from '../components/ui/Card';
+import { useDateFormat } from '../hooks/useDateFormat';
+import { CURRENCY_SYMBOL } from '../constants/currency';
+
+const PAGE_SIZE = 10;
+
+function customerLabel(b) {
+  const p = b.customer?.profile;
+  if (p?.firstName || p?.lastName) return [p.firstName, p.lastName].filter(Boolean).join(' ');
+  return b.customer?.email || b.customer?.phone || b.customerId || '—';
+}
+
+function vendorLabel(b) {
+  // الفيندور من أول خدمة محجوزة لها فيندور، وإلا من ورشة الحجز
+  const fromService = b.services?.find((s) => s.service?.vendor);
+  const vendor = fromService?.service?.vendor ?? b.workshop?.vendor;
+  if (!vendor) return '—';
+  return vendor.businessNameAr || vendor.businessName || '—';
+}
+
+/** إجمالي من بنود الفاتورة (مطابق لصفحة الفاتورة) أو totalPrice أو مجموع الحقول */
+function effectiveBookingTotal(b) {
+  const items = b.invoice?.lineItems;
+  if (items && items.length > 0) {
+    return items.reduce((s, line) => s + Number(line.totalPrice ?? 0), 0);
+  }
+  if (b.totalPrice != null) return Number(b.totalPrice);
+  const sum = Number(b.subtotal ?? 0) + Number(b.laborFee ?? 0) + Number(b.deliveryFee ?? 0) + Number(b.partsTotal ?? 0) - Number(b.discount ?? 0);
+  return sum !== 0 || b.subtotal != null ? sum : null;
+}
+
+export default function BookingsPage() {
+  const { t, i18n } = useTranslation();
+  const { fmt } = useDateFormat();
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.role === 'ADMIN';
+  const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState('');
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ['bookings', isAdmin ? 'all' : 'my', page, statusFilter],
+    queryFn: () =>
+      isAdmin
+        ? bookingService.getBookings({ page, limit: PAGE_SIZE, status: statusFilter || undefined })
+        : bookingService.getMyBookings({ page, limit: PAGE_SIZE, status: statusFilter || undefined }),
+    staleTime: 60_000,
+  });
+
+  const list = data?.list ?? [];
+  const pagination = data?.pagination ?? { page: 1, total: 0, totalPages: 1, limit: PAGE_SIZE };
+
+  // 5 حالات مبسطة فقط — الباكند يوسّع الفلتر تلقائياً للحالات التفصيلية
+  const STATUS_OPTIONS = [
+    { value: 'PENDING', label: i18n.language === 'ar' ? 'قيد الانتظار' : 'Pending' },
+    { value: 'CONFIRMED', label: i18n.language === 'ar' ? 'مؤكد' : 'Confirmed' },
+    { value: 'IN_PROGRESS', label: i18n.language === 'ar' ? 'قيد التنفيذ' : 'In Progress' },
+    { value: 'COMPLETED', label: i18n.language === 'ar' ? 'مكتمل' : 'Completed' },
+    { value: 'CANCELLED', label: i18n.language === 'ar' ? 'ملغى' : 'Cancelled' },
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-900">{t('bookings.title')}</h1>
+          <p className="text-sm text-slate-500">{t('bookings.manage') || 'Manage customer bookings.'}</p>
+        </div>
+        <Card className="overflow-hidden p-0">
+          <TableSkeleton rows={5} cols={5} />
+        </Card>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-900">{t('bookings.title')}</h1>
+          <p className="text-sm text-slate-500">{t('bookings.manage') || 'Manage customer bookings.'}</p>
+        </div>
+        <Card className="p-8 text-center">
+          <p className="text-red-600">{error?.message ?? t('common.error')}</p>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-900">
+            {isAdmin ? t('bookings.title') : (i18n.language === 'ar' ? 'حجوزاتي' : 'My bookings')}
+          </h1>
+          <p className="text-sm text-slate-500">
+            {isAdmin ? (t('bookings.manage') || 'Manage customer bookings.') : (i18n.language === 'ar' ? 'عرض وإدارة حجوزاتك.' : 'View and manage your appointments.')}
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <label className="text-sm font-medium text-slate-700">{t('common.status')}</label>
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          >
+            <option value="">{t('common.all')}</option>
+            {STATUS_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <Card className="overflow-hidden p-0">
+        {list.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-12 text-center">
+            <CalendarCheck className="mb-4 size-12 text-slate-400" />
+            <h3 className="mb-2 text-base font-semibold text-slate-900">{t('bookings.noBookings')}</h3>
+            <p className="max-w-sm text-sm text-slate-500">{t('bookings.noBookingsDesc')}</p>
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse" role="grid">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50/80">
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.bookingId')}</th>
+                    {isAdmin && (
+                      <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.customer')}</th>
+                    )}
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.vehicle')}</th>
+                    {isAdmin && (
+                      <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.vendor', 'مقدم الخدمة / الفيندور')}</th>
+                    )}
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.status')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.date')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.time')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.totalPrice')} ({CURRENCY_SYMBOL})</th>
+                    <th className="w-20 px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.actions')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {list.map((b) => (
+                    <tr key={b.id} className="border-b border-slate-100 transition-colors hover:bg-slate-50/50">
+                      <td className="px-4 py-3 text-sm font-medium text-slate-900">{b.bookingNumber ?? b.id}</td>
+                      {isAdmin && (
+                        <td className="px-4 py-3 text-sm text-slate-600">{customerLabel(b)}</td>
+                      )}
+                      <td className="px-4 py-3 text-sm text-slate-600">
+                        {(b.vehicle?.plateLettersEn || b.vehicle?.plateDigits)
+                          ? [b.vehicle.plateLettersEn, b.vehicle.plateDigits].filter(Boolean).join(' ')
+                          : (b.vehicle?.vehicleModel?.brand?.name
+                            ? `${b.vehicle.vehicleModel.brand.name} ${b.vehicle.vehicleModel?.name ?? ''}`.trim()
+                            : '—')}
+                      </td>
+                      {isAdmin && (
+                        <td className="px-4 py-3 text-sm text-slate-600">{vendorLabel(b)}</td>
+                      )}
+                      <td className="px-4 py-3">
+                        <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
+                          {b.displayStatus ? t(`bookings.statusValues.${b.displayStatus}`, b.displayStatus) : (b.status ?? '—')}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{fmt(b.scheduledDate)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{b.scheduledTime ?? '—'}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">
+                        {effectiveBookingTotal(b) != null ? `${Number(effectiveBookingTotal(b)).toFixed(2)} ${CURRENCY_SYMBOL}` : '—'}
+                      </td>
+                      <td className="px-4 py-3">
+                        <Link
+                          to={`/bookings/${b.id}`}
+                          className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                          title={t('common.details')}
+                          aria-label={t('common.details')}
+                        >
+                          <Eye className="size-5" />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Pagination
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              total={pagination.total}
+              pageSize={pagination.limit}
+              onPageChange={setPage}
+              disabled={isLoading}
+            />
+          </>
+        )}
+      </Card>
+    </div>
+  );
+}

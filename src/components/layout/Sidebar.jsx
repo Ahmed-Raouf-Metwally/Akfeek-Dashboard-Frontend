@@ -1,0 +1,436 @@
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+// eslint-disable-next-line no-unused-vars -- motion.span used in JSX
+import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import {
+  LayoutDashboard,
+  BarChart3,
+  Users,
+  Wrench,
+  Car,
+  CalendarCheck,
+  Package,
+  FileText,
+  Settings,
+  UserCircle,
+  PanelLeftClose,
+  Bell,
+  Shield,
+  Activity,
+  CircleDot,
+  CreditCard,
+  Wallet,
+  Star,
+  Radio,
+  ClipboardCheck,
+  Store,
+  ShoppingBag,
+  Layers,
+  List,
+  Truck,
+  Building2,
+  MessageSquare,
+  Headphones,
+  Tag,
+  Droplets,
+  ShieldCheck,
+  TrendingUp,
+  RotateCcw,
+  Images,
+  Route,
+} from 'lucide-react';
+import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
+import { useAuthStore } from '../../store/authStore';
+
+/** موظف أكفيك: كل صلاحية (من الباكند) تُترجم لواحد أو أكثر من مفاتيح القائمة الجانبية */
+const EMPLOYEE_PERMISSION_TO_SIDEBAR_KEYS = {
+  bookings: ['bookings', 'broadcasts', 'towingRequests'],
+  vendors: ['vendors', 'vendorRequests', 'auto-part-categories', 'auto-parts', 'marketplace-orders', 'allCoupons'],
+  vehicles: ['vehicles', 'brands', 'models'],
+  workshops: ['workshops', 'carWashWorkshops', 'comprehensiveCareWorkshops'],
+  winches: ['winches'],
+  mobile_workshops: ['mobile-workshop-types', 'mobile-workshops'],
+  invoices: ['invoices'],
+  payments: ['payments'],
+  users: ['users', 'roles'],
+  settings: ['settings'],
+  finance: ['wallets', 'commissionReport', 'points', 'refunds'],
+  feedback: ['feedback'],
+};
+
+/** ١ – فيندور قطع الغيار / المنتجات (بدون تقييمات أو Points Audit) */
+const VENDOR_AUTO_PARTS_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'auto-parts', 'marketplace-orders', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
+/** ٢ – فيندور العناية الشاملة */
+const VENDOR_COMPREHENSIVE_CARE_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
+/** ٣ – فيندور الورش المعتمدة */
+const VENDOR_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyWorkshop', 'vendorWorkshopBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
+/** ٤ – فيندور خدمة الغسيل */
+const VENDOR_CAR_WASH_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
+/** ٥ – فيندور الورش المتنقلة */
+const VENDOR_MOBILE_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyMobileWorkshop', 'vendorMobileWorkshopRequests', 'vendorMobileWorkshopJobs', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
+/** ٦ – فيندور الونش (السطحه) */
+const VENDOR_WINCH_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyWinch', 'vendorWinchRequests', 'vendorWinchJobs', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
+
+const SECTION_LABEL_KEYS = {
+  main: 'sectionMain',
+  'services-vehicles': 'sectionServicesVehicles',
+  orders: 'sectionOrders',
+  vendorServices: 'sectionVendorServices',
+  vendorWorkshop: 'sectionVendorWorkshop',
+  vendorMobileWorkshop: 'sectionVendorMobileWorkshop',
+  vendorWinch: 'sectionVendorWinch',
+  customerMobileWorkshop: 'sectionCustomerMobileWorkshop',
+  marketplace: 'sectionMarketplace',
+  management: 'sectionManagement',
+  system: 'sectionSystem',
+};
+
+const SECTIONS = [
+  {
+    key: 'main',
+    labelEn: 'Main',
+    labelAr: 'الرئيسية',
+    items: [
+      { key: 'dashboard', to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { key: 'analytics', to: '/analytics', icon: BarChart3, label: 'Analytics' },
+      { key: 'employees', to: '/employees', icon: Users, label: 'موظفون أكفيك', labelEn: 'Akfeek Employees' },
+      { key: 'myVendorDetail', to: '/my-vendor', icon: Store, label: 'My Store Page' },
+      { key: 'vendorCoupons', to: '/vendor/coupons', icon: Tag, label: 'Coupons', labelAr: 'الكوبونات' },
+    ],
+  },
+
+  {
+    key: 'services-vehicles',
+    labelEn: 'Services & Vehicles',
+    labelAr: 'الخدمات والمركبات',
+    items: [
+      // { key: 'services', to: '/services', icon: Wrench, label: 'Services' },
+      //{ key: 'mobileCarService', to: '/mobile-car-service', icon: Truck, label: 'Mobile Car Service' },
+      { key: 'workshops', to: '/workshops', icon: Building2, label: 'Workshops' },
+      { key: 'carWashWorkshops', to: '/car-wash', icon: Droplets, label: 'Car Wash Workshops', labelAr: 'ورش الغسيل' },
+      { key: 'comprehensiveCareWorkshops', to: '/comprehensive-care', icon: ShieldCheck, label: 'Comprehensive Care', labelAr: 'العناية الشاملة' },
+      { key: 'winches', to: '/winches', icon: Truck, label: 'السطحات' },
+      { key: 'mobile-workshop-types', to: '/mobile-workshop-types', icon: List, label: 'أنواع الورش المتنقلة' },
+      { key: 'mobile-workshops', to: '/mobile-workshops', icon: Wrench, label: 'الورش المتنقلة' },
+      { key: 'technicalSupportRequests', to: '/technical-support-requests', icon: Headphones, label: 'Technical Support Requests' },
+      { key: 'brands', to: '/brands', icon: Car, label: 'Vehicle Brands' },
+      { key: 'models', to: '/models', icon: CircleDot, label: 'Vehicle Models' },
+      { key: 'vehicles', to: '/vehicles', icon: Car, label: 'Vehicles', labelAr: 'المركبات' },
+    ],
+  },
+  {
+    key: 'orders',
+    labelEn: 'Orders & Finance',
+    labelAr: 'الطلبات والمالية',
+    items: [
+      { key: 'bookings', to: '/bookings', icon: CalendarCheck, label: 'Bookings' },
+      { key: 'broadcasts', to: '/broadcasts', icon: Radio, label: 'Broadcasts' },
+      { key: 'akfeekJourneys', to: '/akfeek-journeys', icon: Route, label: 'Akfeek journeys', labelAr: 'رحلات خدمة أكفيك' },
+      { key: 'towingRequests', to: '/towing-requests', icon: Truck, label: 'Towing Requests', labelAr: 'طلبات الونش' },
+      { key: 'invoices', to: '/invoices', icon: FileText, label: 'Invoices' },
+      { key: 'payments', to: '/payments', icon: CreditCard, label: 'Payments' },
+      { key: 'refunds', to: '/refunds', icon: RotateCcw, label: 'Refunds', labelAr: 'الاستردادات' },
+      { key: 'wallets', to: '/wallets', icon: Wallet, label: 'Wallets' },
+      { key: 'commissionReport', to: '/commission-report', icon: TrendingUp, label: 'Commission Report', labelAr: 'تقرير العمولة والضريبة' },
+      { key: 'points', to: '/points', icon: Star, label: 'Points Audit' },
+      { key: 'ratings', to: '/ratings', icon: Star, label: 'Ratings' },
+    ],
+  },
+  {
+    key: 'vendorServices',
+    labelEn: 'Services',
+    labelAr: 'الخدمات',
+    items: [
+      { key: 'vendorMyServices', to: '/vendor/comprehensive-care/services', icon: Wrench, label: 'My Services' },
+      { key: 'vendorBookings', to: '/vendor/comprehensive-care/bookings', icon: CalendarCheck, label: 'Appointments' },
+    ],
+  },
+  {
+    key: 'vendorWorkshop',
+    labelEn: 'Certified Workshop (Vendor)',
+    labelAr: 'الورش المعتمدة',
+    items: [
+      { key: 'vendorMyWorkshop', to: '/vendor/workshop', icon: Building2, label: 'My Workshop' },
+      { key: 'vendorWorkshopBookings', to: '/vendor/workshop/bookings', icon: CalendarCheck, label: 'Workshop Bookings' },
+    ],
+  },
+  {
+    key: 'vendorMobileWorkshop',
+    labelEn: 'Mobile Workshop (Vendor)',
+    labelAr: 'الورش المتنقلة',
+    items: [
+      { key: 'vendorMyMobileWorkshop', to: '/vendor/mobile-workshop', icon: Truck, label: 'My Mobile Workshop', labelAr: 'ورشتي المتنقلة' },
+      { key: 'vendorMobileWorkshopRequests', to: '/vendor/mobile-workshop/requests', icon: CalendarCheck, label: 'Requests', labelAr: 'طلبات ورشتي' },
+      { key: 'vendorMobileWorkshopJobs', to: '/vendor/mobile-workshop/jobs', icon: Wrench, label: 'Jobs', labelAr: 'مهام الإصلاح' },
+    ],
+  },
+  {
+    key: 'vendorWinch',
+    labelEn: 'Winch / Towing (Vendor)',
+    labelAr: 'الونش / السطحه',
+    items: [
+      { key: 'vendorMyWinch', to: '/vendor/winch', icon: Truck, label: 'My Winch', labelAr: 'صفحة الونش' },
+      { key: 'vendorWinchRequests', to: '/vendor/winch/requests', icon: Radio, label: 'Nearby Requests', labelAr: 'طلبات قريبة' },
+      { key: 'vendorWinchJobs', to: '/vendor/winch/jobs', icon: CalendarCheck, label: 'My Jobs', labelAr: 'مهامي' },
+    ],
+  },
+  {
+    key: 'customerMobileWorkshop',
+    labelEn: 'Mobile Workshop (Customer)',
+    labelAr: 'طلبات الورش المتنقلة',
+    items: [
+      { key: 'myMobileWorkshopRequests', to: '/my-mobile-workshop-requests', icon: Truck, label: 'My Requests', labelAr: 'طلباتي — العروض والموافقات' },
+    ],
+  },
+  {
+    key: 'marketplace',
+    labelEn: 'Marketplace',
+    labelAr: 'المتجر',
+    items: [
+      { key: 'vendors', to: '/vendors', icon: Store, label: 'Vendors' },
+      { key: 'vendorRequests', to: '/vendors/onboarding', icon: ClipboardCheck, label: 'Vendor Requests' },
+      
+      { key: 'auto-part-categories', to: '/auto-part-categories', icon: Layers, label: 'Categories' },
+      { key: 'auto-parts', to: '/auto-parts', icon: ShoppingBag, label: 'Auto Parts' },
+      { key: 'marketplace-orders', to: '/marketplace-orders', icon: Package, label: 'Orders' },
+      { key: 'allCoupons', to: '/coupons', icon: Tag, label: 'All Coupons', labelAr: 'كافة الكوبونات' },
+    ],
+  },
+  {
+    key: 'management',
+    labelEn: 'Management',
+    labelAr: 'الإدارة',
+    items: [
+      { key: 'users', to: '/users', icon: Users, label: 'Users' },
+      { key: 'roles', to: '/roles', icon: Shield, label: 'Roles & Permissions', labelAr: 'الأدوار والصلاحيات' },
+      { key: 'feedback', to: '/feedback', icon: MessageSquare, label: 'Feedback' },
+      { key: 'notifications', to: '/notifications', icon: Bell, label: 'Notifications' },
+      { key: 'activity', to: '/activity', icon: Activity, label: 'Activity / Logs' },
+    ],
+  },
+    {
+    key: 'system',
+    labelEn: 'System',
+    labelAr: 'النظام',
+    items: [
+      { key: 'banners', to: '/banners', icon: Images, label: 'Banners', labelAr: 'البنرات' },
+      { key: 'packages', to: '/admin/packages', icon: Package, label: 'Packages', labelAr: 'الباقات' },
+      { key: 'subscriptions', to: '/admin/subscriptions', icon: Package, label: 'Subscriptions', labelAr: 'الاشتراكات' },
+      { key: 'settings', to: '/settings', icon: Settings, label: 'Settings' },
+      { key: 'profile', to: '/profile', icon: UserCircle, label: 'Profile' },
+    ],
+
+  },
+];
+
+function SidebarLink({ to, icon, label, active, collapsed }) {
+  const IconEl = icon;
+  const location = useLocation();
+  const isActive = location.pathname === to; // Ensure exact match for active state
+
+  return (
+    <Link
+      to={to}
+      className={`
+        flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200
+        ${isActive
+          ? 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100 dark:bg-indigo-900/40 dark:text-indigo-300 dark:ring-indigo-800'
+          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-100'}
+        ${collapsed ? 'justify-center px-2' : ''}
+      `}
+      title={collapsed ? label : undefined}
+    >
+      <IconEl className="size-5 shrink-0 text-slate-500 dark:text-slate-400" aria-hidden />
+      <AnimatePresence initial={false}>
+        {!collapsed && (
+          <motion.span
+            initial={{ opacity: 0, width: 0 }}
+            animate={{ opacity: 1, width: 'auto' }}
+            exit={{ opacity: 0, width: 0 }}
+            transition={{ duration: 0.15 }}
+            className="truncate whitespace-nowrap"
+          >
+            {label}
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </Link>
+  );
+}
+
+export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile }) {
+  const { t, i18n } = useTranslation();
+  const location = useLocation();
+  const user = useAuthStore((s) => s.user);
+  const isVendor = user?.role === 'VENDOR';
+  const isEmployee = user?.role === 'EMPLOYEE';
+  const employeePermissions = user?.permissions || [];
+  const navVisibility = useDashboardSettingsStore((s) => s.navVisibility);
+  const isRTL = i18n.language === 'ar';
+
+  /** للموظف: مجموعة مفاتيح القائمة المسموح بها حسب صلاحياته (ديناميكي) */
+  const employeeAllowedSidebarKeys = React.useMemo(() => {
+    if (!isEmployee) return null;
+    const set = new Set(['dashboard', 'profile']);
+    employeePermissions.forEach((key) => {
+      const sidebarKeys = EMPLOYEE_PERMISSION_TO_SIDEBAR_KEYS[key];
+      if (Array.isArray(sidebarKeys)) sidebarKeys.forEach((k) => set.add(k));
+    });
+    return set;
+  }, [isEmployee, employeePermissions]);
+
+  const panel = (
+    <aside
+      className={`
+        print:hidden
+        fixed inset-y-0 z-40 flex flex-col border-slate-200 bg-white
+        dark:border-slate-700 dark:bg-slate-800
+        transition-[width,transform] duration-200 ease-in-out
+        w-64
+        ${collapsed ? 'lg:w-[72px]' : ''}
+        ${isRTL ? 'right-0 border-l' : 'left-0 border-r'}
+        ${mobileOpen ? 'translate-x-0' : `${isRTL ? 'translate-x-full' : '-translate-x-full'} lg:translate-x-0`}
+      `}
+    >
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 px-3 dark:border-slate-700">
+        <Link
+          to="/dashboard"
+          className={`flex items-center gap-2 overflow-hidden rounded-md font-semibold text-slate-800 dark:text-slate-100 ${collapsed ? 'w-9 justify-center' : ''}`}
+        >
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-indigo-600 to-indigo-500 text-sm font-bold text-white shadow-sm">
+            {isRTL ? 'أ' : 'A'}
+          </span>
+          <AnimatePresence initial={false}>
+            {!collapsed && (
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="truncate"
+              >
+                {isRTL ? 'أكفيك' : 'Akfeek'}
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </Link>
+        {!collapsed && (
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+            aria-label="Collapse sidebar"
+          >
+            <PanelLeftClose className="size-5" />
+          </button>
+        )}
+      </div>
+
+      <nav className="flex-1 space-y-6 overflow-y-auto p-3">
+        {SECTIONS.map((section) => {
+          let visibleItems = section.items.filter((item) => navVisibility[item.key] !== false);
+          const vt = user?.vendorType;
+          if (section.key === 'services-vehicles' && isVendor && (vt === 'CERTIFIED_WORKSHOP' || vt === 'MOBILE_WORKSHOP' || vt === 'TOWING_SERVICE')) {
+            // فيندور الورش المعتمدة أو الورش المتنقلة أو الونش يشوف قسمه الخاص فقط، مش "الخدمات والمركبات"
+            visibleItems = [];
+          }
+          if (section.key === 'vendorServices') {
+            // خدماتي ومواعيد الحجوزات لفيندور العناية الشاملة والغسيل فقط، مش للأدمن
+            const showServicesSection = isVendor && (vt === 'COMPREHENSIVE_CARE' || vt === 'CAR_WASH');
+            if (!showServicesSection) visibleItems = [];
+          }
+          if (section.key === 'vendorWorkshop') {
+            // للأدمن: الورش تظهر مرة واحدة تحت "الخدمات والمركبات" فقط. هذا القسم لفيندور الورش المعتمدة فقط.
+            if (!isVendor) visibleItems = [];
+            else if (isVendor && vt !== 'CERTIFIED_WORKSHOP') visibleItems = [];
+          }
+          if (section.key === 'vendorMobileWorkshop') {
+            // قسم الورش المتنقلة — لفيندور الورش المتنقلة فقط
+            if (!isVendor) visibleItems = [];
+            else if (isVendor && vt !== 'MOBILE_WORKSHOP') visibleItems = [];
+          }
+          if (section.key === 'vendorWinch') {
+            // قسم الونش / السطحه — لفيندور الونش فقط
+            if (!isVendor) visibleItems = [];
+            else if (isVendor && vt !== 'TOWING_SERVICE') visibleItems = [];
+          }
+          if (section.key === 'customerMobileWorkshop') {
+            // طلبات الورش المتنقلة — للعميل فقط (يشوف كل الفيندورز اللي وافقوا + السعر والتفاصيل)
+            if (user?.role !== 'CUSTOMER') visibleItems = [];
+          }
+          if (isVendor) {
+            const vendorKeys =
+              vt === 'COMPREHENSIVE_CARE' ? VENDOR_COMPREHENSIVE_CARE_KEYS
+                : vt === 'CERTIFIED_WORKSHOP' ? VENDOR_WORKSHOP_KEYS
+                  : vt === 'CAR_WASH' ? VENDOR_CAR_WASH_KEYS
+                    : vt === 'MOBILE_WORKSHOP' ? VENDOR_MOBILE_WORKSHOP_KEYS
+                      : vt === 'TOWING_SERVICE' ? VENDOR_WINCH_KEYS
+                        : VENDOR_AUTO_PARTS_KEYS;
+            visibleItems = visibleItems.filter((item) => vendorKeys.has(item.key));
+          } else if (isEmployee && employeeAllowedSidebarKeys) {
+            // موظف أكفيك: يعرض فقط الأقسام التي له فيها صلاحية (ديناميكي)
+            visibleItems = visibleItems.filter((item) => employeeAllowedSidebarKeys.has(item.key));
+            // إخفاء "موظفون أكفيك" — للأدمن فقط
+            visibleItems = visibleItems.filter((item) => item.key !== 'employees');
+          } else {
+            // إخفاء "صفحة متجري" وتدبير الكوبونات الخاصة عن الأدمن — للفيندور فقط
+            visibleItems = visibleItems.filter((item) => item.key !== 'myVendorDetail' && item.key !== 'vendorCoupons');
+          }
+          visibleItems = visibleItems.filter(
+            (item) => item.key !== 'akfeekJourneys' || user?.role === 'ADMIN'
+          );
+          if (visibleItems.length === 0) return null;
+          return (
+            <div key={section.key} className="space-y-1">
+              {!collapsed && (
+                <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                  {t(`nav.${SECTION_LABEL_KEYS[section.key] || 'dashboard'}`)}
+                </p>
+              )}
+              <ul className="space-y-0.5">
+                {visibleItems.map((item) => {
+                  const isMobileCar = item.key === 'mobileCarService';
+                  // ✅ توجيه حجوزات فيندور الغسيل لصفحتها المخصصة
+                  const resolvedTo = (item.key === 'vendorBookings' && isVendor && vt === 'CAR_WASH')
+                    ? '/vendor/car-wash/bookings'
+                    : item.to;
+                  const active = isMobileCar
+                    ? location.pathname.startsWith('/mobile-car-service')
+                    : (location.pathname === resolvedTo || (resolvedTo !== '/dashboard' && location.pathname.startsWith(resolvedTo.split('?')[0])));
+                  return (
+                    <li key={resolvedTo}>
+                      <SidebarLink
+                        to={resolvedTo}
+                        icon={item.icon}
+                        label={t(`nav.${item.key}`, item.label)}
+                        active={active}
+                        collapsed={collapsed}
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })}
+      </nav>
+    </aside>
+  );
+
+  return (
+    <>
+      {mobileOpen && (
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label="Close menu"
+          onClick={onCloseMobile}
+          onKeyDown={(e) => (e.key === 'Escape' ? onCloseMobile?.() : null)}
+          className="fixed inset-0 z-30 bg-slate-900/20 backdrop-blur-sm lg:hidden print:hidden"
+        />
+      )}
+      {panel}
+    </>
+  );
+}
