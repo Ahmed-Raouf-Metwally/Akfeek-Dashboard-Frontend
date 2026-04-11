@@ -150,7 +150,7 @@ export default function PointsPage() {
                                     value={filterUserId}
                                     onChange={(e) => setFilterUserId(e.target.value)}
                                 />
-                                <p className="mt-1 text-xs text-slate-400">Search by User ID</p>
+                                <p className="mt-1 text-xs text-slate-400">{t('filters.searchByUserId', 'Search by User ID')}</p>
                             </div>
                         </div>
                     )}

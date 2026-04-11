@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { Upload, Trash2, Plus, Image as ImageIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { UPLOADS_BASE_URL } from '../config/env';
 import {
   fetchAdminBanners,
@@ -13,6 +14,7 @@ import {
 } from '../services/banners';
 
 function BannerCard({ banner, onUpdate, onDelete, onUploadImages, onDeleteImage }) {
+  const { t } = useTranslation();
   const [linkUrl, setLinkUrl] = useState('');
   const images = banner.images || [];
 
@@ -28,25 +30,25 @@ function BannerCard({ banner, onUpdate, onDelete, onUploadImages, onDeleteImage 
           </div>
           <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
             <label className="text-sm text-slate-700 dark:text-slate-200">
-              <span className="mb-1 block text-xs font-semibold text-slate-500 dark:text-slate-400">Title</span>
+              <span className="mb-1 block text-xs font-semibold text-slate-500 dark:text-slate-400">{t('banners.titleLabel', 'Title')}</span>
               <input
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-200 dark:border-slate-800 dark:bg-slate-950 dark:focus:ring-indigo-900/40"
                 value={banner.title || ''}
                 onChange={(e) => onUpdate({ title: e.target.value })}
-                placeholder="Optional"
+                placeholder={t('banners.optional', 'Optional')}
               />
             </label>
             <label className="text-sm text-slate-700 dark:text-slate-200">
-              <span className="mb-1 block text-xs font-semibold text-slate-500 dark:text-slate-400">Title (AR)</span>
+              <span className="mb-1 block text-xs font-semibold text-slate-500 dark:text-slate-400">{t('banners.titleArLabel', 'Title (AR)')}</span>
               <input
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-200 dark:border-slate-800 dark:bg-slate-950 dark:focus:ring-indigo-900/40"
                 value={banner.titleAr || ''}
                 onChange={(e) => onUpdate({ titleAr: e.target.value })}
-                placeholder="اختياري"
+                placeholder={t('banners.optional', 'Optional')}
               />
             </label>
             <label className="text-sm text-slate-700 dark:text-slate-200">
-              <span className="mb-1 block text-xs font-semibold text-slate-500 dark:text-slate-400">Sort order</span>
+              <span className="mb-1 block text-xs font-semibold text-slate-500 dark:text-slate-400">{t('banners.sortOrder', 'Sort order')}</span>
               <input
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-200 dark:border-slate-800 dark:bg-slate-950 dark:focus:ring-indigo-900/40"
                 type="number"
@@ -55,14 +57,14 @@ function BannerCard({ banner, onUpdate, onDelete, onUploadImages, onDeleteImage 
               />
             </label>
             <label className="text-sm text-slate-700 dark:text-slate-200">
-              <span className="mb-1 block text-xs font-semibold text-slate-500 dark:text-slate-400">Active</span>
+              <span className="mb-1 block text-xs font-semibold text-slate-500 dark:text-slate-400">{t('banners.active', 'Active')}</span>
               <select
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-200 dark:border-slate-800 dark:bg-slate-950 dark:focus:ring-indigo-900/40"
                 value={banner.isActive ? 'true' : 'false'}
                 onChange={(e) => onUpdate({ isActive: e.target.value === 'true' })}
               >
-                <option value="true">Active</option>
-                <option value="false">Hidden</option>
+                <option value="true">{t('banners.active', 'Active')}</option>
+                <option value="false">{t('banners.hidden', 'Hidden')}</option>
               </select>
             </label>
           </div>
@@ -74,7 +76,7 @@ function BannerCard({ banner, onUpdate, onDelete, onUploadImages, onDeleteImage 
           className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-200 dark:hover:bg-red-900/30"
         >
           <Trash2 className="size-4" />
-          Delete
+          {t('banners.delete', 'Delete')}
         </button>
       </div>
 
@@ -83,7 +85,7 @@ function BannerCard({ banner, onUpdate, onDelete, onUploadImages, onDeleteImage 
           <div className="flex items-center gap-2">
             <ImageIcon className="size-4 text-slate-500 dark:text-slate-400" />
             <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-              Images ({images.length})
+              {t('banners.images', { count: images.length })}
             </div>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -91,11 +93,11 @@ function BannerCard({ banner, onUpdate, onDelete, onUploadImages, onDeleteImage 
               className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-200 dark:border-slate-800 dark:bg-slate-950 dark:focus:ring-indigo-900/40 sm:w-80"
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
-              placeholder="Optional linkUrl (applies to uploaded images)"
+              placeholder={t('banners.optionalLinkUrl', 'Optional linkUrl (applies to uploaded images)')}
             />
             <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
               <Upload className="size-4" />
-              Upload
+              {t('banners.upload', 'Upload')}
               <input
                 type="file"
                 className="hidden"
@@ -117,10 +119,10 @@ function BannerCard({ banner, onUpdate, onDelete, onUploadImages, onDeleteImage 
               <Upload className="size-6 text-indigo-600 dark:text-indigo-400" />
             </div>
             <div className="mt-3 text-sm font-medium text-slate-700 dark:text-slate-200">
-              Click to upload banner images
+              {t('banners.clickToUpload', 'Click to upload banner images')}
             </div>
             <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Select one or more images (JPG, PNG, WebP)
+              {t('banners.selectImagesHint', 'Select one or more images (JPG, PNG, WebP)')}
             </div>
             <input
               type="file"
@@ -149,7 +151,7 @@ function BannerCard({ banner, onUpdate, onDelete, onUploadImages, onDeleteImage 
                   onClick={() => onDeleteImage(img.id)}
                   className="absolute right-2 top-2 rounded-md bg-black/60 px-2 py-1 text-xs font-semibold text-white opacity-0 transition group-hover:opacity-100"
                 >
-                  Delete
+                  {t('banners.delete', 'Delete')}
                 </button>
                 {img.linkUrl ? (
                   <div className="absolute bottom-0 left-0 right-0 bg-black/55 px-2 py-1 text-[11px] text-white">
@@ -166,6 +168,7 @@ function BannerCard({ banner, onUpdate, onDelete, onUploadImages, onDeleteImage 
 }
 
 export default function BannersPage() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [newPosition, setNewPosition] = useState('TOP');
 
@@ -177,47 +180,52 @@ export default function BannersPage() {
   const grouped = useMemo(() => {
     const top = [];
     const bottom = [];
-    banners.forEach((b) => (b.position === 'BOTTOM' ? bottom : top).push(b));
-    return { top, bottom };
+    const autoParts = [];
+    banners.forEach((b) => {
+      if (b.position === 'BOTTOM') bottom.push(b);
+      else if (b.position === 'AUTO_PARTS') autoParts.push(b);
+      else top.push(b);
+    });
+    return { top, bottom, autoParts };
   }, [banners]);
 
   const createMut = useMutation({
     mutationFn: (payload) => createBanner(payload),
     onSuccess: () => {
-      toast.success('Banner created');
+      toast.success(t('banners.createSuccess', 'Banner created'));
       qc.invalidateQueries({ queryKey: ['admin-banners'] });
     },
-    onError: (e) => toast.error(e?.normalized?.message || 'Create failed'),
+    onError: (e) => toast.error(e?.normalized?.message || t('banners.createFailed', 'Create failed')),
   });
 
   const updateMut = useMutation({
     mutationFn: ({ id, payload }) => updateBanner(id, payload),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-banners'] }),
-    onError: (e) => toast.error(e?.normalized?.message || 'Update failed'),
+    onError: (e) => toast.error(e?.normalized?.message || t('banners.updateFailed', 'Update failed')),
   });
 
   const deleteMut = useMutation({
     mutationFn: (id) => deleteBanner(id),
     onSuccess: () => {
-      toast.success('Deleted');
+      toast.success(t('banners.deleted', 'Deleted'));
       qc.invalidateQueries({ queryKey: ['admin-banners'] });
     },
-    onError: (e) => toast.error(e?.normalized?.message || 'Delete failed'),
+    onError: (e) => toast.error(e?.normalized?.message || t('banners.deleteFailed', 'Delete failed')),
   });
 
   const uploadMut = useMutation({
     mutationFn: ({ bannerId, files, linkUrl }) => uploadBannerImages(bannerId, files, linkUrl),
     onMutate: () => {
-      const tid = toast.loading('Uploading images...');
+      const tid = toast.loading(t('banners.uploadingImages', 'Uploading images...'));
       return { tid };
     },
     onSuccess: (data, variables, context) => {
-      toast.success('Uploaded successfully', { id: context.tid });
+      toast.success(t('banners.uploadedSuccessfully', 'Uploaded successfully'), { id: context.tid });
       qc.invalidateQueries({ queryKey: ['admin-banners'] });
     },
     onError: (e, variables, context) => {
       console.error('[Upload Error Detail]:', e?.response?.data || e);
-      const msg = e?.response?.data?.error || e?.normalized?.message || 'Upload failed';
+      const msg = e?.response?.data?.error || e?.normalized?.message || t('banners.uploadFailed', 'Upload failed');
       toast.error(msg, { id: context.tid });
     },
   });
@@ -236,9 +244,9 @@ export default function BannersPage() {
       <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="text-lg font-semibold text-slate-900 dark:text-slate-100">Banners</div>
+            <div className="text-lg font-semibold text-slate-900 dark:text-slate-100">{t('banners.title', 'Banners')}</div>
             <div className="text-sm text-slate-500 dark:text-slate-400">
-              Manage top and bottom banners. Each banner can have multiple images.
+              {t('banners.subtitle', 'Manage top and bottom banners. Each banner can have multiple images.')}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -247,8 +255,9 @@ export default function BannersPage() {
               onChange={(e) => setNewPosition(e.target.value)}
               className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
             >
-              <option value="TOP">TOP</option>
-              <option value="BOTTOM">BOTTOM</option>
+              <option value="TOP">{t('banners.top', 'الأعلى')}</option>
+              <option value="BOTTOM">{t('banners.bottom', 'الأسفل')}</option>
+              <option value="AUTO_PARTS">{t('banners.autoParts', 'قطع الغيار')}</option>
             </select>
             <button
               type="button"
@@ -257,7 +266,7 @@ export default function BannersPage() {
               disabled={createMut.isPending}
             >
               <Plus className="size-4" />
-              Add banner
+              {t('banners.addBanner', 'Add banner')}
             </button>
           </div>
         </div>
@@ -265,12 +274,12 @@ export default function BannersPage() {
 
       {isLoading ? (
         <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
-          Loading...
+          {t('common.loading', 'Loading...')}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6">
           <div className="space-y-3">
-            <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">TOP</div>
+            <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t('banners.top', 'TOP')}</div>
             <div className="grid grid-cols-1 gap-4">
               {grouped.top.map((b) => (
                 <BannerCard
@@ -284,14 +293,14 @@ export default function BannersPage() {
               ))}
               {grouped.top.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
-                  No TOP banners.
+                  {t('banners.noTopBanners', 'No TOP banners.')}
                 </div>
               ) : null}
             </div>
           </div>
 
           <div className="space-y-3">
-            <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">BOTTOM</div>
+            <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t('banners.bottom', 'الأسفل')}</div>
             <div className="grid grid-cols-1 gap-4">
               {grouped.bottom.map((b) => (
                 <BannerCard
@@ -305,7 +314,28 @@ export default function BannersPage() {
               ))}
               {grouped.bottom.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
-                  No BOTTOM banners.
+                  {t('banners.noBottomBanners', 'No BOTTOM banners.')}
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t('banners.autoParts', 'قطع الغيار')}</div>
+            <div className="grid grid-cols-1 gap-4">
+              {grouped.autoParts.map((b) => (
+                <BannerCard
+                  key={b.id}
+                  banner={b}
+                  onUpdate={(payload) => updateMut.mutate({ id: b.id, payload })}
+                  onDelete={() => deleteMut.mutate(b.id)}
+                  onUploadImages={(files, linkUrl) => uploadMut.mutate({ bannerId: b.id, files, linkUrl })}
+                  onDeleteImage={(imageId) => deleteImageMut.mutate({ bannerId: b.id, imageId })}
+                />
+              ))}
+              {grouped.autoParts.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+                  {t('banners.noAutoParts', 'No AUTO_PARTS banners.')}
                 </div>
               ) : null}
             </div>

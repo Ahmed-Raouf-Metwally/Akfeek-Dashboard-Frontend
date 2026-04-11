@@ -89,7 +89,7 @@ export default function CreateEditWinchPage() {
     onSuccess: (saved) => {
       queryClient.invalidateQueries({ queryKey: ['winches'] });
       if (isEdit) queryClient.invalidateQueries({ queryKey: ['winch', id] });
-      toast.success(isEdit ? 'تم تحديث الوينش' : 'تم إضافة الوينش');
+      toast.success(isEdit ? 'تم تحديث السطحة' : 'تم إضافة السطحة');
       navigate(`/winches/${saved.id}`);
     },
     onError: (err) => toast.error(err?.response?.data?.error || err?.message || 'حدث خطأ'),
@@ -126,8 +126,8 @@ export default function CreateEditWinchPage() {
         <div className="flex items-center gap-2">
           <Truck className="size-6 text-indigo-600" />
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">{isEdit ? 'تعديل الوينش' : 'إضافة وينش جديد'}</h1>
-            <p className="text-slate-500">ربط سيارة سحب بفيندور من نوع "سحب وونش"</p>
+            <h1 className="text-2xl font-bold text-slate-900">{isEdit ? 'تعديل السطحة' : 'إضافة سطحة جديدة'}</h1>
+            <p className="text-slate-500">ربط سيارة سحب بفيندور من نوع "سحب وسطحة"</p>
           </div>
         </div>
       </div>

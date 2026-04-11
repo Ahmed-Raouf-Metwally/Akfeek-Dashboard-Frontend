@@ -379,7 +379,11 @@ export default function AnalyticsPage() {
                 : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-indigo-200 hover:text-indigo-700'
                 }`}
             >
-              {r === '7d' ? '7 days' : r === '30d' ? '30 days' : '90 days'}
+              {r === '7d'
+                ? t('dashboard.range7Days', '7 days')
+                : r === '30d'
+                  ? t('dashboard.range30Days', '30 days')
+                  : t('dashboard.range90Days', '90 days')}
             </button>
           ))}
           <GlowButton variant="outline" size="sm" className="gap-2">

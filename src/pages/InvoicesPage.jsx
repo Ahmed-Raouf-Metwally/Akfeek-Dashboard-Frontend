@@ -62,8 +62,8 @@ export default function InvoicesPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">{t('finance.invoices')}</h1>
-          <p className="text-sm text-slate-500">{t('finance.invoices')}</p>
+          <h1 className="text-xl font-semibold text-slate-900">{t('finance.invoices', 'Invoices')}</h1>
+          <p className="text-sm text-slate-500">{t('finance.manageInvoices') || 'View and manage invoices.'}</p>
         </div>
         <Card className="overflow-hidden p-0">
           <TableSkeleton rows={5} cols={5} />
@@ -76,8 +76,8 @@ export default function InvoicesPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">{t('finance.invoices')}</h1>
-          <p className="text-sm text-slate-500">{t('finance.invoices')}</p>
+          <h1 className="text-xl font-semibold text-slate-900">{t('finance.invoices', 'Invoices')}</h1>
+          <p className="text-sm text-slate-500">{t('finance.manageInvoices') || 'View and manage invoices.'}</p>
         </div>
         <Card className="p-8 text-center">
           <p className="text-red-600">{error?.message ?? t('common.error')}</p>
@@ -90,7 +90,7 @@ export default function InvoicesPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">{t('finance.invoices')}</h1>
+          <h1 className="text-xl font-semibold text-slate-900">{t('finance.invoices', 'Invoices')}</h1>
           <p className="text-sm text-slate-500">{t('finance.manageInvoices') || 'View and manage invoices.'}</p>
         </div>
         <div className="flex items-center gap-3">

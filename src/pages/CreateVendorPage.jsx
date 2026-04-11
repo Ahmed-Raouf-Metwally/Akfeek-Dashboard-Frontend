@@ -131,15 +131,15 @@ export default function CreateVendorPage() {
           <ArrowLeft className="size-5 text-slate-500" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Add New Vendor</h1>
-          <p className="text-slate-500">Create a new vendor profile for a user</p>
+          <h1 className="text-2xl font-bold text-slate-900">{formLabels.addVendor}</h1>
+          <p className="text-slate-500">{formLabels.createVendorProfile}</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit}>
         <Card className="p-6 space-y-6">
           <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
-            <p className="mb-3 text-sm font-medium text-slate-700">طريقة إضافة الحساب / Account type</p>
+            <p className="mb-3 text-sm font-medium text-slate-700">{formLabels.accountType}</p>
             <div className="flex flex-wrap gap-4">
               <label className="flex cursor-pointer items-center gap-2">
                 <input
@@ -150,7 +150,7 @@ export default function CreateVendorPage() {
                   className="rounded-full border-slate-300 text-indigo-600 focus:ring-indigo-500"
                 />
                 <UserPlus className="size-4 text-indigo-600" />
-                <span className="text-sm font-medium text-slate-800">إنشاء حساب جديد للفيندور / Create new vendor account</span>
+                <span className="text-sm font-medium text-slate-800">{formLabels.createNewAccount}</span>
               </label>
               <label className="flex cursor-pointer items-center gap-2">
                 <input
@@ -160,14 +160,14 @@ export default function CreateVendorPage() {
                   onChange={() => setCreateNewAccount(false)}
                   className="rounded-full border-slate-300 text-indigo-600 focus:ring-indigo-500"
                 />
-                <span className="text-sm font-medium text-slate-800">ربط بمستخدم موجود (User ID) / Link existing user</span>
+                <span className="text-sm font-medium text-slate-800">{formLabels.linkExistingUser}</span>
               </label>
             </div>
           </div>
 
           {createNewAccount ? (
             <div className="grid gap-6 sm:grid-cols-2 rounded-xl border border-indigo-100 bg-indigo-50/30 p-4">
-              <h3 className="sm:col-span-2 text-sm font-semibold text-indigo-900">بيانات تسجيل الدخول / Login credentials</h3>
+              <h3 className="sm:col-span-2 text-sm font-semibold text-indigo-900">{formLabels.loginCredentials}</h3>
               <Input label="Email" name="email" type="email" value={accountData.email} onChange={handleAccountChange} required />
               <Input label="Password" name="password" type="password" value={accountData.password} onChange={handleAccountChange} required />
               <Input label="First Name" name="firstName" value={accountData.firstName} onChange={handleAccountChange} required />
@@ -288,14 +288,14 @@ export default function CreateVendorPage() {
             </div>
 
             <Input
-              label="Business Name (English)"
+              label={formLabels.businessName}
               name="businessName"
               value={formData.businessName}
               onChange={handleChange}
               required
             />
             <Input
-              label="Business Name (Arabic)"
+              label={formLabels.businessNameAr}
               name="businessNameAr"
               value={formData.businessNameAr}
               onChange={handleChange}
@@ -304,7 +304,7 @@ export default function CreateVendorPage() {
             />
 
             <Input
-              label="Contact Email"
+              label={formLabels.contactEmail}
               name="contactEmail"
               type="email"
               value={formData.contactEmail}
@@ -312,7 +312,7 @@ export default function CreateVendorPage() {
               required
             />
             <Input
-              label="Contact Phone"
+              label={formLabels.contactPhone}
               name="contactPhone"
               type="tel"
               value={formData.contactPhone}
@@ -322,7 +322,7 @@ export default function CreateVendorPage() {
 
             <div className="sm:col-span-2">
               <Input
-                label="Address"
+                label={formLabels.address}
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
@@ -331,14 +331,14 @@ export default function CreateVendorPage() {
             </div>
 
             <Input
-              label="City"
+              label={formLabels.city}
               name="city"
               value={formData.city}
               onChange={handleChange}
               required
             />
             <Input
-              label="Country Code"
+              label={formLabels.country}
               name="country"
               value={formData.country}
               onChange={handleChange}
@@ -354,6 +354,7 @@ export default function CreateVendorPage() {
                 value={formData.description}
                 onChange={handleChange}
                 className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                placeholder={formLabels.description}
               />
             </div>
           </div>
@@ -365,7 +366,7 @@ export default function CreateVendorPage() {
               className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
             >
               <Save className="size-4" />
-              {createMutation.isPending ? 'Creating...' : 'Create Vendor'}
+              {createMutation.isPending ? 'جاري الإنشاء...' : formLabels.createVendor}
             </button>
           </div>
         </Card>
@@ -373,3 +374,22 @@ export default function CreateVendorPage() {
     </div>
   );
 }
+
+// Updated translations for Arabic support
+const formLabels = {
+  addVendor: 'إضافة فيندور جديد',
+  createVendorProfile: 'إنشاء ملف فيندور جديد',
+  accountType: 'طريقة إضافة الحساب',
+  createNewAccount: 'إنشاء حساب جديد للفيندور',
+  linkExistingUser: 'ربط بمستخدم موجود',
+  loginCredentials: 'بيانات تسجيل الدخول',
+  businessName: 'اسم النشاط التجاري (بالإنجليزية)',
+  businessNameAr: 'اسم النشاط التجاري (بالعربية)',
+  contactEmail: 'البريد الإلكتروني',
+  contactPhone: 'رقم الهاتف',
+  address: 'العنوان',
+  city: 'المدينة',
+  country: 'رمز الدولة',
+  description: 'الوصف',
+  createVendor: 'إنشاء فيندور',
+};

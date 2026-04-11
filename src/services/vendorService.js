@@ -216,6 +216,30 @@ export const vendorService = {
     const { data } = await api.delete(`/vendors/${vendorId}/documents/${docId}`);
     return data;
   },
+
+  // ── Vendor Services Management ─────────────────────────────────────────────
+  async getVendorServices(vendorId) {
+    const { data } = await api.get(`/vendors/${vendorId}/services`);
+    return data.data ?? [];
+  },
+
+  async addVendorService(vendorId, payload) {
+    const { data } = await api.post(`/vendors/${vendorId}/services`, payload);
+    if (!data.success) throw new Error(data.error || 'Failed to add service');
+    return data.data;
+  },
+
+  async updateVendorService(vendorId, serviceId, payload) {
+    const { data } = await api.put(`/vendors/${vendorId}/services/${serviceId}`, payload);
+    if (!data.success) throw new Error(data.error || 'Failed to update service');
+    return data.data;
+  },
+
+  async deleteVendorService(vendorId, serviceId) {
+    const { data } = await api.delete(`/vendors/${vendorId}/services/${serviceId}`);
+    if (!data.success) throw new Error(data.error || 'Failed to delete service');
+    return data;
+  },
 };
 
 export default vendorService;

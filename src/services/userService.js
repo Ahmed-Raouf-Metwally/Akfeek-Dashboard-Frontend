@@ -75,7 +75,7 @@ export const userService = {
   async deleteUser(id) {
     const { data } = await api.delete(`/users/${id}`);
     if (!data.success) {
-      throw new Error(data.error || 'Failed to delete user');
+      throw new Error(data.error || 'فشل في حذف المستخدم');
     }
   },
 };

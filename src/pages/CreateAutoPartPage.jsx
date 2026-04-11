@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -7,6 +7,7 @@ import { autoPartService } from '../services/autoPartService';
 import { autoPartCategoryService } from '../services/autoPartCategoryService';
 import { brandService } from '../services/brandService';
 import { vendorService } from '../services/vendorService';
+import { vehicleService } from '../services/vehicleService';
 import { useAuthStore } from '../store/authStore';
 import { API_BASE_URL } from '../config/env';
 import { Card } from '../components/ui/Card';
@@ -40,32 +41,60 @@ export default function CreateAutoPartPage() {
   });
   const categoriesFlat = flattenCategoryTree(categoryTree);
 
-  const { data: vendorsResult } = useQuery({
-    queryKey: ['vendors-list'],
-    queryFn: () => vendorService.getVendors({ status: 'ACTIVE', limit: 100 }),
+  const { data: vendorsResult, isLoading: vendorsLoading } = useQuery({
+    queryKey: ['vendors-list-all'],
+    queryFn: () => vendorService.getVendors({ limit: 200 }),
   });
   const vendors = vendorsResult?.vendors ?? [];
+  
+  // Filter to only AUTO_PARTS vendors
+  const autoPartsVendors = vendors.filter(v => v.vendorType === 'AUTO_PARTS');
   const { data: brandsResult } = useQuery({
     queryKey: ['brands-for-auto-part'],
     queryFn: () => brandService.getBrands({ activeOnly: true, limit: 200 }),
   });
   const brands = brandsResult?.brands ?? [];
 
+  const [selectedBrandId, setSelectedBrandId] = useState('');
+  const [models, setModels] = useState([]);
+
+  useEffect(() => {
+    if (selectedBrandId) {
+      vehicleService.getModels(selectedBrandId).then(setModels);
+    } else {
+      setModels([]);
+    }
+  }, [selectedBrandId]);
+
   const [formData, setFormData] = useState({
     name: '',
     nameAr: '',
     sku: '',
-    brand: '',
+    brandId: '',
+    vehicleModelId: '',
+    year: '',
     categoryId: '',
-    vendorId: '', // For admin selection
+    vendorId: '',
     price: '',
     stockQuantity: '',
     description: '',
   });
 
+  const handleBrandChange = (e) => {
+    const brandId = e.target.value;
+    setSelectedBrandId(brandId);
+    setFormData((prev) => ({ 
+      ...prev, 
+      brandId,
+      vehicleModelId: ''
+    }));
+  };
+
   const handleCategoryTypeChange = (type) => {
     setCategoryType(type);
-    setFormData((prev) => ({ ...prev, categoryId: '' }));
+    setFormData((prev) => ({ ...prev, categoryId: '', brandId: '', vehicleModelId: '' }));
+    setSelectedBrandId('');
+    setModels([]);
   };
 
   const [portfolioImageUrl, setPortfolioImageUrl] = useState('');
@@ -101,10 +130,21 @@ export default function CreateAutoPartPage() {
     }));
     const validImages = [primary, ...additional];
 
+    const selectedBrand = formData.brandId ? brands.find(b => String(b.id) === String(formData.brandId)) : null;
+    
     createMutation.mutate({
-      ...formData,
+      name: formData.name,
+      nameAr: formData.nameAr,
+      sku: formData.sku,
+      brand: selectedBrand ? (selectedBrand.nameAr || selectedBrand.name) : '',
+      brandId: formData.brandId ? String(formData.brandId) : null,
+      vehicleModelId: formData.vehicleModelId ? String(formData.vehicleModelId) : null,
+      year: formData.year ? Number(formData.year) : null,
+      categoryId: formData.categoryId,
+      vendorId: formData.vendorId ? String(formData.vendorId) : null,
       price: Number(formData.price),
       stockQuantity: Number(formData.stockQuantity),
+      description: formData.description,
       images: validImages
     });
   };
@@ -174,20 +214,49 @@ export default function CreateAutoPartPage() {
 
                 <Input label="SKU" name="sku" value={formData.sku} onChange={handleChange} required />
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Car Brand</label>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">الماركة</label>
                   <select
-                    name="brand"
-                    value={formData.brand}
-                    onChange={handleChange}
+                    name="brandId"
+                    value={formData.brandId}
+                    onChange={handleBrandChange}
                     className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                     required
                   >
-                    <option value="">Select brand</option>
+                    <option value="">اختر الماركة</option>
                     {brands.map((b) => (
-                      <option key={b.id} value={b.name}>{b.nameAr || b.name}</option>
+                      <option key={b.id} value={b.id}>{b.nameAr || b.name}</option>
                     ))}
                   </select>
                 </div>
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">الموديل</label>
+                  <select
+                    name="vehicleModelId"
+                    value={formData.vehicleModelId}
+                    onChange={handleChange}
+                    disabled={!selectedBrandId}
+                    className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-400"
+                    required={!!selectedBrandId}
+                  >
+                    <option value="">اختر الموديل</option>
+                    {models.map((m) => (
+                      <option key={m.id} value={m.id}>{m.nameAr || m.name}</option>
+                    ))}
+                  </select>
+                  {!selectedBrandId && <p className="mt-1 text-xs text-slate-500">اختر الماركة أولاً</p>}
+                </div>
+
+                <Input 
+                  label="السنة" 
+                  name="year" 
+                  type="number" 
+                  min="1900" 
+                  max={new Date().getFullYear() + 1}
+                  value={formData.year}
+                  onChange={handleChange}
+                  placeholder="مثال: 2024"
+                />
 
                 <div className="sm:col-span-2">
                   <label className="mb-1.5 block text-sm font-medium text-slate-700">Description</label>
@@ -330,19 +399,19 @@ export default function CreateAutoPartPage() {
 
               {isAdmin && (
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Vendor (Optional)</label>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">المتجر / الفيندور</label>
                   <select
                     name="vendorId"
                     value={formData.vendorId}
                     onChange={handleChange}
                     className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   >
-                    <option value="">Platform (No Vendor)</option>
-                    {vendors.map(v => (
-                      <option key={v.id} value={v.id}>{v.businessName}</option>
+                    <option value="">منصة أكفيك (بدون فيندور)</option>
+                    {autoPartsVendors.map(v => (
+                      <option key={v.id} value={v.id}>{v.businessNameAr || v.businessName}</option>
                     ))}
                   </select>
-                  <p className="mt-1 text-xs text-slate-500">Assign this part to a vendor or leave empty for platform-owned parts.</p>
+                  <p className="mt-1 text-xs text-slate-500">حدد الفيندور الذي يبيع هذه القطعة أو اتركه للقطعات الخاصة بالمنصة</p>
                 </div>
               )}
             </Card>

@@ -39,7 +39,7 @@ function getTitleForPath(pathname, t, user) {
     '/winches/:id': [t('winch.detailTitle'), ''],
     '/winches/:id/edit': [t('winch.editTitle'), ''],
     '/vendors/new': [t('common.addVendor', 'Add Vendor'), t('common.createVendorProfile', 'Create new vendor profile')],
-    '/banners': ['Banners', 'Top & bottom app banners'],
+    '/banners': [t('nav.banners', 'Banners'), t('banners.subtitle', 'Top & bottom app banners')],
     '/auto-parts': [t('nav.auto-parts', 'Auto Parts'), t('common.managePartsCatalog', 'Manage parts catalog')],
     '/auto-parts/new': [t('common.addAutoPart', 'Add Auto Part'), t('common.createPartListing', 'Create new part listing')],
     '/auto-part-categories': [t('nav.auto-part-categories', 'Categories'), t('common.manageCategories', 'Manage auto part categories')],
@@ -56,6 +56,8 @@ function getTitleForPath(pathname, t, user) {
     '/vendor/coupons': [t('nav.vendorCoupons', 'Coupons'), t('vendorCoupons.subtitle', 'Coupon applies only to your services')],
     '/vendor/mobile-workshop/jobs': [t('nav.vendorMobileWorkshopJobs', 'Mobile workshop jobs'), t('mobileWorkshop.jobsSubtitle', 'Track and update repair execution status')],
     '/coupons': [t('nav.allCoupons', 'All Coupons'), t('allCoupons.subtitle', 'Manage and monitor all platform coupons')],
+    '/admin/packages': [t('nav.packages', 'Packages'), t('packages.subtitle', 'Manage subscription packages')],
+    '/admin/subscriptions': [t('nav.subscriptions', 'Subscriptions'), t('subscriptions.subtitle', 'View all user subscriptions and usage')],
   };
 
   if (ROUTE_TITLES[pathname]) return ROUTE_TITLES[pathname];

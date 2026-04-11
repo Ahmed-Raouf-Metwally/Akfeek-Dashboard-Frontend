@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
@@ -9,6 +9,7 @@ import { useAuthStore } from '../store/authStore';
 import { autoPartService } from '../services/autoPartService';
 import { autoPartCategoryService } from '../services/autoPartCategoryService';
 import { brandService } from '../services/brandService';
+import { vehicleService } from '../services/vehicleService';
 import { useConfirm } from '../hooks/useConfirm';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
@@ -28,6 +29,29 @@ export default function AutoPartsPage() {
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState('grid');
   const [vehicleBrandId, setVehicleBrandId] = useState('');
+  const [vehicleModelId, setVehicleModelId] = useState('');
+  const [year, setYear] = useState('');
+  const [models, setModels] = useState([]);
+
+  // Fetch models when brand changes
+  useEffect(() => {
+    if (vehicleBrandId) {
+      vehicleService.getModels(vehicleBrandId).then(setModels);
+    } else {
+      setModels([]);
+      setVehicleModelId('');
+    }
+  }, [vehicleBrandId]);
+
+  // Generate year options
+  const currentYear = new Date().getFullYear();
+  const yearOptions = useMemo(() => {
+    const years = [];
+    for (let y = currentYear; y >= currentYear - 30; y--) {
+      years.push(y);
+    }
+    return years;
+  }, []);
 
   // Fetch Categories
   const { data: categories = [] } = useQuery({
@@ -50,11 +74,13 @@ export default function AutoPartsPage() {
 
   // Fetch Parts
   const { data: parts = [], isLoading } = useQuery({
-    queryKey: ['auto-parts', { search, categoryId, vehicleBrandId }],
+    queryKey: ['auto-parts', { search, categoryId, vehicleBrandId, vehicleModelId, year }],
     queryFn: () => autoPartService.getAutoParts({ 
       search: search || undefined, 
       category: categoryId || undefined,
       vehicleBrandId: vehicleBrandId || undefined,
+      vehicleModelId: vehicleModelId || undefined,
+      year: year || undefined,
     }),
     staleTime: 60_000,
   });
@@ -127,7 +153,10 @@ export default function AutoPartsPage() {
             </select>
             <select
               value={vehicleBrandId}
-              onChange={(e) => setVehicleBrandId(e.target.value)}
+              onChange={(e) => {
+                setVehicleBrandId(e.target.value);
+                setVehicleModelId('');
+              }}
               className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 max-w-[200px]"
             >
               <option value="">{t('common.brand')} ({t('common.all', 'All')})</option>
@@ -135,6 +164,40 @@ export default function AutoPartsPage() {
                 <option key={b.id} value={b.id}>{b.nameAr || b.name}</option>
               ))}
             </select>
+            <select
+              value={vehicleModelId}
+              onChange={(e) => setVehicleModelId(e.target.value)}
+              disabled={!vehicleBrandId}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 max-w-[200px] disabled:bg-slate-100"
+            >
+              <option value="">{t('autoParts.model') || 'الموديل'}</option>
+              {models.map((m) => (
+                <option key={m.id} value={m.id}>{m.nameAr || m.name}</option>
+              ))}
+            </select>
+            <select
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 max-w-[150px]"
+            >
+              <option value="">{t('autoParts.year') || 'السنة'}</option>
+              {yearOptions.map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+            {(vehicleBrandId || vehicleModelId || year) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setVehicleBrandId('');
+                  setVehicleModelId('');
+                  setYear('');
+                }}
+                className="text-sm text-red-600 hover:text-red-700"
+              >
+                {t('common.clear') || 'مسح'}
+              </button>
+            )}
           </div>
         </div>
 

@@ -101,6 +101,10 @@ import VendorWinchJobsPage from './pages/VendorWinchJobsPage';
 import CustomerMobileWorkshopRequestsPage from './pages/CustomerMobileWorkshopRequestsPage';
 import CustomerMobileWorkshopRequestDetailPage from './pages/CustomerMobileWorkshopRequestDetailPage';
 import BannersPage from './pages/BannersPage';
+import DashboardPackages from './pages/DashboardPackages';
+import DashboardSubscriptions from './pages/DashboardSubscriptions';
+import PackagesListPage from './pages/PackagesListPage';
+import MyPackagesPage from './pages/MyPackagesPage';
 
 
 const queryClient = new QueryClient({
@@ -224,6 +228,12 @@ function App() {
             <Route path="marketplace-orders/:id/invoice" element={<MarketplaceOrderInvoicePage />} />
             <Route path="coupons" element={<AdminOnlyRoute><AdminCouponsPage /></AdminOnlyRoute>} />
             <Route path="banners" element={<AdminOnlyRoute><BannersPage /></AdminOnlyRoute>} />
+            
+            {/* Packages Routes */}
+            <Route path="packages" element={<PackagesListPage />} />
+            <Route path="my-packages" element={<MyPackagesPage />} />
+            <Route path="admin/packages" element={<AdminOnlyRoute><DashboardPackages /></AdminOnlyRoute>} />
+            <Route path="admin/subscriptions" element={<AdminOnlyRoute><DashboardSubscriptions /></AdminOnlyRoute>} />
 
             {/* Workshops Routes */}
             <Route path="workshops" element={<WorkshopsPage />} />

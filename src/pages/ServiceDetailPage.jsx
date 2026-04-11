@@ -28,10 +28,24 @@ const DAY_NAMES = [
   { key: 6, en: 'Saturday', ar: 'السبت' },
 ];
 
+const VEHICLE_TYPES = [
+  { value: 'SEDAN', labelEn: 'Sedan', labelAr: 'سيدان' },
+  { value: 'HATCHBACK', labelEn: 'Hatchback', labelAr: 'هاتشباك' },
+  { value: 'COUPE', labelEn: 'Coupe', labelAr: 'كوبيه' },
+  { value: 'SMALL_SUV', labelEn: 'Small SUV', labelAr: 'دفع رباعي صغير' },
+  { value: 'LARGE_SEDAN', labelEn: 'Large Sedan', labelAr: 'سيدان كبيرة' },
+  { value: 'SUV', labelEn: 'SUV', labelAr: 'دفع رباعي' },
+  { value: 'CROSSOVER', labelEn: 'Crossover', labelAr: 'كروس أوفر' },
+  { value: 'TRUCK', labelEn: 'Truck', labelAr: 'شاحنة/بيك أب' },
+  { value: 'VAN', labelEn: 'Van', labelAr: 'فان' },
+  { value: 'BUS', labelEn: 'Bus', labelAr: 'باص' },
+];
+
 export default function ServiceDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const isAr = i18n.language === 'ar';
   const isAr = i18n.language === 'ar';
 
   const { data: service, isLoading, isError } = useQuery({
@@ -230,17 +244,23 @@ export default function ServiceDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {pricing.map((p) => (
+                {pricing.map((p) => {
+                  const vehicleTypeObj = VEHICLE_TYPES.find(vt => vt.value === p.vehicleType);
+                  const vehicleTypeLabel = vehicleTypeObj 
+                    ? (isAr ? vehicleTypeObj.labelAr : vehicleTypeObj.labelEn) 
+                    : p.vehicleType;
+                  return (
                   <tr key={p.id ?? p.vehicleType} className="border-b border-slate-100 transition-colors hover:bg-slate-50/50">
                     <td className="px-4 py-3">
                       <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
-                        {p.vehicleType ?? '—'}
+                        {vehicleTypeLabel ?? '—'}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-slate-900">{p.basePrice != null ? Number(p.basePrice).toFixed(2) : '—'}</td>
                     <td className="px-4 py-3 text-sm text-slate-900">{p.discountedPrice != null ? Number(p.discountedPrice).toFixed(2) : '—'}</td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

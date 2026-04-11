@@ -8,7 +8,7 @@ import {
   ArrowLeft, Mail, Phone, MapPin, Calendar, Award, Package, Ban,
   CheckCircle, Star, Pencil, Percent, Truck, Wrench, Droplets,
   Clock, ChevronRight, ShieldCheck, Wifi, WifiOff, Weight,
-  Building2, Plus, Trash2,
+  Building2, Plus, Trash2, X, Check,
 } from 'lucide-react';
 import { vendorService } from '../services/vendorService';
 import { useConfirm } from '../hooks/useConfirm';
@@ -19,6 +19,10 @@ import AutoPartCard from '../components/marketplace/AutoPartCard';
 import RatingStars from '../components/common/RatingStars';
 import { useDateFormat } from '../hooks/useDateFormat';
 import VendorDocuments from '../components/VendorDocuments';
+import VendorServicesSection from '../components/VendorServicesSection';
+import { useTranslation } from 'react-i18next';
+import Modal from '../components/ui/Modal';
+import Input from '../components/Input';
 
 export default function VendorDetailPage() {
   const { fmt } = useDateFormat();
@@ -809,6 +813,16 @@ export default function VendorDetailPage() {
           {/* Documents — Admin only */}
           {isAdmin && (
             <VendorDocuments vendorId={id} />
+          )}
+
+          {/* Vendor Services — Admin only for CAR_WASH and COMPREHENSIVE_CARE */}
+          {isAdmin && (vendor?.vendorType === 'CAR_WASH' || vendor?.vendorType === 'COMPREHENSIVE_CARE') && (
+            <Card className="p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="font-semibold text-slate-900">Services</h3>
+              </div>
+              <VendorServicesSection vendorId={id} vendorType={vendor?.vendorType} />
+            </Card>
           )}
         </div>
       </div>

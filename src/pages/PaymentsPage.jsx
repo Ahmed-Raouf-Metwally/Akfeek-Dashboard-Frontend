@@ -75,7 +75,7 @@ export default function PaymentsPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">{t('finance.payments')}</h1>
+          <h1 className="text-xl font-semibold text-slate-900">{t('finance.payments', 'Payments')}</h1>
           <p className="text-sm text-slate-500">{t('finance.managePayments') || 'View and manage payment transactions.'}</p>
         </div>
         <Card className="overflow-hidden p-0">
@@ -89,7 +89,7 @@ export default function PaymentsPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">{t('finance.payments')}</h1>
+          <h1 className="text-xl font-semibold text-slate-900">{t('finance.payments', 'Payments')}</h1>
           <p className="text-sm text-slate-500">{t('finance.managePayments') || 'View and manage payment transactions.'}</p>
         </div>
         <Card className="p-8 text-center">
@@ -103,7 +103,7 @@ export default function PaymentsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">{t('finance.payments')}</h1>
+          <h1 className="text-xl font-semibold text-slate-900">{t('finance.payments', 'Payments')}</h1>
           <p className="text-sm text-slate-500">{t('finance.managePayments') || 'View and manage payment transactions.'}</p>
         </div>
         <div className="flex items-center gap-3">

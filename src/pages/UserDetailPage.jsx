@@ -5,6 +5,7 @@ import { ArrowLeft, User } from 'lucide-react';
 import { userService } from '../services/userService';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import { Card } from '../components/ui/Card';
+import { useTranslation } from 'react-i18next';
 
 function DetailRow({ label, value }) {
   return (
@@ -24,6 +25,8 @@ export default function UserDetailPage() {
     queryFn: () => userService.getUserById(id),
     enabled: !!id,
   });
+
+  const { t } = useTranslation();
 
   if (isLoading) {
     return (
@@ -98,23 +101,23 @@ export default function UserDetailPage() {
       </Card>
 
       <Card className="p-6">
-        <h2 className="mb-4 text-base font-semibold text-slate-900">Full details</h2>
+        <h2 className="mb-4 text-base font-semibold text-slate-900">{t('users.fullDetails', 'التفاصيل الكاملة')}</h2>
         <div className="space-y-0">
-          <DetailRow label="Name" value={name} />
-          <DetailRow label="Email" value={user.email} />
-          <DetailRow label="Phone" value={user.profile?.phoneNumber ?? user.phone} />
-          <DetailRow label="Role" value={user.role} />
-          <DetailRow label="Status" value={user.status} />
-          <DetailRow label="First name" value={user.profile?.firstName} />
-          <DetailRow label="Last name" value={user.profile?.lastName} />
-          <DetailRow label="Created" value={user.createdAt ? new Date(user.createdAt).toLocaleString() : null} />
-          <DetailRow label="Updated" value={user.updatedAt ? new Date(user.updatedAt).toLocaleString() : null} />
+          <DetailRow label={t('users.name', 'الاسم')} value={name} />
+          <DetailRow label={t('users.email', 'البريد الإلكتروني')} value={user.email} />
+          <DetailRow label={t('users.phone', 'الهاتف')} value={user.profile?.phoneNumber ?? user.phone} />
+          <DetailRow label={t('users.role', 'الدور')} value={user.role} />
+          <DetailRow label={t('users.status', 'الحالة')} value={user.status} />
+          <DetailRow label={t('users.firstName', 'الاسم الأول')} value={user.profile?.firstName} />
+          <DetailRow label={t('users.lastName', 'الاسم الأخير')} value={user.profile?.lastName} />
+          <DetailRow label={t('users.created', 'تاريخ الإنشاء')} value={user.createdAt ? new Date(user.createdAt).toLocaleString() : null} />
+          <DetailRow label={t('users.updated', 'تاريخ التحديث')} value={user.updatedAt ? new Date(user.updatedAt).toLocaleString() : null} />
         </div>
       </Card>
 
       <div className="flex flex-wrap gap-3">
         <Link to="/users" className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50">
-          Back to list
+          {t('users.backToList', 'العودة إلى القائمة')}
         </Link>
       </div>
     </div>

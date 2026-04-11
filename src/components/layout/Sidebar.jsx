@@ -110,7 +110,7 @@ const SECTIONS = [
       { key: 'workshops', to: '/workshops', icon: Building2, label: 'Workshops' },
       { key: 'carWashWorkshops', to: '/car-wash', icon: Droplets, label: 'Car Wash Workshops', labelAr: 'ورش الغسيل' },
       { key: 'comprehensiveCareWorkshops', to: '/comprehensive-care', icon: ShieldCheck, label: 'Comprehensive Care', labelAr: 'العناية الشاملة' },
-      { key: 'winches', to: '/winches', icon: Truck, label: 'الوينشات' },
+      { key: 'winches', to: '/winches', icon: Truck, label: 'السطحات' },
       { key: 'mobile-workshop-types', to: '/mobile-workshop-types', icon: List, label: 'أنواع الورش المتنقلة' },
       { key: 'mobile-workshops', to: '/mobile-workshops', icon: Wrench, label: 'الورش المتنقلة' },
       { key: 'technicalSupportRequests', to: '/technical-support-requests', icon: Headphones, label: 'Technical Support Requests' },
@@ -203,18 +203,20 @@ const SECTIONS = [
     labelAr: 'الإدارة',
     items: [
       { key: 'users', to: '/users', icon: Users, label: 'Users' },
-      { key: 'roles', to: '/roles', icon: Shield, label: 'Roles & Permissions' },
+      { key: 'roles', to: '/roles', icon: Shield, label: 'Roles & Permissions', labelAr: 'الأدوار والصلاحيات' },
       { key: 'feedback', to: '/feedback', icon: MessageSquare, label: 'Feedback' },
       { key: 'notifications', to: '/notifications', icon: Bell, label: 'Notifications' },
       { key: 'activity', to: '/activity', icon: Activity, label: 'Activity / Logs' },
     ],
   },
-  {
+    {
     key: 'system',
     labelEn: 'System',
     labelAr: 'النظام',
     items: [
       { key: 'banners', to: '/banners', icon: Images, label: 'Banners', labelAr: 'البنرات' },
+      { key: 'packages', to: '/admin/packages', icon: Package, label: 'Packages', labelAr: 'الباقات' },
+      { key: 'subscriptions', to: '/admin/subscriptions', icon: Package, label: 'Subscriptions', labelAr: 'الاشتراكات' },
       { key: 'settings', to: '/settings', icon: Settings, label: 'Settings' },
       { key: 'profile', to: '/profile', icon: UserCircle, label: 'Profile' },
     ],
@@ -224,12 +226,15 @@ const SECTIONS = [
 
 function SidebarLink({ to, icon, label, active, collapsed }) {
   const IconEl = icon;
+  const location = useLocation();
+  const isActive = location.pathname === to; // Ensure exact match for active state
+
   return (
     <Link
       to={to}
       className={`
         flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200
-        ${active
+        ${isActive
           ? 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100 dark:bg-indigo-900/40 dark:text-indigo-300 dark:ring-indigo-800'
           : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-100'}
         ${collapsed ? 'justify-center px-2' : ''}

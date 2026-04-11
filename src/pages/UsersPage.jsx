@@ -28,9 +28,9 @@ function UserRow({ user, onStatusChange, onDelete, openConfirm, t }) {
 
   const handleDeleteClick = async () => {
     const ok = await openConfirm({
-      title: t('users.deleteUser', 'Delete user'),
+      title: t('users.deleteUser', 'حذف المستخدم'),
       message: t('common.confirmDelete', { name }),
-      confirmLabel: t('common.delete'),
+      confirmLabel: t('common.delete', 'حذف'),
       variant: 'danger',
     });
     if (ok) await onDelete(user.id);
@@ -114,7 +114,7 @@ function UserRow({ user, onStatusChange, onDelete, openConfirm, t }) {
           >
             <Check className="size-5" />
           </button>
-          <button
+          {/* <button
             type="button"
             onClick={() => handleStatusClick('SUSPENDED')}
             className={iconBtn}
@@ -122,7 +122,7 @@ function UserRow({ user, onStatusChange, onDelete, openConfirm, t }) {
             aria-label={t('users.suspend', 'Suspend')}
           >
             <UserMinus className="size-5" />
-          </button>
+          </button> */}
           <button
             type="button"
             onClick={handleDeleteClick}

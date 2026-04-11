@@ -64,7 +64,7 @@ export default function WinchesPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <Truck className="size-6 text-indigo-600" /> الوينشات / Winches
+            <Truck className="size-6 text-indigo-600" /> السحطه
           </h1>
           <p className="text-slate-500">إدارة سيارات السحب المرتبطة بالفيندورز</p>
         </div>
@@ -72,7 +72,7 @@ export default function WinchesPage() {
           to="/winches/new"
           className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
         >
-          <Plus className="size-4" /> إضافة وينش
+          <Plus className="size-4" /> إضافة سطحه
         </Link>
       </div>
 
@@ -117,10 +117,10 @@ export default function WinchesPage() {
       ) : winches.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 py-16 text-center">
           <Truck className="mx-auto size-12 text-slate-300" />
-          <h3 className="mt-4 text-lg font-semibold text-slate-900">لا توجد وينشات</h3>
-          <p className="text-slate-500 mt-1">أضف وينش جديد واربطه بفيندور من نوع "سحب وونش"</p>
+          <h3 className="mt-4 text-lg font-semibold text-slate-900">لا توجد سطحات</h3>
+          <p className="text-slate-500 mt-1">أضف سطحه جديد واربطه بفيندور من نوع "سحب سطحه "</p>
           <Link to="/winches/new" className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500">
-            إضافة وينش
+            إضافة سطحه
           </Link>
         </div>
       ) : (

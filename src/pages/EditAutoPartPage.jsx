@@ -7,6 +7,7 @@ import { autoPartService } from '../services/autoPartService';
 import { autoPartCategoryService } from '../services/autoPartCategoryService';
 import { brandService } from '../services/brandService';
 import { vendorService } from '../services/vendorService';
+import { vehicleService } from '../services/vehicleService';
 import { useAuthStore } from '../store/authStore';
 import { API_BASE_URL } from '../config/env';
 import { Card } from '../components/ui/Card';
@@ -51,23 +52,31 @@ export default function EditAutoPartPage() {
   });
   const categoriesFlat = flattenCategoryTree(categoryTree);
 
-  const { data: vendorsResult } = useQuery({
-    queryKey: ['vendors-list'],
-    queryFn: () => vendorService.getVendors({ status: 'ACTIVE', limit: 100 }),
+  const { data: vendorsResult, isLoading: vendorsLoading } = useQuery({
+    queryKey: ['vendors-list-all'],
+    queryFn: () => vendorService.getVendors({ limit: 200 }),
     enabled: isAdmin,
   });
   const vendors = vendorsResult?.vendors ?? [];
+  
+  // Filter to only AUTO_PARTS vendors
+  const autoPartsVendors = vendors.filter(v => v.vendorType === 'AUTO_PARTS');
   const { data: brandsResult } = useQuery({
     queryKey: ['brands-for-auto-part'],
     queryFn: () => brandService.getBrands({ activeOnly: true, limit: 200 }),
   });
   const brands = brandsResult?.brands ?? [];
 
+  const [selectedBrandId, setSelectedBrandId] = useState('');
+  const [models, setModels] = useState([]);
+
   const [formData, setFormData] = useState({
     name: '',
     nameAr: '',
     sku: '',
-    brand: '',
+    brandId: '',
+    vehicleModelId: '',
+    year: '',
     categoryId: '',
     vendorId: '',
     price: '',
@@ -81,6 +90,24 @@ export default function EditAutoPartPage() {
     }
   }, [partCategory]);
 
+  useEffect(() => {
+    if (selectedBrandId) {
+      vehicleService.getModels(selectedBrandId).then(setModels);
+    } else {
+      setModels([]);
+    }
+  }, [selectedBrandId]);
+
+  const handleBrandChange = (e) => {
+    const brandId = e.target.value;
+    setSelectedBrandId(brandId);
+    setFormData((prev) => ({ 
+      ...prev, 
+      brandId,
+      vehicleModelId: ''
+    }));
+  };
+
   const [images, setImages] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [portfolioUploading, setPortfolioUploading] = useState(false);
@@ -93,13 +120,21 @@ export default function EditAutoPartPage() {
         name: part.name || '',
         nameAr: part.nameAr || '',
         sku: part.sku || '',
-        brand: part.brand || '',
+        brandId: part.brandId || '',
+        vehicleModelId: part.vehicleModelId || '',
+        year: part.year != null ? String(part.year) : '',
         categoryId: part.categoryId || '',
         vendorId: part.vendorId || '',
         price: part.price != null ? String(part.price) : '',
         stockQuantity: part.stockQuantity != null ? String(part.stockQuantity) : '',
         description: part.description || '',
       });
+      
+      if (part.brandId) {
+        setSelectedBrandId(part.brandId);
+        vehicleService.getModels(part.brandId).then(setModels);
+      }
+      
       if (part.images?.length) {
         setImages(part.images.map((img) => ({
           id: img.id,
@@ -125,12 +160,16 @@ export default function EditAutoPartPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const selectedBrand = formData.brandId ? brands.find(b => String(b.id) === String(formData.brandId)) : null;
     updateMutation.mutate({
       name: formData.name,
       nameAr: formData.nameAr,
-      brand: formData.brand,
+      brand: selectedBrand ? (selectedBrand.nameAr || selectedBrand.name) : '',
+      brandId: formData.brandId ? String(formData.brandId) : null,
+      vehicleModelId: formData.vehicleModelId ? String(formData.vehicleModelId) : null,
+      year: formData.year ? Number(formData.year) : null,
       categoryId: formData.categoryId,
-      vendorId: formData.vendorId || undefined,
+      vendorId: formData.vendorId ? String(formData.vendorId) : undefined,
       price: Number(formData.price),
       stockQuantity: Number(formData.stockQuantity),
       description: formData.description,
@@ -143,7 +182,9 @@ export default function EditAutoPartPage() {
   };
   const handleCategoryTypeChange = (type) => {
     setCategoryType(type);
-    setFormData((prev) => ({ ...prev, categoryId: '' }));
+    setFormData((prev) => ({ ...prev, categoryId: '', brandId: '', vehicleModelId: '' }));
+    setSelectedBrandId('');
+    setModels([]);
   };
 
   const handlePortfolioFileSelect = async (e) => {
@@ -237,20 +278,47 @@ export default function EditAutoPartPage() {
                 <Input label="Name (Arabic)" name="nameAr" value={formData.nameAr} onChange={handleChange} dir="rtl" />
                 <Input label="SKU" name="sku" value={formData.sku} onChange={handleChange} required readOnly className="bg-slate-50" />
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Car Brand</label>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">الماركة</label>
                   <select
-                    name="brand"
-                    value={formData.brand}
-                    onChange={handleChange}
+                    name="brandId"
+                    value={formData.brandId}
+                    onChange={handleBrandChange}
                     className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                     required
                   >
-                    <option value="">Select brand</option>
+                    <option value="">اختر الماركة</option>
                     {brands.map((b) => (
-                      <option key={b.id} value={b.name}>{b.nameAr || b.name}</option>
+                      <option key={b.id} value={b.id}>{b.nameAr || b.name}</option>
                     ))}
                   </select>
                 </div>
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">الموديل</label>
+                  <select
+                    name="vehicleModelId"
+                    value={formData.vehicleModelId}
+                    onChange={handleChange}
+                    disabled={!selectedBrandId}
+                    className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-400"
+                  >
+                    <option value="">اختر الموديل</option>
+                    {models.map((m) => (
+                      <option key={m.id} value={m.id}>{m.nameAr || m.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <Input 
+                  label="السنة" 
+                  name="year" 
+                  type="number" 
+                  min="1900" 
+                  max={new Date().getFullYear() + 1}
+                  value={formData.year}
+                  onChange={handleChange}
+                  placeholder="مثال: 2024"
+                />
                 <div className="sm:col-span-2">
                   <label className="mb-1.5 block text-sm font-medium text-slate-700">Description</label>
                   <textarea
@@ -402,16 +470,16 @@ export default function EditAutoPartPage() {
               </div>
               {isAdmin && (
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Vendor (Optional)</label>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">المتجر / الفيندور</label>
                   <select
                     name="vendorId"
                     value={formData.vendorId}
                     onChange={handleChange}
                     className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   >
-                    <option value="">Platform (No Vendor)</option>
-                    {vendors.map((v) => (
-                      <option key={v.id} value={v.id}>{v.businessName}</option>
+                    <option value="">منصة أكفيك (بدون فيندور)</option>
+                    {autoPartsVendors.map((v) => (
+                      <option key={v.id} value={v.id}>{v.businessNameAr || v.businessName}</option>
                     ))}
                   </select>
                 </div>

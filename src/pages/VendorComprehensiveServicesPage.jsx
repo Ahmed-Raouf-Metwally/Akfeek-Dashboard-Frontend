@@ -14,6 +14,19 @@ import { useAuthStore } from '../store/authStore';
 
 const defaultPricing = () => [];
 
+const VEHICLE_TYPES = [
+  { value: 'SEDAN', labelEn: 'Sedan', labelAr: 'سيدان' },
+  { value: 'HATCHBACK', labelEn: 'Hatchback', labelAr: 'هاتشباك' },
+  { value: 'COUPE', labelEn: 'Coupe', labelAr: 'كوبيه' },
+  { value: 'SMALL_SUV', labelEn: 'Small SUV', labelAr: 'دفع رباعي صغير' },
+  { value: 'LARGE_SEDAN', labelEn: 'Large Sedan', labelAr: 'سيدان كبيرة' },
+  { value: 'SUV', labelEn: 'SUV', labelAr: 'دفع رباعي' },
+  { value: 'CROSSOVER', labelEn: 'Crossover', labelAr: 'كروس أوفر' },
+  { value: 'TRUCK', labelEn: 'Truck', labelAr: 'شاحنة/بيك أب' },
+  { value: 'VAN', labelEn: 'Van', labelAr: 'فان' },
+  { value: 'BUS', labelEn: 'Bus', labelAr: 'باص' },
+];
+
 function fullImageUrl(url) {
   if (!url) return null;
   if (url.startsWith('http')) return url;
@@ -63,6 +76,31 @@ export default function VendorComprehensiveServicesPage() {
     retry: (_, err) => err?.response?.status !== 403,
   });
 
+  const allowedVendor = vendorType === 'COMPREHENSIVE_CARE' || vendorType === 'CAR_WASH';
+  
+  // Check: For VENDOR role, they must have the right vendor type
+  if (user?.role === 'VENDOR' && !allowedVendor) {
+    return (
+      <div className="space-y-6">
+        <Card className="p-8 text-center">
+          <p className="text-slate-600">{isAr ? 'هذه الصفحة متاحة لفيندور العناية الشاملة أو خدمة الغسيل فقط.' : 'This page is only available for comprehensive care or car wash vendor accounts.'}</p>
+        </Card>
+      </div>
+    );
+  }
+  
+  // Check: User must be ADMIN or VENDOR
+  if (user?.role !== 'ADMIN' && user?.role !== 'VENDOR') {
+    return (
+      <div className="space-y-6">
+        <Card className="p-8 text-center">
+          <p className="text-red-600 font-semibold">{isAr ? 'ليس لديك صلاحية للدخول لهذه الصفحة' : 'You do not have permission to access this page'}</p>
+          <p className="mt-2 text-sm text-slate-600">{isAr ? 'تحتاج إلى دور ADMIN أو VENDOR' : 'You need ADMIN or VENDOR role'}</p>
+        </Card>
+      </div>
+    );
+  }
+
   const buildWorkingHours = (workingDays) =>
     (workingDays || [])
       .filter((d) => d.enabled && d.start && d.end)
@@ -70,6 +108,19 @@ export default function VendorComprehensiveServicesPage() {
 
   const createMutation = useMutation({
     mutationFn: (payload) => {
+      // تحقق من أن المستخدم لديه دور ADMIN أو VENDOR
+      if (user?.role !== 'ADMIN' && user?.role !== 'VENDOR') {
+        throw new Error(isAr ? 'ليس لديك صلاحية لإنشاء خدمة. تحتاج إلى دور ADMIN أو VENDOR.' : 'You do not have permission to create a service. You need ADMIN or VENDOR role.');
+      }
+      
+      // للفيندور: معه
+      if (user?.role === 'VENDOR') {
+        // يجب أن تكون الخدمة من نوع COMPREHENSIVE_CARE
+        if (category !== 'COMPREHENSIVE_CARE') {
+          throw new Error(isAr ? 'يمكن للفيندور إنشاء خدمات العناية الشاملة فقط (COMPREHENSIVE_CARE).' : 'Vendors can only create Comprehensive Care services.');
+        }
+      }
+      
       const { workingDays, pricing, ...rest } = payload;
       return serviceService.createService({
         ...rest,
@@ -101,11 +152,26 @@ export default function VendorComprehensiveServicesPage() {
       });
       fileInputRef.current && (fileInputRef.current.value = '');
     },
-    onError: (e) => toast.error(e?.message),
+    onError: (e) => {
+      let message = e?.message;
+      
+      // معالجة رسائل الخطأ الشهيرة
+      if (e?.response?.status === 404) {
+        message = isAr ? 'لم يتم العثور على ملف الفيندور. يرجى إكمال إعداد ملف الفيندور أولاً.' : 'Vendor profile not found. Please complete your vendor profile setup first.';
+      } else if (e?.response?.status === 403) {
+        message = isAr ? 'ليس لديك صلاحية لإنشاء هذا النوع من الخدمات. يمكن للفيندور فقط إنشاء خدمات العناية الشاملة.' : 'You do not have permission to create this type of service. Vendors can only create Comprehensive Care services.';
+      }
+      
+      toast.error(message);
+    },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, ...payload }) => {
+      if (user?.role !== 'ADMIN' && user?.role !== 'VENDOR') {
+        throw new Error(isAr ? 'ليس لديك صلاحية لتعديل الخدمة. تحتاج إلى دور ADMIN أو VENDOR.' : 'You do not have permission to update a service. You need ADMIN or VENDOR role.');
+      }
+      
       const { workingDays, pricing, ...rest } = payload;
       return serviceService.updateService(id, {
         ...rest,
@@ -123,16 +189,37 @@ export default function VendorComprehensiveServicesPage() {
       toast.success(isAr ? 'تم التحديث' : 'Updated');
       setEditingId(null);
     },
-    onError: (e) => toast.error(e?.message),
+    onError: (e) => {
+      let message = e?.message;
+      if (e?.response?.status === 404) {
+        message = isAr ? 'لم يتم العثور على ملف الفيندور أو الخدمة.' : 'Vendor profile or service not found.';
+      } else if (e?.response?.status === 403) {
+        message = isAr ? 'ليس لديك صلاحية لتعديل هذه الخدمة.' : 'You do not have permission to update this service.';
+      }
+      toast.error(message);
+    },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => serviceService.deleteService(id),
+    mutationFn: (id) => {
+      if (user?.role !== 'ADMIN' && user?.role !== 'VENDOR') {
+        throw new Error(isAr ? 'ليس لديك صلاحية لحذف الخدمة. تحتاج إلى دور ADMIN أو VENDOR.' : 'You do not have permission to delete a service. You need ADMIN or VENDOR role.');
+      }
+      return serviceService.deleteService(id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['services'] });
       toast.success(isAr ? 'تم حذف الخدمة' : 'Service removed');
     },
-    onError: (e) => toast.error(e?.message),
+    onError: (e) => {
+      let message = e?.message;
+      if (e?.response?.status === 404) {
+        message = isAr ? 'لم يتم العثور على الخدمة.' : 'Service not found.';
+      } else if (e?.response?.status === 403) {
+        message = isAr ? 'ليس لديك صلاحية لحذف هذه الخدمة.' : 'You do not have permission to delete this service.';
+      }
+      toast.error(message);
+    },
   });
 
   const DAY_NAMES = [
@@ -199,26 +286,6 @@ export default function VendorComprehensiveServicesPage() {
       <div className="space-y-6">
         <Skeleton className="h-8 w-64" />
         <Card className="p-6"><Skeleton className="h-32 w-full" /></Card>
-      </div>
-    );
-  }
-
-  const allowedVendor = vendorType === 'COMPREHENSIVE_CARE' || vendorType === 'CAR_WASH';
-  if (user?.role === 'VENDOR' && !allowedVendor) {
-    return (
-      <div className="space-y-6">
-        <Card className="p-8 text-center">
-          <p className="text-slate-600">{isAr ? 'هذه الصفحة متاحة لفيندور العناية الشاملة أو خدمة الغسيل فقط.' : 'This page is only available for comprehensive care or car wash vendor accounts.'}</p>
-        </Card>
-      </div>
-    );
-  }
-  if (isError && error?.response?.status === 403 && !isAdmin) {
-    return (
-      <div className="space-y-6">
-        <Card className="p-8 text-center">
-          <p className="text-slate-600">{isAr ? 'هذه الصفحة متاحة لفيندور العناية الشاملة أو خدمة الغسيل فقط.' : 'This page is only available for comprehensive care or car wash vendor accounts.'}</p>
-        </Card>
       </div>
     );
   }
@@ -437,9 +504,14 @@ function PricingByVehicleForm({ form, setForm, isAr }) {
             </tr>
           </thead>
           <tbody>
-            {pricing.map((row, index) => (
+            {pricing.map((row, index) => {
+              const vehicleTypeObj = VEHICLE_TYPES.find(vt => vt.value === row.vehicleType);
+              const vehicleTypeLabel = vehicleTypeObj 
+                ? (isAr ? vehicleTypeObj.labelAr : vehicleTypeObj.labelEn) 
+                : row.vehicleType;
+              return (
               <tr key={`${row.vehicleType}-${index}`} className="border-b border-slate-100">
-                <td className="py-2 pr-4 font-medium text-slate-800">{row.vehicleType ?? '—'}</td>
+                <td className="py-2 pr-4 font-medium text-slate-800">{vehicleTypeLabel ?? '—'}</td>
                 <td className="py-2 pr-4">
                   <input
                     type="number"
@@ -477,22 +549,36 @@ function PricingByVehicleForm({ form, setForm, isAr }) {
                   </button>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <input
-          type="text"
+        <select
           value={newVehicleName}
           onChange={(e) => setNewVehicleName(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddByText())}
-          placeholder={isAr ? 'اسم نوع المركبة (مثلاً: سيدان، دفع رباعي)' : 'Vehicle type name (e.g. Sedan, SUV)'}
-          className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 placeholder:text-slate-400 min-w-[200px]"
-        />
+          className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 min-w-[200px]"
+        >
+          <option value="">{isAr ? 'اختر نوع المركبة' : 'Select vehicle type'}</option>
+          {VEHICLE_TYPES.filter(
+            vt => !((form.pricing || []).map(p => p.vehicleType).includes(vt.value))
+          ).map(vt => (
+            <option key={vt.value} value={vt.value}>
+              {isAr ? vt.labelAr : vt.labelEn}
+            </option>
+          ))}
+        </select>
         <button
           type="button"
-          onClick={handleAddByText}
+          onClick={() => {
+            if (!newVehicleName) {
+              toast.error(isAr ? 'اختر نوع المركبة أولاً' : 'Select vehicle type first');
+              return;
+            }
+            addPricingRow(newVehicleName);
+            setNewVehicleName('');
+          }}
           className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
         >
           <PlusCircle className="h-4 w-4" />
@@ -500,7 +586,7 @@ function PricingByVehicleForm({ form, setForm, isAr }) {
         </button>
       </div>
       {pricing.length === 0 && (
-        <p className="mt-2 text-sm text-slate-500">{isAr ? 'لم تضف أي أسعار بعد. اكتب اسم نوع المركبة ثم انقر «إضافة».' : 'No pricing yet. Type the vehicle type name and click «Add».'}</p>
+        <p className="mt-2 text-sm text-slate-500">{isAr ? 'لم تضف أي أسعار بعد. اختر نوع المركبة ثم انقر «إضافة».' : 'No pricing yet. Select a vehicle type and click «Add».'}</p>
       )}
     </div>
   );

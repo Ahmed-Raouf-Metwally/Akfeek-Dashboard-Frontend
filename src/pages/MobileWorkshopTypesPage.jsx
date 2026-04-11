@@ -12,7 +12,7 @@ export default function MobileWorkshopTypesPage() {
   const queryClient = useQueryClient();
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [editingType, setEditingType] = useState(null);
-  const [typeForm, setTypeForm] = useState({ name: '', nameAr: '', description: '', isActive: true });
+  const [typeForm, setTypeForm] = useState({ name: '', nameAr: '', description: '', isActive: true, imageUrl: '' });
   const [expandedTypeId, setExpandedTypeId] = useState(null);
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [serviceModalTypeId, setServiceModalTypeId] = useState(null);
@@ -125,7 +125,7 @@ export default function MobileWorkshopTypesPage() {
 
   const openAddType = () => {
     setEditingType(null);
-    setTypeForm({ name: '', nameAr: '', description: '', isActive: true });
+    setTypeForm({ name: '', nameAr: '', description: '', isActive: true, imageUrl: '' });
     setShowTypeModal(true);
   };
 
@@ -136,6 +136,7 @@ export default function MobileWorkshopTypesPage() {
       nameAr: type.nameAr || '',
       description: type.description || '',
       isActive: type.isActive !== false,
+      imageUrl: type.imageUrl || '',
     });
     setShowTypeModal(true);
   };
@@ -213,6 +214,13 @@ export default function MobileWorkshopTypesPage() {
                     >
                       {isExpanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
                     </button>
+                    {type.imageUrl ? (
+                      <img src={type.imageUrl} alt={type.name} className="w-12 h-12 rounded-lg object-cover border" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center">
+                        <Wrench className="size-6 text-slate-400" />
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-slate-900">{type.nameAr || type.name}</p>
                       {type.nameAr && type.name && <p className="text-xs text-slate-400">{type.name}</p>}
@@ -301,6 +309,7 @@ export default function MobileWorkshopTypesPage() {
             <label className="block text-sm font-medium text-slate-700 mb-1">الوصف</label>
             <textarea name="description" value={typeForm.description} onChange={(e) => setTypeForm((p) => ({ ...p, description: e.target.value }))} rows={2} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
           </div>
+          <Input label="رابط الصورة" name="imageUrl" value={typeForm.imageUrl} onChange={(e) => setTypeForm((p) => ({ ...p, imageUrl: e.target.value }))} placeholder="https://example.com/image.jpg" />
           <label className="flex items-center gap-2">
             <input type="checkbox" checked={typeForm.isActive} onChange={(e) => setTypeForm((p) => ({ ...p, isActive: e.target.checked }))} className="rounded border-slate-300 text-indigo-600" />
             <span className="text-sm text-slate-700">نشط</span>

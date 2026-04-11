@@ -19,6 +19,8 @@ export default function EditVendorPage() {
         businessNameAr: '',
         description: '',
         descriptionAr: '',
+        termsAndConditions: '',
+        termsAndConditionsAr: '',
         contactEmail: '',
         contactPhone: '',
         address: '',
@@ -69,6 +71,8 @@ export default function EditVendorPage() {
                 businessNameAr: vendor.businessNameAr || '',
                 description: vendor.description || '',
                 descriptionAr: vendor.descriptionAr || '',
+                termsAndConditions: vendor.termsAndConditions || '',
+                termsAndConditionsAr: vendor.termsAndConditionsAr || '',
                 contactEmail: vendor.contactEmail || '',
                 contactPhone: vendor.contactPhone || '',
                 address: vendor.address || '',
@@ -299,6 +303,34 @@ export default function EditVendorPage() {
                                 name="descriptionAr"
                                 rows={3}
                                 value={formData.descriptionAr}
+                                onChange={handleChange}
+                                dir="rtl"
+                                className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                            />
+                        </div>
+
+                        {/* ── Terms and Conditions Section ── */}
+                        <div className="sm:col-span-2 border-t border-slate-200 pt-4 mt-4">
+                            <h3 className="font-semibold text-slate-900 mb-3">الشروط والأحكام / Terms and Conditions</h3>
+                        </div>
+
+                        <div className="sm:col-span-2">
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">Terms and Conditions (English)</label>
+                            <textarea
+                                name="termsAndConditions"
+                                rows={4}
+                                value={formData.termsAndConditions}
+                                onChange={handleChange}
+                                className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                            />
+                        </div>
+
+                        <div className="sm:col-span-2">
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">الشروط والأحكام (العربية)</label>
+                            <textarea
+                                name="termsAndConditionsAr"
+                                rows={4}
+                                value={formData.termsAndConditionsAr}
                                 onChange={handleChange}
                                 dir="rtl"
                                 className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"

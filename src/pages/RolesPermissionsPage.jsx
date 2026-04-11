@@ -1,22 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Wrench, Package, UserCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardBody } from '../components/ui/Card';
-
-const ROLES = [
-  { id: 'ADMIN', label: 'Admin', desc: 'Full platform access', icon: Shield, color: 'bg-violet-500' },
-  { id: 'TECHNICIAN', label: 'Technician', desc: 'Services, bookings, towing', icon: Wrench, color: 'bg-amber-500' },
-  { id: 'SUPPLIER', label: 'Supplier', desc: 'Parts, supply requests', icon: Package, color: 'bg-emerald-500' },
-  { id: 'CUSTOMER', label: 'Customer', desc: 'Bookings, vehicles, invoices', icon: UserCircle, color: 'bg-blue-500' },
-];
-
-const PERMISSIONS_MOCK = [
-  { resource: 'users', actions: ['list', 'view', 'edit', 'delete'], roles: ['ADMIN'] },
-  { resource: 'services', actions: ['list', 'view', 'create', 'edit', 'delete'], roles: ['ADMIN'] },
-  { resource: 'bookings', actions: ['list', 'view', 'create', 'update'], roles: ['ADMIN', 'TECHNICIAN', 'CUSTOMER'] },
-  { resource: 'invoices', actions: ['list', 'view'], roles: ['ADMIN', 'CUSTOMER'] },
-  { resource: 'settings', actions: ['view', 'edit'], roles: ['ADMIN'] },
-];
 
 function RoleCard({ role }) {
   const Icon = role.icon;
@@ -44,10 +30,47 @@ function RoleCard({ role }) {
 }
 
 export default function RolesPermissionsPage() {
+  const { t } = useTranslation();
+
+  const ROLES = [
+    { id: 'ADMIN', label: t('roles.admin', 'Admin'), desc: t('roles.descAdmin', 'Full platform access'), icon: Shield, color: 'bg-violet-500' },
+    { id: 'TECHNICIAN', label: t('roles.technician', 'Technician'), desc: t('roles.descTechnician', 'Services, bookings, towing'), icon: Wrench, color: 'bg-amber-500' },
+    { id: 'SUPPLIER', label: t('roles.supplier', 'Supplier'), desc: t('roles.descSupplier', 'Parts, supply requests'), icon: Package, color: 'bg-emerald-500' },
+    { id: 'CUSTOMER', label: t('roles.customer', 'Customer'), desc: t('roles.descCustomer', 'Bookings, vehicles, invoices'), icon: UserCircle, color: 'bg-blue-500' },
+  ];
+
+  const PERMISSIONS_MOCK = [
+    {
+      resource: t('roles.resources.users', 'Users'),
+      actions: [t('roles.actionsLabels.list', 'list'), t('roles.actionsLabels.view', 'view'), t('roles.actionsLabels.edit', 'edit'), t('roles.actionsLabels.delete', 'delete')],
+      roles: ['ADMIN'],
+    },
+    {
+      resource: t('roles.resources.services', 'Services'),
+      actions: [t('roles.actionsLabels.list', 'list'), t('roles.actionsLabels.view', 'view'), t('roles.actionsLabels.create', 'create'), t('roles.actionsLabels.edit', 'edit'), t('roles.actionsLabels.delete', 'delete')],
+      roles: ['ADMIN'],
+    },
+    {
+      resource: t('roles.resources.bookings', 'Bookings'),
+      actions: [t('roles.actionsLabels.list', 'list'), t('roles.actionsLabels.view', 'view'), t('roles.actionsLabels.create', 'create'), t('roles.actionsLabels.update', 'update')],
+      roles: ['ADMIN', 'TECHNICIAN', 'CUSTOMER'],
+    },
+    {
+      resource: t('roles.resources.invoices', 'Invoices'),
+      actions: [t('roles.actionsLabels.list', 'list'), t('roles.actionsLabels.view', 'view')],
+      roles: ['ADMIN', 'CUSTOMER'],
+    },
+    {
+      resource: t('roles.resources.settings', 'Settings'),
+      actions: [t('roles.actionsLabels.view', 'view'), t('roles.actionsLabels.edit', 'edit')],
+      roles: ['ADMIN'],
+    },
+  ];
+
   return (
     <div className="space-y-8">
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">Roles</h2>
+        <h2 className="mb-4 text-lg font-semibold text-slate-900">{t('roles.rolesTitle', 'Roles')}</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {ROLES.map((role, i) => (
             <RoleCard key={role.id} role={role} />
@@ -56,7 +79,7 @@ export default function RolesPermissionsPage() {
       </section>
 
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">Permissions matrix</h2>
+        <h2 className="mb-4 text-lg font-semibold text-slate-900">{t('roles.permissionsMatrix', 'Permissions matrix')}</h2>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -68,13 +91,13 @@ export default function RolesPermissionsPage() {
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/80">
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      Resource
+                      {t('roles.resource', 'Resource')}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      Actions
+                      {t('roles.actions', 'Actions')}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      Allowed roles
+                      {t('roles.allowedRoles', 'Allowed roles')}
                     </th>
                   </tr>
                 </thead>
@@ -96,7 +119,7 @@ export default function RolesPermissionsPage() {
                               key={r}
                               className="inline-flex rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700"
                             >
-                              {r}
+                              {t(`users.roles.${r}`, r)}
                             </span>
                           ))}
                         </div>
@@ -109,7 +132,7 @@ export default function RolesPermissionsPage() {
           </Card>
         </motion.div>
         <p className="mt-3 text-sm text-slate-500">
-          Permission rules are enforced in the backend. Edit roles via user management or future admin APIs.
+          {t('roles.enforcementNote', 'Permission rules are enforced in the backend. Edit roles via user management or future admin APIs.')}
         </p>
       </section>
     </div>

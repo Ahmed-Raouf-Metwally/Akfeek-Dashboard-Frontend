@@ -40,6 +40,19 @@ const TYPES = [
   { value: 'MOBILE_CAR_SERVICE', label: 'Mobile Car Service' },
 ];
 
+const VEHICLE_TYPES = [
+  { value: 'SEDAN', labelEn: 'Sedan', labelAr: 'سيدان' },
+  { value: 'HATCHBACK', labelEn: 'Hatchback', labelAr: 'هاتشباك' },
+  { value: 'COUPE', labelEn: 'Coupe', labelAr: 'كوبيه' },
+  { value: 'SMALL_SUV', labelEn: 'Small SUV', labelAr: 'دفع رباعي صغير' },
+  { value: 'LARGE_SEDAN', labelEn: 'Large Sedan', labelAr: 'سيدان كبيرة' },
+  { value: 'SUV', labelEn: 'SUV', labelAr: 'دفع رباعي' },
+  { value: 'CROSSOVER', labelEn: 'Crossover', labelAr: 'كروس أوفر' },
+  { value: 'TRUCK', labelEn: 'Truck', labelAr: 'شاحنة/بيك أب' },
+  { value: 'VAN', labelEn: 'Van', labelAr: 'فان' },
+  { value: 'BUS', labelEn: 'Bus', labelAr: 'باص' },
+];
+
 const emptyForm = () => ({
   name: '',
   nameAr: '',
@@ -328,9 +341,14 @@ export default function CreateServicePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(form.pricing || []).map((row, index) => (
+                  {(form.pricing || []).map((row, index) => {
+                    const vehicleTypeObj = VEHICLE_TYPES.find(vt => vt.value === row.vehicleType);
+                    const vehicleTypeLabel = vehicleTypeObj 
+                      ? (isAr ? vehicleTypeObj.labelAr : vehicleTypeObj.labelEn) 
+                      : row.vehicleType;
+                    return (
                     <tr key={`${row.vehicleType}-${index}`} className="border-b border-slate-100">
-                      <td className="py-2 pr-4 font-medium text-slate-800">{row.vehicleType ?? '—'}</td>
+                      <td className="py-2 pr-4 font-medium text-slate-800">{vehicleTypeLabel ?? '—'}</td>
                       <td className="py-2 pr-4">
                         <input
                           type="number"
@@ -374,48 +392,40 @@ export default function CreateServicePage() {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <input
-                type="text"
-                value={form._newVehicleName ?? ''}
-                onChange={(e) => setForm((f) => ({ ...f, _newVehicleName: e.target.value }))}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const name = (form._newVehicleName || '').trim();
-                    if (!name) {
-                      toast.error(isAr ? 'اكتب اسم نوع المركبة أولاً' : 'Enter vehicle type name first');
-                      return;
-                    }
-                    const used = (form.pricing || []).map((p) => (p.vehicleType || '').trim().toLowerCase());
-                    if (used.includes(name.toLowerCase())) {
-                      toast.error(isAr ? 'نوع المركبة مضاف مسبقاً' : 'This vehicle type is already added');
-                      return;
-                    }
-                    setForm((f) => ({ ...f, pricing: [...(f.pricing || []), { vehicleType: name, basePrice: 0, discountedPrice: '' }], _newVehicleName: '' }));
-                  }
-                }}
-                placeholder={isAr ? 'اسم نوع المركبة (مثلاً: سيدان، دفع رباعي)' : 'Vehicle type name (e.g. Sedan, SUV)'}
-                className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 placeholder:text-slate-400 min-w-[200px]"
-              />
+              <select
+                value={form._newVehicleType ?? ''}
+                onChange={(e) => setForm((f) => ({ ...f, _newVehicleType: e.target.value }))}
+                className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 min-w-[200px]"
+              >
+                <option value="">{isAr ? 'اختر نوع المركبة' : 'Select vehicle type'}</option>
+                {VEHICLE_TYPES.filter(
+                  vt => !((form.pricing || []).map(p => p.vehicleType).includes(vt.value))
+                ).map(vt => (
+                  <option key={vt.value} value={vt.value}>
+                    {isAr ? vt.labelAr : vt.labelEn}
+                  </option>
+                ))}
+              </select>
               <button
                 type="button"
                 onClick={() => {
-                  const name = (form._newVehicleName || '').trim();
-                  if (!name) {
-                    toast.error(isAr ? 'اكتب اسم نوع المركبة أولاً' : 'Enter vehicle type name first');
+                  const vehicleType = (form._newVehicleType || '').trim();
+                  if (!vehicleType) {
+                    toast.error(isAr ? 'اختر نوع المركبة أولاً' : 'Select vehicle type first');
                     return;
                   }
-                  const used = (form.pricing || []).map((p) => (p.vehicleType || '').trim().toLowerCase());
-                  if (used.includes(name.toLowerCase())) {
+                  const used = (form.pricing || []).map((p) => p.vehicleType);
+                  if (used.includes(vehicleType)) {
                     toast.error(isAr ? 'نوع المركبة مضاف مسبقاً' : 'This vehicle type is already added');
                     return;
                   }
-                  setForm((f) => ({ ...f, pricing: [...(f.pricing || []), { vehicleType: name, basePrice: 0, discountedPrice: '' }], _newVehicleName: '' }));
+                  setForm((f) => ({ ...f, pricing: [...(f.pricing || []), { vehicleType: vehicleType, basePrice: 0, discountedPrice: '' }], _newVehicleType: '' }));
                 }}
                 className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
