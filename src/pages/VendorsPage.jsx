@@ -150,9 +150,10 @@ export default function VendorsPage() {
                   <option key={s.value} value={s.value}>{s.label}</option>
                 ))}
               </select>
+              {/* Vendor Type filter */}
               <select
                 value={vendorType}
-                onChange={(e) => { setVendorType(e.target.value); setPage(1); }}
+                onChange={(e) => handleTypeChange(e.target.value)}
                 className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               >
                 {VENDOR_TYPES.map((type) => (
@@ -162,19 +163,6 @@ export default function VendorsPage() {
                 ))}
               </select>
             </div>
-
-            {/* Vendor type filter */}
-            <select
-              value={vendorType}
-              onChange={(e) => handleTypeChange(e.target.value)}
-              className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-            >
-              {VENDOR_TYPES.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {isAr ? type.labelAr : type.labelEn}
-                </option>
-              ))}
-            </select>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">

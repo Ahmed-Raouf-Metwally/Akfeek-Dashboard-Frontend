@@ -199,6 +199,35 @@ export const workshopService = {
         if (!data.success) throw new Error(data.error || 'Failed to delete service');
         return data;
     },
+
+    // ── Workshop Images (Logo & Gallery) ─────────────────────────────────────
+    async uploadWorkshopLogo(workshopId, file) {
+        const form = new FormData();
+        form.append('file', file);
+        const { data } = await api.post(`/workshops/${workshopId}/logo`, form, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        if (!data.success) throw new Error(data.error || 'Failed to upload logo');
+        return data.data;
+    },
+
+    async uploadWorkshopImages(workshopId, files) {
+        const form = new FormData();
+        for (const file of files) {
+            form.append('files', file);
+        }
+        const { data } = await api.post(`/workshops/${workshopId}/images`, form, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        if (!data.success) throw new Error(data.error || 'Failed to upload images');
+        return data.data;
+    },
+
+    async deleteWorkshopImage(workshopId, imageUrl) {
+        const { data } = await api.delete(`/workshops/${workshopId}/images`, { data: { imageUrl } });
+        if (!data.success) throw new Error(data.error || 'Failed to delete image');
+        return data;
+    },
 };
 
 export default workshopService;

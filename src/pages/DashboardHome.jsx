@@ -21,6 +21,7 @@ import {
   UserCircle,
   Star,
   Truck,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { dashboardService } from '../services/dashboardService';
 import { autoPartService } from '../services/autoPartService';
@@ -258,6 +259,16 @@ export default function DashboardHome() {
                 <p className="text-sm text-slate-500">
                   {vendorStatsLoading ? '...' : t('dashboard.vendorCarWashBookingsCount', { count: vendorRealStats?.stats?.completedBookings || 0 })}
                 </p>
+              </div>
+              <ExternalLink className="size-5 shrink-0 text-slate-400" />
+            </Link>
+            <Link to="/banners" className="flex items-center gap-4 rounded-xl border border-white bg-white p-5 shadow-sm transition-all hover:border-sky-200 hover:shadow-md sm:col-span-2">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-violet-100">
+                <ImageIcon className="size-6 text-violet-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-900">{i18n.language === 'ar' ? 'إدارة البنرات' : 'Manage Banners'}</p>
+                <p className="text-sm text-slate-500">{i18n.language === 'ar' ? 'إضافة وتعديل بنرات غسيل السيارات' : 'Add and edit car wash banners'}</p>
               </div>
               <ExternalLink className="size-5 shrink-0 text-slate-400" />
             </Link>

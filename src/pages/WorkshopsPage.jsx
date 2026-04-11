@@ -68,8 +68,10 @@ function WorkshopCard({ workshop, onEdit, onDelete, onToggleVerification, openCo
   };
 
   const mainImage = workshop.logo 
-    ? `${import.meta.env.VITE_API_URL}${workshop.logo}`
-    : (workshop.images && workshop.images.length > 0 ? `${import.meta.env.VITE_API_URL}${workshop.images[0]}` : null);
+    ? (workshop.logo.startsWith('http') ? workshop.logo : `${import.meta.env.VITE_API_URL}${workshop.logo}`)
+    : (workshop.images && workshop.images.length > 0 
+        ? (workshop.images[0].startsWith('http') ? workshop.images[0] : `${import.meta.env.VITE_API_URL}${workshop.images[0]}`) 
+        : null);
 
   return (
     <div>
@@ -157,6 +159,14 @@ function WorkshopCard({ workshop, onEdit, onDelete, onToggleVerification, openCo
                  ({workshop.totalReviews || 0} {t('workshops.reviews', 'reviews')})
                </span>
             </div>
+            {/* Warranty */}
+            {workshop.warrantyMonths && (
+              <div className="flex w-full items-center gap-1.5">
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                  {t('workshops.services.warrantyMonths', 'ضمان')}: {workshop.warrantyMonths} {t('workshops.services.months', 'شهر')}
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-between border-t border-slate-100 pt-3">
