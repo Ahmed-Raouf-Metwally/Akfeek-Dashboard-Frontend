@@ -179,7 +179,9 @@
     "commissionReport": "Commission Report",
     "winches": "Winches",
     "mobile-workshop-types": "Mobile Workshop Types",
-    "mobile-workshops": "Mobile Workshops"
+    "mobile-workshops": "Mobile Workshops",
+    "mobile-workshop-vendors": "Mobile Workshop Bookings",
+    "subscriptions": "Subscriptions"
   },
   "language": {
     "switchLanguage": "Switch language",
@@ -927,9 +929,11 @@
     "subtitle": "Manage top and bottom banners. Each banner can have multiple images.",
     "top": "TOP",
     "bottom": "BOTTOM",
+    "autoParts": "Auto Parts",
     "addBanner": "Add banner",
     "noTopBanners": "No TOP banners.",
     "noBottomBanners": "No BOTTOM banners.",
+    "noAutoParts": "No AUTO_PARTS banners.",
     "delete": "Delete",
     "images": "Images ({{count}})",
     "titleLabel": "Title",
@@ -1005,6 +1009,9 @@
     "purchasedOn": "Purchased on",
     "packageExpired": "This package has expired",
     "unlimitedUsage": "Unlimited usage"
+  },
+  "subscriptions": {
+    "subtitle": "View all user subscriptions and usage"
   },
   "filters": {
     "searchByUserId": "Search by User ID"

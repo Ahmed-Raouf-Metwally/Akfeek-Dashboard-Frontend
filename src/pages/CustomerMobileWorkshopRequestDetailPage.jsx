@@ -18,6 +18,9 @@ export default function CustomerMobileWorkshopRequestDetailPage() {
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
   const [selectingOfferId, setSelectingOfferId] = useState(null);
+  // When backend returns "acceptOnly" offers (price=0), customer must choose a service
+  // (send mobileWorkshopServiceId) to proceed.
+  const [selectedServiceIdByOffer, setSelectedServiceIdByOffer] = useState({});
 
   const { data: request, isLoading, isError, error } = useQuery({
     queryKey: ['customer-mobile-workshop-request', id],
@@ -27,12 +30,17 @@ export default function CustomerMobileWorkshopRequestDetailPage() {
   });
 
   const selectOfferMutation = useMutation({
-    mutationFn: ({ requestId, offerId }) =>
-      mobileWorkshopService.selectOfferAsCustomer(requestId, offerId),
+    mutationFn: ({ requestId, offerId, mobileWorkshopServiceId }) =>
+      mobileWorkshopService.selectOfferAsCustomer(
+        requestId,
+        offerId,
+        mobileWorkshopServiceId ? { mobileWorkshopServiceId } : {}
+      ),
     onSuccess: (_, { requestId }) => {
       queryClient.invalidateQueries({ queryKey: ['customer-mobile-workshop-request', requestId] });
       queryClient.invalidateQueries({ queryKey: ['customer-mobile-workshop-requests'] });
       setSelectingOfferId(null);
+      setSelectedServiceIdByOffer({});
       toast.success(i18n.language === 'ar' ? 'تم اختيار العرض وإنشاء الحجز' : 'Offer selected; booking created');
     },
     onError: (err) => {
@@ -76,10 +84,22 @@ export default function CustomerMobileWorkshopRequestDetailPage() {
     );
   }
 
-  const handleSelectOffer = (offerId) => {
+  const handleSelectOffer = (offer) => {
     if (!request?.id) return;
-    setSelectingOfferId(offerId);
-    selectOfferMutation.mutate({ requestId: request.id, offerId });
+
+    const isAcceptOnlyOffer = Boolean(offer?.acceptOnly) || Number(offer?.price) === 0;
+    const chosenServiceId = isAcceptOnlyOffer ? selectedServiceIdByOffer[offer.id] : undefined;
+    if (isAcceptOnlyOffer && !chosenServiceId) {
+      toast.error(isAr ? 'اختر خدمة أولاً' : 'Please select a service first');
+      return;
+    }
+
+    setSelectingOfferId(offer.id);
+    selectOfferMutation.mutate({
+      requestId: request.id,
+      offerId: offer.id,
+      mobileWorkshopServiceId: chosenServiceId,
+    });
   };
 
   return (
@@ -124,6 +144,15 @@ export default function CustomerMobileWorkshopRequestDetailPage() {
               const businessName = workshop?.vendor?.businessNameAr || workshop?.vendor?.businessName;
               const price = offer.price != null ? Number(offer.price) : null;
               const isSelecting = selectingOfferId === offer.id;
+              const isAcceptOnlyOffer = Boolean(offer?.acceptOnly) || Number(offer?.price) === 0;
+              const chosenServiceId = selectedServiceIdByOffer[offer.id] ?? '';
+              const chosenService =
+                isAcceptOnlyOffer && offer?.workshopServices?.length
+                  ? offer.workshopServices.find((s) => s.id === chosenServiceId)
+                  : null;
+              const chosenServicePrice =
+                chosenService?.price != null ? Number(chosenService.price) : null;
+              const canConfirmOffer = !isAcceptOnlyOffer || Boolean(chosenServiceId);
 
               return (
                 <Card key={offer.id} className="p-5 border-2 border-slate-100 hover:border-indigo-100 transition-colors">
@@ -156,18 +185,64 @@ export default function CustomerMobileWorkshopRequestDetailPage() {
                           {price} {offer.currency || 'SAR'}
                         </p>
                       )}
+                      {isAcceptOnlyOffer && chosenServicePrice != null && chosenServicePrice > 0 && (
+                        <p className="text-lg font-bold text-indigo-600 mt-2">
+                          {chosenServicePrice} {chosenService?.currency || offer.currency || 'SAR'}
+                        </p>
+                      )}
                       {offer.message && (
                         <p className="text-sm text-slate-600 mt-2 line-clamp-2">{offer.message}</p>
                       )}
+
+                      {isAcceptOnlyOffer && offer?.workshopServices?.length > 0 && (
+                        <div className="mt-3 space-y-2">
+                          <label className="block text-xs font-medium text-slate-600">
+                            {isAr ? 'اختر خدمة' : 'Select a service'}
+                          </label>
+                          <select
+                            value={chosenServiceId}
+                            onChange={(e) =>
+                              setSelectedServiceIdByOffer((prev) => ({
+                                ...prev,
+                                [offer.id]: e.target.value,
+                              }))
+                            }
+                            className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                          >
+                            <option value="">{isAr ? '— اختر —' : '— Choose —'}</option>
+                            {offer.workshopServices.map((svc) => (
+                              <option key={svc.id} value={svc.id}>
+                                {svc.nameAr || svc.name}{svc.price != null ? ` - ${Number(svc.price)} ${svc.currency || offer.currency || 'SAR'}` : ''}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {isAcceptOnlyOffer && (!offer?.workshopServices || offer.workshopServices.length === 0) && (
+                        <p className="mt-3 text-sm text-amber-700">
+                          {isAr ? 'لا توجد خدمات متاحة لهذه الورشة. تواصل مع الدعم.' : 'No services available for this workshop. Contact support.'}
+                        </p>
+                      )}
+
                       {request.status === 'BROADCASTING' || request.status === 'OFFERS_RECEIVED' ? (
                         <button
                           type="button"
-                          onClick={() => handleSelectOffer(offer.id)}
-                          disabled={selectOfferMutation.isPending || isSelecting}
+                          onClick={() => handleSelectOffer(offer)}
                           className="mt-3 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+                          title={canConfirmOffer ? undefined : (isAr ? 'اختر خدمة أولاً' : 'Select a service first')}
+                          disabled={
+                            selectOfferMutation.isPending ||
+                            isSelecting ||
+                            !canConfirmOffer
+                          }
                         >
                           <CheckCircle className="size-4" />
-                          {isSelecting ? (isAr ? 'جاري الاختيار...' : 'Selecting...') : (isAr ? 'اختر هذا العرض' : 'Select this offer')}
+                          {isSelecting
+                            ? (isAr ? 'جاري الاختيار...' : 'Selecting...')
+                            : isAcceptOnlyOffer
+                              ? (isAr ? 'اختر الخدمة ثم تأكيد' : 'Select service then confirm')
+                              : (isAr ? 'اختر هذا العرض' : 'Select this offer')}
                         </button>
                       ) : (
                         <p className="mt-3 text-sm text-slate-500">

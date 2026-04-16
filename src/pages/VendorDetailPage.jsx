@@ -511,13 +511,10 @@ export default function VendorDetailPage() {
                   <Wrench className="size-5 text-indigo-600" /> الورشة المتنقلة
                 </h2>
                 {user?.role === 'ADMIN' && (
-                  <Link
-                    to={vendor.mobileWorkshop ? `/mobile-workshops/${vendor.mobileWorkshop.id}/edit` : '/mobile-workshops/new'}
-                    className="flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                  >
+                  <span className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-400">
                     <Pencil className="size-3.5" />
-                    {vendor.mobileWorkshop ? 'تعديل' : 'ربط ورشة'}
-                  </Link>
+                    {vendor.mobileWorkshop ? 'تعديل (غير متاح)' : 'ربط ورشة (غير متاح)'}
+                  </span>
                 )}
               </div>
 
@@ -526,9 +523,9 @@ export default function VendorDetailPage() {
                   <Wrench className="mx-auto size-10 text-slate-300" />
                   <p className="mt-3 text-slate-500">لا توجد ورشة متنقلة مرتبطة بهذا الفيندور.</p>
                   {user?.role === 'ADMIN' && (
-                    <Link to="/mobile-workshops/new" className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500">
-                      <Plus className="size-4" /> ربط ورشة متنقلة
-                    </Link>
+                    <span className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-600">
+                      <Plus className="size-4" /> ربط ورشة متنقلة (غير متاح)
+                    </span>
                   )}
                 </div>
               ) : (() => {
@@ -590,10 +587,9 @@ export default function VendorDetailPage() {
                     )}
 
                     <div className="flex justify-end">
-                      <Link to={`/mobile-workshops/${mw.id}`}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200">
-                        <Wrench className="size-4" /> عرض الصفحة الكاملة <ChevronRight className="size-4" />
-                      </Link>
+                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-400">
+                        <Wrench className="size-4" /> عرض الصفحة الكاملة (غير متاح)
+                      </span>
                     </div>
                   </div>
                 );

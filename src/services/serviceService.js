@@ -29,6 +29,54 @@ export const serviceService = {
     return data.data ?? [];
   },
 
+  async getCarWashServices() {
+    const { data } = await api.get('/services/car-wash');
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to load car wash services');
+    }
+    return data.data ?? [];
+  },
+
+  async getComprehensiveCareServices() {
+    const { data } = await api.get('/services/comprehensive-care');
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to load comprehensive care services');
+    }
+    return data.data ?? [];
+  },
+
+  async getWorkshopServices() {
+    const { data } = await api.get('/services/workshop');
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to load workshop services');
+    }
+    return data.data ?? [];
+  },
+
+  async getMobileWorkshopServices() {
+    const { data } = await api.get('/services/mobile-workshop');
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to load mobile workshop services');
+    }
+    return data.data ?? [];
+  },
+
+  async getVendorCarWashServices(vendorId) {
+    const { data } = await api.get(`/vendors/${vendorId}/car-wash-services`);
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to load vendor car wash services');
+    }
+    return data.data ?? [];
+  },
+
+  async getVendorServices(vendorId) {
+    const { data } = await api.get(`/vendors/${vendorId}/services`);
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to load vendor services');
+    }
+    return data.data ?? [];
+  },
+
   async getServiceById(id) {
     const { data } = await api.get(`/services/${id}`);
     if (!data.success) {

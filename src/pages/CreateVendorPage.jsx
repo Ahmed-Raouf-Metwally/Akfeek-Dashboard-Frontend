@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Save, UserPlus, Search, X, CheckCircle2, User } from 'lucide-react';
+import { ArrowLeft, Save, UserPlus, Search, X, CheckCircle2, User, LocateFixed } from 'lucide-react';
 import { vendorService } from '../services/vendorService';
 import { userService } from '../services/userService';
 import { Card } from '../components/ui/Card';
@@ -25,6 +25,13 @@ export default function CreateVendorPage() {
     country: 'SA',
     userId: '',
     vendorType: presetType,
+    mobileWorkshopName: '',
+    mobileWorkshopNameAr: '',
+    mobileWorkshopDescription: '',
+    mobileWorkshopCity: '',
+    mobileWorkshopLatitude: '',
+    mobileWorkshopLongitude: '',
+    mobileWorkshopServiceRadius: '30',
   });
 
   const [createNewAccount, setCreateNewAccount] = useState(false);
@@ -122,6 +129,31 @@ export default function CreateVendorPage() {
   const handleAccountChange = (e) => {
     const { name, value } = e.target;
     setAccountData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const isMobileWorkshopVendor = formData.vendorType === 'MOBILE_WORKSHOP';
+
+  const useCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('المتصفح لا يدعم تحديد الموقع');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setFormData((prev) => ({
+          ...prev,
+          mobileWorkshopLatitude: String(pos.coords.latitude),
+          mobileWorkshopLongitude: String(pos.coords.longitude),
+          mobileWorkshopCity: prev.mobileWorkshopCity || prev.city,
+        }));
+        toast.success('تم تحديد موقعك الحالي');
+      },
+      () => {
+        toast.error('تعذر الحصول على موقعك الحالي');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   };
 
   return (
@@ -357,6 +389,86 @@ export default function CreateVendorPage() {
                 placeholder={formLabels.description}
               />
             </div>
+
+            {isMobileWorkshopVendor && (
+              <>
+                <div className="sm:col-span-2 mt-2 rounded-xl border border-cyan-100 bg-cyan-50/60 p-4">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-semibold text-cyan-900">بيانات الورشة المتنقلة</h3>
+                      <p className="text-xs text-cyan-700">سيتم إنشاء الورشة المتنقلة وربطها بهذا الفيندور مباشرة.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={useCurrentLocation}
+                      className="inline-flex items-center gap-2 rounded-lg border border-cyan-300 bg-white px-3 py-2 text-sm font-medium text-cyan-700 hover:bg-cyan-50"
+                    >
+                      <LocateFixed className="size-4" />
+                      استخدام موقعي الحالي
+                    </button>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Input
+                      label="اسم الورشة المتنقلة"
+                      name="mobileWorkshopName"
+                      value={formData.mobileWorkshopName}
+                      onChange={handleChange}
+                      placeholder="مثال: Mobile Workshop Riyadh"
+                    />
+                    <Input
+                      label="اسم الورشة المتنقلة بالعربية"
+                      name="mobileWorkshopNameAr"
+                      value={formData.mobileWorkshopNameAr}
+                      onChange={handleChange}
+                      placeholder="مثال: الورشة المتنقلة - الرياض"
+                      dir="rtl"
+                    />
+                    <Input
+                      label="مدينة الورشة"
+                      name="mobileWorkshopCity"
+                      value={formData.mobileWorkshopCity}
+                      onChange={handleChange}
+                      placeholder="الرياض"
+                    />
+                    <Input
+                      label="نطاق الخدمة بالكيلومتر"
+                      name="mobileWorkshopServiceRadius"
+                      type="number"
+                      value={formData.mobileWorkshopServiceRadius}
+                      onChange={handleChange}
+                    />
+                    <Input
+                      label="خط العرض الحالي"
+                      name="mobileWorkshopLatitude"
+                      type="number"
+                      step="any"
+                      value={formData.mobileWorkshopLatitude}
+                      onChange={handleChange}
+                    />
+                    <Input
+                      label="خط الطول الحالي"
+                      name="mobileWorkshopLongitude"
+                      type="number"
+                      step="any"
+                      value={formData.mobileWorkshopLongitude}
+                      onChange={handleChange}
+                    />
+                    <div className="sm:col-span-2">
+                      <label className="mb-1.5 block text-sm font-medium text-slate-700">وصف الورشة المتنقلة</label>
+                      <textarea
+                        name="mobileWorkshopDescription"
+                        rows={3}
+                        value={formData.mobileWorkshopDescription}
+                        onChange={handleChange}
+                        className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        placeholder="وصف مختصر للورشة المتنقلة"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="flex justify-end pt-4 border-t border-slate-100">

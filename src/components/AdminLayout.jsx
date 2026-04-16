@@ -34,6 +34,7 @@ function getTitleForPath(pathname, t, user) {
     '/vendors': [t('nav.vendors', 'Vendors'), t('common.manageVendors', 'Manage auto parts vendors')],
     '/winches': [t('nav.winches'), t('winch.manageSubtitle')],
     '/mobile-workshops': [t('nav.mobile-workshops'), t('mobileWorkshop.manageSubtitle')],
+    '/mobile-workshop-vendors': [t('nav.mobile-workshop-vendors', 'Mobile Workshop Bookings'), t('mobileWorkshop.bookingsSubtitle', 'Approved mobile workshop bookings')],
     '/mobile-workshops/new': [t('mobileWorkshop.addTitle'), ''],
     '/winches/new': [t('winch.addTitle'), t('winch.newSubtitle')],
     '/winches/:id': [t('winch.detailTitle'), ''],

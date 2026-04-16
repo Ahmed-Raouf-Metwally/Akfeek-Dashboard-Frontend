@@ -13,7 +13,7 @@ import VendorBadge from '../components/marketplace/VendorBadge';
 export default function AutoPartDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'ADMIN';
   const isVendor = user?.role === 'VENDOR';
@@ -21,6 +21,7 @@ export default function AutoPartDetailPage() {
   const queryClient = useQueryClient();
   const [openConfirm, ConfirmModal] = useConfirm();
   const [activeImage, setActiveImage] = useState(0);
+  const isAr = i18n.language === 'ar';
 
   const { data: part, isLoading } = useQuery({
     queryKey: ['auto-part', id],
@@ -32,14 +33,14 @@ export default function AutoPartDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auto-parts'] });
       queryClient.invalidateQueries({ queryKey: ['auto-part', id] });
-      toast.success('Part deleted');
+      toast.success(isAr ? 'تم حذف القطعة' : 'Part deleted');
       navigate('/auto-parts');
     },
-    onError: (err) => toast.error(err?.message || 'Failed to delete part'),
+    onError: (err) => toast.error(err?.message || (isAr ? 'فشل حذف القطعة' : 'Failed to delete part')),
   });
 
-  if (isLoading) return <div className="p-8 text-center text-slate-500">Loading part details...</div>;
-  if (!part) return <div className="p-8 text-center text-red-500">Part not found</div>;
+  if (isLoading) return <div className="p-8 text-center text-slate-500">{isAr ? 'جاري تحميل التفاصيل...' : 'Loading part details...'}</div>;
+  if (!part) return <div className="p-8 text-center text-red-500">{isAr ? 'القطعة غير موجودة' : 'Part not found'}</div>;
 
   const images = part.images && part.images.length > 0 ? part.images : [{ url: null }];
 
@@ -51,11 +52,11 @@ export default function AutoPartDetailPage() {
           <ArrowLeft className="size-5 text-slate-500" />
         </Link>
         <div>
-          <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">{part.name}</h1>
+          <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">{isAr && part.nameAr ? part.nameAr : part.name}</h1>
           <div className="flex items-center gap-2 text-sm text-slate-500">
              <span className="font-mono">{part.sku}</span>
              <span>•</span>
-             <span>{part.category?.name}</span>
+             <span>{isAr ? part.category?.nameAr || part.category?.name : part.category?.name}</span>
           </div>
         </div>
         <div className="ml-auto flex items-center gap-2">
@@ -65,16 +66,20 @@ export default function AutoPartDetailPage() {
                  to={`/auto-parts/${part.id}/edit`}
                  className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                >
-                 <Pencil className="size-4" /> {t('common.edit', 'Edit')}
+                 <Pencil className="size-4" /> {t('common.edit', isAr ? 'تعديل' : 'Edit')}
                </Link>
                <button
                  onClick={async () => {
-                   const ok = await openConfirm({ title: t('common.delete') || 'Delete Part', message: t('autoParts.deleteMessage', 'Delete this part? This cannot be undone.'), variant: 'danger' });
+                   const ok = await openConfirm({ 
+                     title: isAr ? 'حذف القطعة' : 'Delete Part', 
+                     message: isAr ? 'هل أنت متأكد من حذف هذه القطعة؟ لا يمكن التراجع.' : 'Delete this part? This cannot be undone.', 
+                     variant: 'danger' 
+                   });
                    if (ok) deleteMutation.mutate();
                  }}
                  className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
                >
-                 <Trash2 className="size-4" /> {t('common.delete', 'Delete')}
+                 <Trash2 className="size-4" /> {t('common.delete', isAr ? 'حذف' : 'Delete')}
                </button>
              </>
            )}
@@ -89,7 +94,7 @@ export default function AutoPartDetailPage() {
                {images[activeImage].url ? (
                   <img src={images[activeImage].url} alt={part.name} className="h-full w-full object-contain" />
                ) : (
-                  <div className="text-slate-400 font-bold text-2xl">No Image</div>
+                  <div className="text-slate-400 font-bold text-2xl">{isAr ? 'لا توجد صورة' : 'No Image'}</div>
                )}
              </div>
            </Card>
@@ -120,19 +125,37 @@ export default function AutoPartDetailPage() {
                </div>
              </div>
 
-              <div className="space-y-4 border-t border-slate-100 pt-6">
-                 <div className="flex justify-between">
-                    <div className="flex items-center gap-2 text-slate-600">
-                      <Tag className="size-4" /> {t('common.brand', 'Brand')}
+               <div className="space-y-4 border-t border-slate-100 pt-6">
+                  <div className="flex justify-between">
+                     <div className="flex items-center gap-2 text-slate-600">
+                       <Tag className="size-4" /> {t('common.brand', isAr ? 'الماركة' : 'Brand')}
                     </div>
                     <span className="font-medium text-slate-900">
-                      {part.brand || part.brand?.name || part.brandId ? (part.brand?.nameAr || part.brand?.name || part.brand || 'N/A') : 'N/A'}
+                      {part.brand || 'N/A'}
                     </span>
                  </div>
+                 {(part.vehicleModelId || part.vehicleModel) && (
+                 <div className="flex justify-between">
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <Tag className="size-4" /> {isAr ? 'الموديل' : 'Model'}
+                    </div>
+                    <span className="font-medium text-slate-900">
+                      {part.vehicleModel?.nameAr || part.vehicleModel?.name || 'N/A'}
+                    </span>
+                 </div>
+                 )}
+                 {part.year && (
+                 <div className="flex justify-between">
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <Tag className="size-4" /> {isAr ? 'السنة' : 'Year'}
+                    </div>
+                    <span className="font-medium text-slate-900">{part.year}</span>
+                 </div>
+                 )}
                  {part.vendor && (
                  <div className="flex justify-between">
                     <div className="flex items-center gap-2 text-slate-600">
-                      <Truck className="size-4" /> {t('autoParts.vendor', 'Vendor')}
+                      <Truck className="size-4" /> {t('autoParts.vendor', isAr ? 'المتجر' : 'Vendor')}
                     </div>
                     <span className="font-medium text-slate-900">
                       {part.vendor.businessNameAr || part.vendor.businessName}
@@ -141,57 +164,67 @@ export default function AutoPartDetailPage() {
                  )}
                  <div className="flex justify-between">
                     <div className="flex items-center gap-2 text-slate-600">
-                      <Box className="size-4" /> Stock
+                      <Box className="size-4" /> {isAr ? 'الكمية' : 'Stock'}
                     </div>
                     <span className={`font-medium ${part.stockQuantity > 10 ? 'text-green-600' : 'text-orange-600'}`}>
-                      {part.stockQuantity} units
+                      {part.stockQuantity} {isAr ? 'قطعة' : 'units'}
                     </span>
                  </div>
-                <div className="flex justify-between">
-                   <div className="flex items-center gap-2 text-slate-600">
-                     <Truck className="size-4" /> Weight
-                   </div>
-                   <span className="font-medium text-slate-900">{part.weight ? `${part.weight} kg` : 'N/A'}</span>
-                </div>
-             </div>
-
-             <div className="mt-8">
-               <h3 className="mb-2 font-semibold text-slate-900">Vendor</h3>
-               <div className="rounded-lg bg-slate-50 p-4">
-                 <div className="flex items-center justify-between">
-                   <VendorBadge vendor={part.vendor} />
-                   {part.vendorId && <Link to={`/vendors/${part.vendorId}`} className="text-sm text-indigo-600 hover:underline">View Profile</Link>}
+                 {part.weight && (
+                 <div className="flex justify-between">
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <Box className="size-4" /> {isAr ? 'الوزن' : 'Weight'}
+                    </div>
+                    <span className="font-medium text-slate-900">{part.weight} kg</span>
                  </div>
-               </div>
-             </div>
-           </Card>
-
-           <Card className="p-6">
-              <h3 className="mb-4 font-semibold text-slate-900">Description</h3>
-              <div className="prose-sm text-slate-600">
-                <p>{part.description}</p>
-                {part.descriptionAr && (
-                  <div className="mt-4 border-t border-slate-100 pt-4 text-right" dir="rtl">
-                    <p>{part.descriptionAr}</p>
-                  </div>
-                )}
+                 )}
+                 {part.year && (
+                 <div className="flex justify-between">
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <Tag className="size-4" /> {isAr ? 'السنة' : 'Year'}
+                    </div>
+                    <span className="font-medium text-slate-900">{part.year}</span>
+                 </div>
+                 )}
               </div>
-           </Card>
 
-           {part.compatibility && part.compatibility.length > 0 && (
-              <Card className="p-6">
-                 <h3 className="mb-4 font-semibold text-slate-900">Vehicle Compatibility</h3>
-                 <ul className="space-y-2">
-                   {part.compatibility.map((comp, idx) => (
-                      <li key={idx} className="flex items-center gap-2 text-sm text-slate-700">
-                        <CheckCircle className="size-4 text-green-500" />
-                        <span>{comp.vehicleModel?.brand?.name} {comp.vehicleModel?.name}</span>
-                        {comp.notes && <span className="text-slate-400 text-xs">({comp.notes})</span>}
-                      </li>
-                   ))}
-                 </ul>
-              </Card>
-           )}
+              <div className="mt-8">
+                <h3 className="mb-2 font-semibold text-slate-900">{isAr ? 'المتجر' : 'Vendor'}</h3>
+                <div className="rounded-lg bg-slate-50 p-4">
+                  <div className="flex items-center justify-between">
+                    <VendorBadge vendor={part.vendor} />
+                    {part.vendorId && <Link to={`/vendors/${part.vendorId}`} className="text-sm text-indigo-600 hover:underline">{isAr ? 'عرض الصفحة' : 'View Profile'}</Link>}
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6">
+               <h3 className="mb-4 font-semibold text-slate-900">{isAr ? 'الوصف' : 'Description'}</h3>
+               <div className="prose-sm text-slate-600">
+                 <p>{part.description}</p>
+                 {part.descriptionAr && (
+                   <div className="mt-4 border-t border-slate-100 pt-4 text-right" dir="rtl">
+                     <p>{part.descriptionAr}</p>
+                   </div>
+                 )}
+               </div>
+            </Card>
+
+            {part.compatibility && part.compatibility.length > 0 && (
+               <Card className="p-6">
+                  <h3 className="mb-4 font-semibold text-slate-900">{isAr ? 'توافق السيارة' : 'Vehicle Compatibility'}</h3>
+                  <ul className="space-y-2">
+                    {part.compatibility.map((comp, idx) => (
+                       <li key={idx} className="flex items-center gap-2 text-sm text-slate-700">
+                         <CheckCircle className="size-4 text-green-500" />
+                         <span>{comp.vehicleModel?.brand?.name} {comp.vehicleModel?.name}</span>
+                         {comp.notes && <span className="text-slate-400 text-xs">({comp.notes})</span>}
+                       </li>
+                    ))}
+                  </ul>
+               </Card>
+            )}
         </div>
       </div>
     </div>

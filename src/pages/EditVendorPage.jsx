@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Save, Percent, Info, Camera, ImagePlus, Trash2, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Percent, Info, Camera, ImagePlus, Trash2, Loader2, LocateFixed } from 'lucide-react';
 import { vendorService } from '../services/vendorService';
 import api from '../services/api';
 import { Card } from '../components/ui/Card';
@@ -19,6 +19,8 @@ export default function EditVendorPage() {
         businessNameAr: '',
         description: '',
         descriptionAr: '',
+        termsAndConditions: '',
+        termsAndConditionsAr: '',
         contactEmail: '',
         contactPhone: '',
         address: '',
@@ -28,6 +30,13 @@ export default function EditVendorPage() {
         commercialLicense: '',
         taxNumber: '',
         commissionPercent: '',
+        mobileWorkshopName: '',
+        mobileWorkshopNameAr: '',
+        mobileWorkshopDescription: '',
+        mobileWorkshopCity: '',
+        mobileWorkshopLatitude: '',
+        mobileWorkshopLongitude: '',
+        mobileWorkshopServiceRadius: '30',
     });
 
     const logoInputRef   = useRef(null);
@@ -69,6 +78,8 @@ export default function EditVendorPage() {
                 businessNameAr: vendor.businessNameAr || '',
                 description: vendor.description || '',
                 descriptionAr: vendor.descriptionAr || '',
+                termsAndConditions: vendor.termsAndConditions || '',
+                termsAndConditionsAr: vendor.termsAndConditionsAr || '',
                 contactEmail: vendor.contactEmail || '',
                 contactPhone: vendor.contactPhone || '',
                 address: vendor.address || '',
@@ -78,6 +89,13 @@ export default function EditVendorPage() {
                 commercialLicense: vendor.commercialLicense || '',
                 taxNumber: vendor.taxNumber || '',
                 commissionPercent: vendor.commissionPercent != null ? String(vendor.commissionPercent) : '',
+                mobileWorkshopName: vendor.mobileWorkshop?.name || '',
+                mobileWorkshopNameAr: vendor.mobileWorkshop?.nameAr || '',
+                mobileWorkshopDescription: vendor.mobileWorkshop?.description || '',
+                mobileWorkshopCity: vendor.mobileWorkshop?.city || vendor.city || '',
+                mobileWorkshopLatitude: vendor.mobileWorkshop?.latitude ?? '',
+                mobileWorkshopLongitude: vendor.mobileWorkshop?.longitude ?? '',
+                mobileWorkshopServiceRadius: vendor.mobileWorkshop?.serviceRadius != null ? String(vendor.mobileWorkshop.serviceRadius) : '30',
             });
         }
     }, [vendor]);
@@ -112,6 +130,29 @@ export default function EditVendorPage() {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const isMobileWorkshopVendor = formData.vendorType === 'MOBILE_WORKSHOP';
+
+    const useCurrentLocation = () => {
+        if (!navigator.geolocation) {
+            toast.error('المتصفح لا يدعم تحديد الموقع');
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                setFormData((prev) => ({
+                    ...prev,
+                    mobileWorkshopLatitude: String(pos.coords.latitude),
+                    mobileWorkshopLongitude: String(pos.coords.longitude),
+                    mobileWorkshopCity: prev.mobileWorkshopCity || prev.city,
+                }));
+                toast.success('تم تحديد موقعك الحالي');
+            },
+            () => toast.error('تعذر الحصول على موقعك الحالي'),
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
     };
 
     if (isLoadingVendor) return <div className="p-8 text-center text-slate-500">Loading vendor details...</div>;
@@ -299,6 +340,108 @@ export default function EditVendorPage() {
                                 name="descriptionAr"
                                 rows={3}
                                 value={formData.descriptionAr}
+                                onChange={handleChange}
+                                dir="rtl"
+                                className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                            />
+                        </div>
+
+                        {isMobileWorkshopVendor && (
+                            <div className="sm:col-span-2 rounded-xl border border-cyan-100 bg-cyan-50/60 p-4">
+                                <div className="mb-4 flex items-center justify-between gap-3">
+                                    <div>
+                                        <h3 className="text-sm font-semibold text-cyan-900">بيانات الورشة المتنقلة</h3>
+                                        <p className="text-xs text-cyan-700">يمكنك تعديل اسم الورشة وموقعها الحالي من هنا.</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={useCurrentLocation}
+                                        className="inline-flex items-center gap-2 rounded-lg border border-cyan-300 bg-white px-3 py-2 text-sm font-medium text-cyan-700 hover:bg-cyan-50"
+                                    >
+                                        <LocateFixed className="size-4" />
+                                        استخدام موقعي الحالي
+                                    </button>
+                                </div>
+
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <Input
+                                        label="اسم الورشة المتنقلة"
+                                        name="mobileWorkshopName"
+                                        value={formData.mobileWorkshopName}
+                                        onChange={handleChange}
+                                    />
+                                    <Input
+                                        label="اسم الورشة المتنقلة بالعربية"
+                                        name="mobileWorkshopNameAr"
+                                        value={formData.mobileWorkshopNameAr}
+                                        onChange={handleChange}
+                                        dir="rtl"
+                                    />
+                                    <Input
+                                        label="مدينة الورشة"
+                                        name="mobileWorkshopCity"
+                                        value={formData.mobileWorkshopCity}
+                                        onChange={handleChange}
+                                    />
+                                    <Input
+                                        label="نطاق الخدمة بالكيلومتر"
+                                        name="mobileWorkshopServiceRadius"
+                                        type="number"
+                                        value={formData.mobileWorkshopServiceRadius}
+                                        onChange={handleChange}
+                                    />
+                                    <Input
+                                        label="خط العرض الحالي"
+                                        name="mobileWorkshopLatitude"
+                                        type="number"
+                                        step="any"
+                                        value={formData.mobileWorkshopLatitude}
+                                        onChange={handleChange}
+                                    />
+                                    <Input
+                                        label="خط الطول الحالي"
+                                        name="mobileWorkshopLongitude"
+                                        type="number"
+                                        step="any"
+                                        value={formData.mobileWorkshopLongitude}
+                                        onChange={handleChange}
+                                    />
+                                    <div className="sm:col-span-2">
+                                        <label className="mb-1.5 block text-sm font-medium text-slate-700">وصف الورشة المتنقلة</label>
+                                        <textarea
+                                            name="mobileWorkshopDescription"
+                                            rows={3}
+                                            value={formData.mobileWorkshopDescription}
+                                            onChange={handleChange}
+                                            className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ── Terms and Conditions Section ── */}
+                        <div className="sm:col-span-2 border-t border-slate-200 pt-4 mt-4">
+                            <h3 className="font-semibold text-slate-900 mb-3">الشروط والأحكام / Terms and Conditions</h3>
+                        </div>
+
+                        <div className="sm:col-span-2">
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">Terms and Conditions (English)</label>
+                            <textarea
+                                name="termsAndConditions"
+                                rows={4}
+                                value={formData.termsAndConditions}
+                                onChange={handleChange}
+                                className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                            />
+                        </div>
+
+                        <div className="sm:col-span-2">
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">الشروط والأحكام (العربية)</label>
+                            <textarea
+                                name="termsAndConditionsAr"
+                                rows={4}
+                                value={formData.termsAndConditionsAr}
                                 onChange={handleChange}
                                 dir="rtl"
                                 className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"

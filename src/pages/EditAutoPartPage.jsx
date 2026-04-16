@@ -52,12 +52,15 @@ export default function EditAutoPartPage() {
   });
   const categoriesFlat = flattenCategoryTree(categoryTree);
 
-  const { data: vendorsResult } = useQuery({
-    queryKey: ['vendors-list'],
-    queryFn: () => vendorService.getVendors({ status: 'ACTIVE', limit: 200 }),
+  const { data: vendorsResult, isLoading: vendorsLoading } = useQuery({
+    queryKey: ['vendors-list-all'],
+    queryFn: () => vendorService.getVendors({ limit: 200 }),
     enabled: isAdmin,
   });
   const vendors = vendorsResult?.vendors ?? [];
+  
+  // Filter to only AUTO_PARTS vendors
+  const autoPartsVendors = vendors.filter(v => v.vendorType === 'AUTO_PARTS');
   const { data: brandsResult } = useQuery({
     queryKey: ['brands-for-auto-part'],
     queryFn: () => brandService.getBrands({ activeOnly: true, limit: 200 }),
@@ -157,16 +160,16 @@ export default function EditAutoPartPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const selectedBrand = formData.brandId ? brands.find(b => b.id === Number(formData.brandId)) : null;
+    const selectedBrand = formData.brandId ? brands.find(b => String(b.id) === String(formData.brandId)) : null;
     updateMutation.mutate({
       name: formData.name,
       nameAr: formData.nameAr,
       brand: selectedBrand ? (selectedBrand.nameAr || selectedBrand.name) : '',
-      brandId: formData.brandId ? Number(formData.brandId) : null,
-      vehicleModelId: formData.vehicleModelId ? Number(formData.vehicleModelId) : null,
+      brandId: formData.brandId ? String(formData.brandId) : null,
+      vehicleModelId: formData.vehicleModelId ? String(formData.vehicleModelId) : null,
       year: formData.year ? Number(formData.year) : null,
       categoryId: formData.categoryId,
-      vendorId: formData.vendorId || undefined,
+      vendorId: formData.vendorId ? String(formData.vendorId) : undefined,
       price: Number(formData.price),
       stockQuantity: Number(formData.stockQuantity),
       description: formData.description,
@@ -475,7 +478,7 @@ export default function EditAutoPartPage() {
                     className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   >
                     <option value="">منصة أكفيك (بدون فيندور)</option>
-                    {vendors.filter(v => v.vendorType === 'AUTO_PARTS').map((v) => (
+                    {autoPartsVendors.map((v) => (
                       <option key={v.id} value={v.id}>{v.businessNameAr || v.businessName}</option>
                     ))}
                   </select>

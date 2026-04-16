@@ -177,7 +177,9 @@
     "commissionReport": "تقرير العمولة والضريبة",
     "winches": "السطحات",
     "mobile-workshop-types": "أنواع الورش المتنقلة",
-    "mobile-workshops": "الورش المتنقلة"
+    "mobile-workshops": "الورش المتنقلة",
+    "mobile-workshop-vendors": "حجوزات الورش المتنقلة",
+    "subscriptions": "الاشتراكات"
   },
   "language": {
     "switchLanguage": "تبديل اللغة",
@@ -925,9 +927,11 @@
     "subtitle": "إدارة بنرات أعلى وأسفل التطبيق. يمكن لكل بنر أن يحتوي على عدة صور.",
     "top": "أعلى",
     "bottom": "أسفل",
+    "autoParts": "قطع الغيار",
     "addBanner": "إضافة بنر",
     "noTopBanners": "لا توجد بنرات بالأعلى.",
     "noBottomBanners": "لا توجد بنرات بالأسفل.",
+    "noAutoParts": "لا توجد بنرات لقطع الغيار.",
     "delete": "حذف",
     "images": "الصور ({{count}})",
     "titleLabel": "العنوان",
@@ -1004,6 +1008,9 @@
     "packageExpired": "انتهت صلاحية هذه الباقة",
     "unlimitedUsage": "استخدام غير محدود",
     "purchasedOn": "تم الشراء في"
+  },
+  "subscriptions": {
+    "subtitle": "عرض جميع اشتراكات المستخدمين والاستخدام"
   },
   "filters": {
     "searchByUserId": "البحث بمعرّف المستخدم"

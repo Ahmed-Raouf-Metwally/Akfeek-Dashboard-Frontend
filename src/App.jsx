@@ -53,12 +53,9 @@ import EditVendorPage from './pages/EditVendorPage';
 import WinchesPage from './pages/WinchesPage';
 import WinchDetailPage from './pages/WinchDetailPage';
 import CreateEditWinchPage from './pages/CreateEditWinchPage';
-import MobileWorkshopsPage from './pages/MobileWorkshopsPage';
-import MobileWorkshopDetailPage from './pages/MobileWorkshopDetailPage';
-import CreateEditMobileWorkshopPage from './pages/CreateEditMobileWorkshopPage';
-import MobileWorkshopTypesPage from './pages/MobileWorkshopTypesPage';
 import MyVendorRedirectPage from './pages/MyVendorRedirectPage';
 import VendorOnboardingPage from './pages/VendorOnboardingPage';
+import MobileWorkshopHierarchyPage from './pages/MobileWorkshopHierarchyPage';
 import AutoPartsPage from './pages/AutoPartsPage';
 import CreateAutoPartPage from './pages/CreateAutoPartPage';
 import AutoPartDetailPage from './pages/AutoPartDetailPage';
@@ -100,6 +97,7 @@ import VendorWinchRequestsPage from './pages/VendorWinchRequestsPage';
 import VendorWinchJobsPage from './pages/VendorWinchJobsPage';
 import CustomerMobileWorkshopRequestsPage from './pages/CustomerMobileWorkshopRequestsPage';
 import CustomerMobileWorkshopRequestDetailPage from './pages/CustomerMobileWorkshopRequestDetailPage';
+import MobileWorkshopVendorsPage from './pages/MobileWorkshopVendorsPage';
 import BannersPage from './pages/BannersPage';
 import DashboardPackages from './pages/DashboardPackages';
 import DashboardSubscriptions from './pages/DashboardSubscriptions';
@@ -211,11 +209,10 @@ function App() {
             <Route path="winches/new" element={<CreateEditWinchPage />} />
             <Route path="winches/:id" element={<WinchDetailPage />} />
             <Route path="winches/:id/edit" element={<CreateEditWinchPage />} />
-            <Route path="mobile-workshop-types" element={<MobileWorkshopTypesPage />} />
-            <Route path="mobile-workshops" element={<MobileWorkshopsPage />} />
-            <Route path="mobile-workshops/new" element={<CreateEditMobileWorkshopPage />} />
-            <Route path="mobile-workshops/:id" element={<MobileWorkshopDetailPage />} />
-            <Route path="mobile-workshops/:id/edit" element={<CreateEditMobileWorkshopPage />} />
+            <Route path="mobile-workshops" element={<MobileWorkshopHierarchyPage />} />
+            <Route path="mobile-workshops/*" element={<Navigate to="/mobile-workshops" replace />} />
+            <Route path="mobile-workshop-types/*" element={<Navigate to="/mobile-workshops" replace />} />
+            <Route path="mobile-workshop-vendors" element={<MobileWorkshopVendorsPage />} />
             <Route path="auto-parts" element={<AutoPartsPage />} />
             <Route path="auto-parts/new" element={<CreateAutoPartPage />} />
             <Route path="auto-parts/:id" element={<AutoPartDetailPage />} />
