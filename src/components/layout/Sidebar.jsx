@@ -217,6 +217,7 @@ const SECTIONS = [
       { key: 'packages', to: '/admin/packages', icon: Package, label: 'Packages', labelAr: 'الباقات' },
       { key: 'subscriptions', to: '/admin/subscriptions', icon: Package, label: 'Subscriptions', labelAr: 'الاشتراكات' },
       { key: 'settings', to: '/settings', icon: Settings, label: 'Settings' },
+      { key: 'towingPricing', to: '/towing-pricing', icon: Truck, label: 'Towing Pricing', labelAr: 'تسعير السطحة' },
       { key: 'profile', to: '/profile', icon: UserCircle, label: 'Profile' },
     ],
 

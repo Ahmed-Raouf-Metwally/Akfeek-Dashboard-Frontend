@@ -181,7 +181,11 @@
     "mobile-workshop-types": "Mobile Workshop Types",
     "mobile-workshops": "Mobile Workshops",
     "mobile-workshop-vendors": "Mobile Workshop Bookings",
+    "towingPricing": "Towing Pricing",
     "subscriptions": "Subscriptions"
+  },
+  "towingPricing": {
+    "subtitle": "Pricing & time settings shown to the customer before winch offers."
   },
   "language": {
     "switchLanguage": "Switch language",

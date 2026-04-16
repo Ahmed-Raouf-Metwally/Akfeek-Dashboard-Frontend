@@ -25,6 +25,7 @@ const DEFAULT_NAV = {
   akfeekJourneys: true,
   invoices: true,
   settings: true,
+  towingPricing: true,
 };
 
 /**

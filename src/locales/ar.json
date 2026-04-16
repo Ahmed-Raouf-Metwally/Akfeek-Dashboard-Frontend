@@ -179,7 +179,11 @@
     "mobile-workshop-types": "أنواع الورش المتنقلة",
     "mobile-workshops": "الورش المتنقلة",
     "mobile-workshop-vendors": "حجوزات الورش المتنقلة",
+    "towingPricing": "تسعير السطحة",
     "subscriptions": "الاشتراكات"
+  },
+  "towingPricing": {
+    "subtitle": "إعدادات السعر والوقت التي تظهر للعميل قبل استلام عروض الوينش."
   },
   "language": {
     "switchLanguage": "تبديل اللغة",

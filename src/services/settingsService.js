@@ -24,6 +24,12 @@ export const settingsService = {
     if (!data.success) throw new Error(data.error || data.message || 'Failed to init pricing settings');
     return data.data ?? [];
   },
+
+  async initTowingSettings() {
+    const { data } = await api.post('/admin/settings/towing/init');
+    if (!data.success) throw new Error(data.error || data.message || 'Failed to init towing settings');
+    return data.data ?? null;
+  },
 };
 
 export default settingsService;

@@ -42,6 +42,7 @@ import AkfeekJourneysPage from './pages/AkfeekJourneysPage';
 import AkfeekJourneyDetailPage from './pages/AkfeekJourneyDetailPage';
 import TowingRequestsPage from './pages/TowingRequestsPage';
 import SettingsPage from './pages/SettingsPage';
+import TowingPricingPage from './pages/TowingPricingPage';
 import ProfilePage from './pages/ProfilePage';
 import NotificationsPage from './pages/NotificationsPage';
 import RolesPermissionsPage from './pages/RolesPermissionsPage';
@@ -194,6 +195,7 @@ function App() {
             <Route path="points" element={<AdminOnlyRoute><PointsPage /></AdminOnlyRoute>} />
             <Route path="ratings" element={<AdminOnlyRoute><RatingsPage /></AdminOnlyRoute>} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="towing-pricing" element={<AdminOnlyRoute><TowingPricingPage /></AdminOnlyRoute>} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="feedback" element={<FeedbackPage />} />
             <Route path="technical-support-requests" element={<TechnicalSupportRequestsPage />} />
