@@ -98,6 +98,8 @@ const DashboardPackages = lazy(() => import('./pages/DashboardPackages'));
 const DashboardSubscriptions = lazy(() => import('./pages/DashboardSubscriptions'));
 const PackagesListPage = lazy(() => import('./pages/PackagesListPage'));
 const MyPackagesPage = lazy(() => import('./pages/MyPackagesPage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const AppAboutPage = lazy(() => import('./pages/AppAboutPage'));
 
 /** Redirect non-admin (vendor, employee) away from admin-only pages (e.g. employees, ratings, points) */
 function AdminOnlyRoute({ children }) {
@@ -277,6 +279,8 @@ function App() {
               {/* Customer – طلبات الورش المتنقلة (يرى كل الفيندورز اللي وافقوا + السعر والتفاصيل) */}
               <Route path="my-mobile-workshop-requests" element={<CustomerMobileWorkshopRequestsPage />} />
               <Route path="my-mobile-workshop-requests/:id" element={<CustomerMobileWorkshopRequestDetailPage />} />
+              <Route path="about" element={<AboutPage />} />
+              <Route path="app-about" element={<AdminOnlyRoute><AppAboutPage /></AdminOnlyRoute>} />
             </Route>
           </Routes>
         </Suspense>

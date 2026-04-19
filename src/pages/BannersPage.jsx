@@ -4,6 +4,12 @@ import toast from 'react-hot-toast';
 import { Upload, Trash2, Plus, Image as ImageIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { UPLOADS_BASE_URL } from '../config/env';
+
+const apiImg = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${UPLOADS_BASE_URL}${url}`;
+};
 import {
   fetchAdminBanners,
   createBanner,
@@ -141,7 +147,7 @@ function BannerCard({ banner, onUpdate, onDelete, onUploadImages, onDeleteImage 
             {images.map((img) => (
               <div key={img.id} className="group relative overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800">
                 <img
-                  src={`${UPLOADS_BASE_URL}${img.imageUrl}`}
+                  src={apiImg(img.imageUrl)}
                   alt="banner"
                   className="h-28 w-full object-cover"
                   loading="lazy"

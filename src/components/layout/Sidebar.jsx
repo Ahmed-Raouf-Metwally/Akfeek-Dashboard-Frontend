@@ -38,6 +38,8 @@ import {
   RotateCcw,
   Images,
   Route,
+  Info,
+  BookOpen,
 } from 'lucide-react';
 import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
 import { useAuthStore } from '../../store/authStore';
@@ -59,17 +61,17 @@ const EMPLOYEE_PERMISSION_TO_SIDEBAR_KEYS = {
 };
 
 /** ١ – فيندور قطع الغيار / المنتجات (بدون تقييمات أو Points Audit) */
-const VENDOR_AUTO_PARTS_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'auto-parts', 'marketplace-orders', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
+const VENDOR_AUTO_PARTS_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'auto-parts', 'marketplace-orders', 'wallets', 'invoices', 'payments', 'profile', 'settings', 'about']);
 /** ٢ – فيندور العناية الشاملة */
-const VENDOR_COMPREHENSIVE_CARE_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
+const VENDOR_COMPREHENSIVE_CARE_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings', 'about']);
 /** ٣ – فيندور الورش المعتمدة */
-const VENDOR_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyWorkshop', 'vendorWorkshopBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
+const VENDOR_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyWorkshop', 'vendorWorkshopBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings', 'about']);
 /** ٤ – فيندور خدمة الغسيل */
-const VENDOR_CAR_WASH_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
+const VENDOR_CAR_WASH_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings', 'about']);
 /** ٥ – فيندور الورش المتنقلة */
-const VENDOR_MOBILE_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyMobileWorkshop', 'vendorMobileWorkshopRequests', 'vendorMobileWorkshopJobs', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
+const VENDOR_MOBILE_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyMobileWorkshop', 'vendorMobileWorkshopRequests', 'vendorMobileWorkshopJobs', 'wallets', 'invoices', 'payments', 'profile', 'settings', 'about']);
 /** ٦ – فيندور الونش (السطحه) */
-const VENDOR_WINCH_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyWinch', 'vendorWinchRequests', 'vendorWinchJobs', 'wallets', 'invoices', 'payments', 'profile', 'settings']);
+const VENDOR_WINCH_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyWinch', 'vendorWinchRequests', 'vendorWinchJobs', 'wallets', 'invoices', 'payments', 'profile', 'settings', 'about']);
 
 const SECTION_LABEL_KEYS = {
   main: 'sectionMain',
@@ -219,6 +221,8 @@ const SECTIONS = [
       { key: 'settings', to: '/settings', icon: Settings, label: 'Settings' },
       { key: 'towingPricing', to: '/towing-pricing', icon: Truck, label: 'Towing Pricing', labelAr: 'تسعير السطحة' },
       { key: 'profile', to: '/profile', icon: UserCircle, label: 'Profile' },
+      { key: 'about', to: '/about', icon: Info, label: 'About', labelAr: 'عن المنصة' },
+      { key: 'appAbout', to: '/app-about', icon: BookOpen, label: 'App About Us', labelAr: 'من نحن (التطبيق)' },
     ],
 
   },

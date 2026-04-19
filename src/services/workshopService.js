@@ -199,6 +199,38 @@ export const workshopService = {
         if (!data.success) throw new Error(data.error || 'Failed to delete service');
         return data;
     },
+
+    // ── Workshop Images (Admin) ──────────────────────────────────────────────────
+    async uploadLogo(workshopId, file) {
+        const fd = new FormData();
+        fd.append('file', file);
+        const { data } = await api.post(`/workshops/${workshopId}/logo`, fd, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        if (!data.success) throw new Error(data.error || 'Failed to upload logo');
+        return data.data;
+    },
+
+    async deleteLogo(workshopId) {
+        const { data } = await api.delete(`/workshops/${workshopId}/logo`);
+        if (!data.success) throw new Error(data.error || 'Failed to delete logo');
+    },
+
+    async uploadImages(workshopId, files) {
+        const fd = new FormData();
+        Array.from(files).forEach((f) => fd.append('files', f));
+        const { data } = await api.post(`/workshops/${workshopId}/images`, fd, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        if (!data.success) throw new Error(data.error || 'Failed to upload images');
+        return data.data;
+    },
+
+    async deleteImage(workshopId, imageIndex) {
+        const { data } = await api.delete(`/workshops/${workshopId}/images/${imageIndex}`);
+        if (!data.success) throw new Error(data.error || 'Failed to delete image');
+        return data.data;
+    },
 };
 
 export default workshopService;

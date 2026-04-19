@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+
+const apiImg = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${import.meta.env.VITE_API_URL}${url}`;
+};
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, MapPin, Phone, Mail, CheckCircle, Clock, Star, Plus, Pencil, Trash2, Check, X, Wrench } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -221,7 +227,7 @@ export default function WorkshopDetailPage() {
             {workshop.logo && (
               <div className="shrink-0">
                 <img
-                  src={`${import.meta.env.VITE_API_URL}${workshop.logo}`}
+                  src={apiImg(workshop.logo)}
                   alt={workshop.name}
                   className="h-24 w-24 rounded-lg object-cover border-2 border-slate-200"
                 />
@@ -304,7 +310,7 @@ export default function WorkshopDetailPage() {
                 {workshop.images.map((imageUrl, index) => (
                   <div key={index} className="relative group">
                     <img
-                      src={`${import.meta.env.VITE_API_URL}${imageUrl}`}
+                      src={apiImg(imageUrl)}
                       alt={`${workshop.name} ${index + 1}`}
                       className="w-full h-32 object-cover rounded-lg border-2 border-slate-200 hover:border-indigo-400 transition-colors cursor-pointer"
                     />

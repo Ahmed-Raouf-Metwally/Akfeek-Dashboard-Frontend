@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Pencil, Trash2, Eye, MapPin, Phone, CheckCircle, XCircle, Building2, Star, ArrowRight } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Eye, MapPin, Phone, CheckCircle, XCircle, Building2, Star, ArrowRight, ImagePlus, Image, X, Upload } from 'lucide-react';
 import { workshopService } from '../services/workshopService';
 import { vendorService } from '../services/vendorService';
 import { useConfirm } from '../hooks/useConfirm';
@@ -14,6 +14,13 @@ import { Card } from '../components/ui/Card';
 import { ImageOrPlaceholder } from '../components/ui/ImageOrPlaceholder';
 import { defaultWorkingHoursByDay, buildWorkingHoursPayload, WORKING_DAYS } from '../utils/workshopFormShared';
 import WorkshopFormFields from '../components/workshops/WorkshopFormFields';
+
+/** Safely build an image src — handles both full URLs (legacy) and relative paths */
+const apiImg = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${import.meta.env.VITE_API_URL}${url}`;
+};
 
 const emptyForm = () => ({
   name: '',
@@ -67,9 +74,9 @@ function WorkshopCard({ workshop, onEdit, onDelete, onToggleVerification, openCo
     onEdit(workshop);
   };
 
-  const mainImage = workshop.logo 
-    ? `${import.meta.env.VITE_API_URL}${workshop.logo}`
-    : (workshop.images && workshop.images.length > 0 ? `${import.meta.env.VITE_API_URL}${workshop.images[0]}` : null);
+  const mainImage = workshop.logo
+    ? apiImg(workshop.logo)
+    : (workshop.images && workshop.images.length > 0 ? apiImg(workshop.images[0]) : null);
 
   return (
     <div>
@@ -188,6 +195,10 @@ export default function WorkshopsPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [editWorkshop, setEditWorkshop] = useState(null);
   const [form, setForm] = useState(emptyForm());
+  const logoInputRef = useRef(null);
+  const imagesInputRef = useRef(null);
+  const newLogoInputRef = useRef(null);
+  const [newLogoFile, setNewLogoFile] = useState(null);
 
   const CITIES = [
     { value: '', label: t('common.all') },
@@ -223,12 +234,23 @@ export default function WorkshopsPage() {
   const certifiedVendors = certifiedVendorsResult?.vendors ?? [];
 
   const createMutation = useMutation({
-    mutationFn: (payload) => workshopService.createWorkshop(payload),
+    mutationFn: async (payload) => {
+      const workshop = await workshopService.createWorkshop(payload);
+      if (newLogoFile) {
+        try {
+          await workshopService.uploadLogo(workshop.id, newLogoFile);
+        } catch {
+          toast.error(i18n.language === 'ar' ? 'تم إنشاء الورشة لكن فشل رفع الصورة' : 'Workshop created but logo upload failed');
+        }
+      }
+      return workshop;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workshops-admin'] });
       toast.success(t('common.success'));
       setShowAdd(false);
       setForm(emptyForm());
+      setNewLogoFile(null);
     },
     onError: (err) => toast.error(err?.message || 'Failed to create workshop'),
   });
@@ -261,6 +283,51 @@ export default function WorkshopsPage() {
       toast.success(t('common.success'));
     },
     onError: (err) => toast.error(err?.message || t('error.deleteFailed')),
+  });
+
+  const invalidateWorkshop = () => {
+    queryClient.invalidateQueries({ queryKey: ['workshops-admin'] });
+    if (editWorkshop?.id) queryClient.invalidateQueries({ queryKey: ['workshop', editWorkshop.id] });
+  };
+
+  const uploadLogoMutation = useMutation({
+    mutationFn: ({ id, file }) => workshopService.uploadLogo(id, file),
+    onSuccess: (data) => {
+      setEditWorkshop((w) => ({ ...w, logo: data.logo }));
+      invalidateWorkshop();
+      toast.success(i18n.language === 'ar' ? 'تم رفع الشعار' : 'Logo uploaded');
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to upload logo'),
+  });
+
+  const deleteLogoMutation = useMutation({
+    mutationFn: (id) => workshopService.deleteLogo(id),
+    onSuccess: () => {
+      setEditWorkshop((w) => ({ ...w, logo: null }));
+      invalidateWorkshop();
+      toast.success(i18n.language === 'ar' ? 'تم حذف الشعار' : 'Logo deleted');
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to delete logo'),
+  });
+
+  const uploadImagesMutation = useMutation({
+    mutationFn: ({ id, files }) => workshopService.uploadImages(id, files),
+    onSuccess: (data) => {
+      setEditWorkshop((w) => ({ ...w, images: data.images }));
+      invalidateWorkshop();
+      toast.success(i18n.language === 'ar' ? 'تم رفع الصور' : 'Images uploaded');
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to upload images'),
+  });
+
+  const deleteImageMutation = useMutation({
+    mutationFn: ({ id, index }) => workshopService.deleteImage(id, index),
+    onSuccess: (data) => {
+      setEditWorkshop((w) => ({ ...w, images: data?.images ?? [] }));
+      invalidateWorkshop();
+      toast.success(i18n.language === 'ar' ? 'تم حذف الصورة' : 'Image deleted');
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to delete image'),
   });
 
   const openEdit = (w) => {
@@ -300,6 +367,7 @@ export default function WorkshopsPage() {
     setShowAdd(false);
     setEditWorkshop(null);
     setForm(emptyForm());
+    setNewLogoFile(null);
   };
 
   const handleFormSubmit = (e) => {
@@ -435,6 +503,43 @@ export default function WorkshopsPage() {
                 </p>
               )}
             </div>
+            {/* Logo picker — create mode only */}
+            {!editWorkshop && (
+              <div className="sm:col-span-2 lg:col-span-3 space-y-2">
+                <label className="block text-sm font-medium text-slate-700">
+                  {i18n.language === 'ar' ? 'صورة / شعار الورشة (اختياري)' : 'Workshop logo / image (optional)'}
+                </label>
+                <div className="flex items-center gap-4">
+                  {newLogoFile ? (
+                    <div className="relative size-20 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                      <img src={URL.createObjectURL(newLogoFile)} alt="preview" className="size-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => { setNewLogoFile(null); if (newLogoInputRef.current) newLogoInputRef.current.value = ''; }}
+                        className="absolute right-0.5 top-0.5 rounded-full bg-red-600 p-0.5 text-white hover:bg-red-700"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex size-20 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 text-slate-400">
+                      <Image className="size-7" />
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => newLogoInputRef.current?.click()}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                  >
+                    <Upload className="size-3.5" />
+                    {i18n.language === 'ar' ? 'اختر صورة' : 'Choose image'}
+                  </button>
+                  <input ref={newLogoInputRef} type="file" accept="image/*" className="hidden"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) setNewLogoFile(f); }} />
+                </div>
+              </div>
+            )}
+
             <div className="flex w-full gap-3 pt-2 sm:col-span-2 lg:col-span-3">
               <button
                 type="submit"
@@ -452,6 +557,76 @@ export default function WorkshopsPage() {
               </button>
             </div>
           </form>
+
+          {/* ── Image Management (edit only) ─────────────────────────────── */}
+          {editWorkshop && (
+            <div className="mt-6 border-t border-slate-100 pt-6 space-y-6">
+              <h4 className="text-sm font-semibold text-slate-700">
+                {i18n.language === 'ar' ? 'الشعار والصور' : 'Logo & Images'}
+              </h4>
+
+              {/* Logo */}
+              <div className="space-y-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                  {i18n.language === 'ar' ? 'الشعار' : 'Logo'}
+                </p>
+                <div className="flex items-center gap-4">
+                  <div className="size-20 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center">
+                    {editWorkshop.logo
+                      ? <img src={apiImg(editWorkshop.logo)} alt="logo" className="size-full object-cover" />
+                      : <Image className="size-7 text-slate-300" />}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button type="button" onClick={() => logoInputRef.current?.click()} disabled={uploadLogoMutation.isPending}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50">
+                      <Upload className="size-3.5" />
+                      {uploadLogoMutation.isPending
+                        ? (i18n.language === 'ar' ? 'جارٍ الرفع…' : 'Uploading…')
+                        : (i18n.language === 'ar' ? 'رفع شعار' : 'Upload logo')}
+                    </button>
+                    {editWorkshop.logo && (
+                      <button type="button" onClick={() => deleteLogoMutation.mutate(editWorkshop.id)} disabled={deleteLogoMutation.isPending}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 disabled:opacity-50">
+                        <Trash2 className="size-3.5" />
+                        {i18n.language === 'ar' ? 'حذف الشعار' : 'Delete logo'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <input ref={logoInputRef} type="file" accept="image/*" className="hidden"
+                  onChange={(e) => { const file = e.target.files?.[0]; if (file) uploadLogoMutation.mutate({ id: editWorkshop.id, file }); e.target.value = ''; }} />
+              </div>
+
+              {/* Gallery Images */}
+              <div className="space-y-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                  {i18n.language === 'ar' ? 'صور الورشة' : 'Workshop images'}
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  {(editWorkshop.images ?? []).map((imgUrl, idx) => (
+                    <div key={idx} className="group relative size-24 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                      <img src={apiImg(imgUrl)} alt={`img-${idx}`} className="size-full object-cover" />
+                      <button type="button" onClick={() => deleteImageMutation.mutate({ id: editWorkshop.id, index: idx })}
+                        disabled={deleteImageMutation.isPending}
+                        className="absolute right-1 top-1 hidden rounded-full bg-red-600 p-0.5 text-white hover:bg-red-700 group-hover:flex disabled:opacity-50">
+                        <X className="size-3" />
+                      </button>
+                    </div>
+                  ))}
+                  {(editWorkshop.images ?? []).length < 10 && (
+                    <button type="button" onClick={() => imagesInputRef.current?.click()} disabled={uploadImagesMutation.isPending}
+                      className="flex size-24 items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 text-slate-400 hover:border-indigo-400 hover:bg-indigo-50 hover:text-indigo-500 disabled:opacity-50 transition">
+                      {uploadImagesMutation.isPending
+                        ? <span className="text-[10px] font-medium">{i18n.language === 'ar' ? 'جارٍ…' : 'Uploading…'}</span>
+                        : <ImagePlus className="size-6" />}
+                    </button>
+                  )}
+                </div>
+                <input ref={imagesInputRef} type="file" accept="image/*" multiple className="hidden"
+                  onChange={(e) => { if (e.target.files?.length) uploadImagesMutation.mutate({ id: editWorkshop.id, files: e.target.files }); e.target.value = ''; }} />
+              </div>
+            </div>
+          )}
         </Card>
       )}
 
