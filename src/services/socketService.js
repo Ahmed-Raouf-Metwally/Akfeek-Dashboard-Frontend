@@ -9,6 +9,9 @@ class SocketService {
         this.socket = null;
     }
 
+
+//ggjgjhgvcbghgddgfh
+
     connect() {
         if (this.socket?.connected) return;
 
@@ -16,8 +19,8 @@ class SocketService {
             auth: {
                 token: getAuthToken()
             },
-            transports: ['polling', 'websocket'], // polling أولاً كـ fallback، ثم upgrade لـ WebSocket
-            upgrade: true,
+            transports: ['polling', 'websocket'],
+            upgrade: false, // Cloudron Nginx لا يدعم WebSocket upgrade — polling كافي
             reconnection: true,
             reconnectionAttempts: 10,
             reconnectionDelay: 2000
