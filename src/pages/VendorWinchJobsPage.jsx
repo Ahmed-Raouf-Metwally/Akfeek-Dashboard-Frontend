@@ -52,7 +52,12 @@ export default function VendorWinchJobsPage() {
     },
     onError: (err) => {
       setUpdatingId(null);
-      toast.error(err?.message || (isAr ? 'فشل التحديث' : 'Update failed'));
+      const code = err?.response?.data?.code;
+      if (code === 'PAYMENT_REQUIRED') {
+        toast.error(isAr ? 'يجب على العميل دفع الفاتورة أولاً قبل تحديث الحالة' : 'Customer must pay the invoice first');
+      } else {
+        toast.error(err?.response?.data?.error || err?.message || (isAr ? 'فشل التحديث' : 'Update failed'));
+      }
     },
   });
 

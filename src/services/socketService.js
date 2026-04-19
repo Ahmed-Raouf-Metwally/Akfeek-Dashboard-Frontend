@@ -1,8 +1,8 @@
 import { io } from 'socket.io-client';
-import { API_BASE_URL } from '../config/env';
+import { SOCKET_BASE_URL } from '../config/env';
 import { getAuthToken } from './api';
 
-const SOCKET_URL = API_BASE_URL || window.location.origin;
+const SOCKET_URL = SOCKET_BASE_URL;
 
 class SocketService {
     constructor() {
