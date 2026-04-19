@@ -16,10 +16,11 @@ class SocketService {
             auth: {
                 token: getAuthToken()
             },
-            transports: ['websocket'],
+            transports: ['polling', 'websocket'], // polling أولاً كـ fallback، ثم upgrade لـ WebSocket
+            upgrade: true,
             reconnection: true,
-            reconnectionAttempts: 5,
-            reconnectionDelay: 1000
+            reconnectionAttempts: 10,
+            reconnectionDelay: 2000
         });
 
         this.socket.on('connect', () => {
