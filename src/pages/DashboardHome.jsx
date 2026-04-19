@@ -674,37 +674,38 @@ export default function DashboardHome() {
         </section>
       </div>
 
-      <section aria-labelledby="chart-heading" className={`min-h-[320px] ${isAutoPartsVendor || isWinchVendor ? 'hidden' : ''}`}>
-        <h2 id="chart-heading" className="mb-4 text-lg font-semibold text-slate-900">
-          {t('dashboard.activityDistribution')}
-        </h2>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <Card className="overflow-hidden">
-            <CardHeader title={t('dashboard.weeklyActivity')} />
-            <CardBody className="pt-0">
-              <div className="relative w-full min-w-0" style={{ width: '100%', height: 280, minHeight: 280 }}>
-                <ResponsiveContainer width="100%" height={280} minWidth={0} minHeight={280} debounce={50}>
-                  <BarChart data={chartWeeklyBookings.length ? chartWeeklyBookings : [{ name: '-', count: 0 }]} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="#94a3b8" />
-                    <YAxis tick={{ fontSize: 12 }} stroke="#94a3b8" />
-                    <Tooltip
-                      contentStyle={{
-                        background: 'white',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '0.5rem',
-                      }}
-                      labelStyle={{ color: '#0f172a' }}
-                    />
-                    <Bar dataKey="count" fill="rgb(99 102 241)" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardBody>
-          </Card>
-
-        </div>
-      </section>
+      {!(isAutoPartsVendor || isWinchVendor) && (
+        <section aria-labelledby="chart-heading" className="min-h-[320px]">
+          <h2 id="chart-heading" className="mb-4 text-lg font-semibold text-slate-900">
+            {t('dashboard.activityDistribution')}
+          </h2>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <Card className="overflow-hidden">
+              <CardHeader title={t('dashboard.weeklyActivity')} />
+              <CardBody className="pt-0">
+                <div className="relative w-full min-w-0" style={{ width: '100%', height: 280, minHeight: 280 }}>
+                  <ResponsiveContainer width="100%" height={280} minWidth={0} minHeight={280} debounce={50}>
+                    <BarChart data={chartWeeklyBookings.length ? chartWeeklyBookings : [{ name: '-', count: 0 }]} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="#94a3b8" />
+                      <YAxis tick={{ fontSize: 12 }} stroke="#94a3b8" />
+                      <Tooltip
+                        contentStyle={{
+                          background: 'white',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '0.5rem',
+                        }}
+                        labelStyle={{ color: '#0f172a' }}
+                      />
+                      <Bar dataKey="count" fill="rgb(99 102 241)" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardBody>
+            </Card>
+          </div>
+        </section>
+      )}
 
       {/* Recent Services List from previous implementation or removed if not needed. Keeping charts instead. */}
     </div>
