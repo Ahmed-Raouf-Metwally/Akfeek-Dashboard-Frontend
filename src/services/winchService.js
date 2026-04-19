@@ -116,6 +116,20 @@ export const winchService = {
     return data.data;
   },
 
+  /** فيندور: إرسال موقع الونش (يُستدعى كل 5 ثواني أثناء المهمة) */
+  async sendLocation({ bookingId, latitude, longitude, heading, speed, accuracy }) {
+    const { data } = await api.post('/technician/tracking/location', {
+      bookingId,
+      latitude,
+      longitude,
+      heading: heading ?? null,
+      speed: speed ?? null,
+      accuracy: accuracy ?? null,
+    });
+    if (!data.success) throw new Error(data.error || 'Failed to send location');
+    return data.data;
+  },
+
   /** [أدمن] رفع صورة ونش بمعرفه */
   async uploadImage(id, file) {
     const fd = new FormData();

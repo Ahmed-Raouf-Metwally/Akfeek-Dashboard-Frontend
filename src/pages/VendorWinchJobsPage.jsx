@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Truck, MapPin, CheckCircle, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Truck, MapPin, CheckCircle, Radio } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { winchService } from '../services/winchService';
 import { useAuthStore } from '../store/authStore';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
+
+const LOCATION_INTERVAL_MS = 5000; // كل 5 ثواني
+
+/** يعيد أول job نشط (غير مكتمل) للمشاركة في التتبع */
+function getActiveJob(jobs = []) {
+  return jobs.find((j) => j.status !== 'COMPLETED') ?? null;
+}
 
 const NEXT_STATUS = {
   TECHNICIAN_ASSIGNED: 'TECHNICIAN_EN_ROUTE',
@@ -35,11 +42,67 @@ export default function VendorWinchJobsPage() {
   const user = useAuthStore((s) => s.user);
   const isAr = i18n.language === 'ar';
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['winch', 'my-jobs'],
     queryFn: () => winchService.getMyJobs(),
+    refetchInterval: 15000,
     retry: (_, err) => err?.response?.status !== 403 && err?.response?.status !== 404,
   });
+
+  // ——— GPS Tracking ———
+  const [trackingStatus, setTrackingStatus] = useState('idle'); // idle | active | error
+  const intervalRef = useRef(null);
+  const activeJobIdRef = useRef(null);
+
+  const sendLocation = useCallback(async (bookingId) => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          await winchService.sendLocation({
+            bookingId,
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            heading: pos.coords.heading ?? null,
+            speed: pos.coords.speed != null ? pos.coords.speed * 3.6 : null, // m/s → km/h
+            accuracy: pos.coords.accuracy,
+          });
+          setTrackingStatus('active');
+        } catch {
+          // silent — لا نوقف التتبع بسبب خطأ مؤقت
+        }
+      },
+      () => setTrackingStatus('error'),
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+  }, []);
+
+  useEffect(() => {
+    const jobs = data?.jobs ?? [];
+    const activeJob = getActiveJob(jobs);
+
+    if (!activeJob) {
+      // لا يوجد job نشط — أوقف التتبع
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+      activeJobIdRef.current = null;
+      setTrackingStatus('idle');
+      return;
+    }
+
+    if (activeJobIdRef.current === activeJob.id && intervalRef.current) return;
+
+    // job جديد أو أول مرة — ابدأ التتبع
+    clearInterval(intervalRef.current);
+    activeJobIdRef.current = activeJob.id;
+    sendLocation(activeJob.id); // إرسال فوري أول مرة
+    intervalRef.current = setInterval(() => sendLocation(activeJob.id), LOCATION_INTERVAL_MS);
+
+    return () => {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    };
+  }, [data, sendLocation]);
 
   const [updatingId, setUpdatingId] = useState(null);
   const updateStatus = useMutation({
@@ -92,10 +155,23 @@ export default function VendorWinchJobsPage() {
         >
           <ArrowLeft className="size-5" />
         </Link>
-        <div>
+        <div className="flex-1">
           <h1 className="text-xl font-semibold text-slate-900">{isAr ? 'مهامي' : 'My jobs'}</h1>
           <p className="text-sm text-slate-500">{isAr ? 'الحجوزات التي قبل العميل عرضك عليها' : 'Bookings where the customer accepted your offer'}</p>
         </div>
+        {/* مؤشر حالة إرسال الموقع */}
+        {trackingStatus === 'active' && (
+          <div className="flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
+            <Radio className="size-3 animate-pulse" />
+            {isAr ? 'يُرسل الموقع' : 'Live tracking'}
+          </div>
+        )}
+        {trackingStatus === 'error' && (
+          <div className="flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
+            <MapPin className="size-3" />
+            {isAr ? 'تعذّر الموقع' : 'Location error'}
+          </div>
+        )}
       </div>
 
       {jobs.length === 0 ? (
