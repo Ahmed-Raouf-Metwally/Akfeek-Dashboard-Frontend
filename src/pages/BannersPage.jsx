@@ -181,14 +181,12 @@ export default function BannersPage() {
     const top = [];
     const bottom = [];
     const autoParts = [];
-    const carWash = [];
     banners.forEach((b) => {
       if (b.position === 'BOTTOM') bottom.push(b);
       else if (b.position === 'AUTO_PARTS') autoParts.push(b);
-      else if (b.position === 'CAR_WASH') carWash.push(b);
       else top.push(b);
     });
-    return { top, bottom, autoParts, carWash };
+    return { top, bottom, autoParts };
   }, [banners]);
 
   const createMut = useMutation({
@@ -260,7 +258,6 @@ export default function BannersPage() {
               <option value="TOP">{t('banners.top', 'الأعلى')}</option>
               <option value="BOTTOM">{t('banners.bottom', 'الأسفل')}</option>
               <option value="AUTO_PARTS">{t('banners.autoParts', 'قطع الغيار')}</option>
-              <option value="CAR_WASH">{t('banners.carWash', 'غسيل السيارات')}</option>
             </select>
             <button
               type="button"
@@ -339,27 +336,6 @@ export default function BannersPage() {
               {grouped.autoParts.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
                   {t('banners.noAutoParts', 'No AUTO_PARTS banners.')}
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t('banners.carWash', 'غسيل السيارات')}</div>
-            <div className="grid grid-cols-1 gap-4">
-              {grouped.carWash.map((b) => (
-                <BannerCard
-                  key={b.id}
-                  banner={b}
-                  onUpdate={(payload) => updateMut.mutate({ id: b.id, payload })}
-                  onDelete={() => deleteMut.mutate(b.id)}
-                  onUploadImages={(files, linkUrl) => uploadMut.mutate({ bannerId: b.id, files, linkUrl })}
-                  onDeleteImage={(imageId) => deleteImageMut.mutate({ bannerId: b.id, imageId })}
-                />
-              ))}
-              {grouped.carWash.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
-                  {t('banners.noCarWash', 'No CAR_WASH banners.')}
                 </div>
               ) : null}
             </div>

@@ -38,12 +38,11 @@ const ReviewsList = ({ workshopId, isAdmin = false }) => {
         ? `/api/workshops/admin/${workshopId}/reviews?${params}`
         : `/api/workshops/${workshopId}/reviews?${params}`;
 
-      const headers = {};
-      if (isAdmin && token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-
-      const response = await fetch(endpoint, { headers });
+      const response = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
 
       if (!response.ok) throw new Error('Failed to fetch reviews');
       return response.json();
