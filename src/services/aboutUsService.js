@@ -1,6 +1,6 @@
 import api from './api';
 
-const BASE = '/api/admin/about-us';
+const BASE = '/admin/about-us';
 
 /** GET about-us page content (admin) */
 export async function fetchAboutUs() {

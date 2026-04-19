@@ -32,7 +32,6 @@ function getTitleForPath(pathname, t, user) {
     '/towing-pricing': [t('nav.towingPricing', 'Towing Pricing'), t('towingPricing.subtitle', 'Pricing & time settings shown to the customer')],
     '/invoices': [t('nav.invoices', 'Invoices'), t('common.viewInvoices', 'View invoices')],
     '/settings': [t('nav.settings', 'Settings'), t('common.appSettings', 'App settings')],
-    '/about': [t('nav.about', 'About'), t('about.subtitle', 'Platform info, version & tech stack')],
     '/app-about': [t('nav.appAbout', 'من نحن (التطبيق)'), t('appAbout.subtitle', 'إدارة محتوى شاشة من نحن في التطبيق')],
     '/vendors': [t('nav.vendors', 'Vendors'), t('common.manageVendors', 'Manage auto parts vendors')],
     '/winches': [t('nav.winches'), t('winch.manageSubtitle')],

@@ -38,7 +38,6 @@ import {
   RotateCcw,
   Images,
   Route,
-  Info,
   BookOpen,
 } from 'lucide-react';
 import { useDashboardSettingsStore } from '../../store/dashboardSettingsStore';
@@ -221,7 +220,6 @@ const SECTIONS = [
       { key: 'settings', to: '/settings', icon: Settings, label: 'Settings' },
       { key: 'towingPricing', to: '/towing-pricing', icon: Truck, label: 'Towing Pricing', labelAr: 'تسعير السطحة' },
       { key: 'profile', to: '/profile', icon: UserCircle, label: 'Profile' },
-      { key: 'about', to: '/about', icon: Info, label: 'About', labelAr: 'عن المنصة' },
       { key: 'appAbout', to: '/app-about', icon: BookOpen, label: 'App About Us', labelAr: 'من نحن (التطبيق)' },
     ],
 
