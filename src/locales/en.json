@@ -876,6 +876,7 @@
     "availableBalance": "Available Balance",
     "pendingBalance": "Pending Balance",
     "transactionHistory": "Transaction History",
+    "history": "History",
     "noInvoices": "No invoices",
     "noInvoicesDesc": "No invoices match your filters",
     "noPayments": "No payments",

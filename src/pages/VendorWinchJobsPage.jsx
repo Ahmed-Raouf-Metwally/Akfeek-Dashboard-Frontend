@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Truck, MapPin, CheckCircle, Radio } from 'lucide-react';
+import { ArrowLeft, Truck, MapPin, CheckCircle, Radio, Route } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { winchService } from '../services/winchService';
 import { useAuthStore } from '../store/authStore';
@@ -196,19 +196,47 @@ export default function VendorWinchJobsPage() {
                     {job.bookingNumber && (
                       <p className="text-sm text-slate-500">#{job.bookingNumber}</p>
                     )}
-                    {job.pickupAddress && (
+                    {(job.pickupLocation?.address || job.pickupLocation?.latitude || job.pickupAddress || job.pickupLat) && (
                       <div className="flex items-start gap-2">
                         <MapPin className="size-4 shrink-0 mt-0.5 text-indigo-500" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-slate-600">{job.pickupAddress}</p>
-                          {job.pickupLatitude && job.pickupLongitude && (
-                             <a
-                                href={`https://www.google.com/maps/dir/?api=1&destination=${job.pickupLatitude},${job.pickupLongitude}`}
-                                target="_blank" rel="noreferrer"
-                                className="text-[10px] text-indigo-600 hover:underline flex items-center gap-1"
-                             >
-                               {isAr ? 'نقلات للعميل' : 'Navigate to Pickup'}
-                             </a>
+                          <p className="text-sm text-slate-600">
+                            <span className="text-xs font-semibold text-slate-400">{isAr ? 'الاستلام: ' : 'Pickup: '}</span>
+                            {job.pickupLocation?.address || job.pickupAddress || '—'}
+                          </p>
+                          {((job.pickupLocation?.latitude != null && job.pickupLocation?.longitude != null) || (job.pickupLat != null && job.pickupLng != null)) && (
+                            <a
+                              href={`https://www.google.com/maps/dir/?api=1&destination=${job.pickupLocation?.latitude ?? job.pickupLat},${job.pickupLocation?.longitude ?? job.pickupLng}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-[10px] text-indigo-600 hover:underline inline-flex items-center gap-1"
+                            >
+                              <Route className="size-3" />
+                              {isAr ? 'فتح مسار الاستلام' : 'Navigate to pickup'}
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {(job.destinationLocation?.address || job.destinationLocation?.latitude || job.destinationAddress || job.destinationLat) && (
+                      <div className="flex items-start gap-2">
+                        <MapPin className="size-4 shrink-0 mt-0.5 text-emerald-500" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-slate-600">
+                            <span className="text-xs font-semibold text-slate-400">{isAr ? 'التسليم: ' : 'Drop-off: '}</span>
+                            {job.destinationLocation?.address || job.destinationAddress || '—'}
+                          </p>
+                          {((job.destinationLocation?.latitude != null && job.destinationLocation?.longitude != null) || (job.destinationLat != null && job.destinationLng != null)) && (
+                            <a
+                              href={`https://www.google.com/maps/dir/?api=1&destination=${job.destinationLocation?.latitude ?? job.destinationLat},${job.destinationLocation?.longitude ?? job.destinationLng}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-[10px] text-emerald-700 hover:underline inline-flex items-center gap-1"
+                            >
+                              <Route className="size-3" />
+                              {isAr ? 'فتح مسار التسليم' : 'Navigate to drop-off'}
+                            </a>
                           )}
                         </div>
                       </div>

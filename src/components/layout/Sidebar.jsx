@@ -68,7 +68,7 @@ const VENDOR_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail'
 /** ٤ – فيندور خدمة الغسيل */
 const VENDOR_CAR_WASH_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'about']);
 /** ٥ – فيندور الورش المتنقلة */
-const VENDOR_MOBILE_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyMobileWorkshop', 'vendorMobileWorkshopRequests', 'vendorMobileWorkshopJobs', 'wallets', 'invoices', 'payments', 'profile', 'about']);
+const VENDOR_MOBILE_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorMyMobileWorkshop', 'vendorMobileWorkshopBookings', 'vendorMobileWorkshopJobs', 'wallets', 'invoices', 'payments', 'profile', 'about']);
 /** ٦ – فيندور الونش (السطحه) */
 const VENDOR_WINCH_KEYS = new Set(['dashboard', 'myVendorDetail', 'vendorMyWinch', 'vendorWinchRequests', 'vendorWinchJobs', 'wallets', 'invoices', 'payments', 'profile', 'about']);
 
@@ -161,7 +161,7 @@ const SECTIONS = [
     labelAr: 'الورش المتنقلة',
     items: [
       { key: 'vendorMyMobileWorkshop', to: '/vendor/mobile-workshop', icon: Truck, label: 'My Mobile Workshop', labelAr: 'ورشتي المتنقلة' },
-      { key: 'vendorMobileWorkshopRequests', to: '/vendor/mobile-workshop/requests', icon: CalendarCheck, label: 'Requests', labelAr: 'طلبات ورشتي' },
+      { key: 'vendorMobileWorkshopBookings', to: '/vendor/mobile-workshop/bookings', icon: CalendarCheck, label: 'Bookings', labelAr: 'الحجوزات' },
       { key: 'vendorMobileWorkshopJobs', to: '/vendor/mobile-workshop/jobs', icon: Wrench, label: 'Jobs', labelAr: 'مهام الإصلاح' },
     ],
   },
@@ -215,6 +215,7 @@ const SECTIONS = [
     labelAr: 'النظام',
     items: [
       { key: 'banners', to: '/banners', icon: Images, label: 'Banners', labelAr: 'البنرات' },
+      { key: 'offers', to: '/offers', icon: Tag, label: 'Offers', labelAr: 'العروض' },
       { key: 'packages', to: '/admin/packages', icon: Package, label: 'Packages', labelAr: 'الباقات' },
       { key: 'subscriptions', to: '/admin/subscriptions', icon: Package, label: 'Subscriptions', labelAr: 'الاشتراكات' },
       { key: 'settings', to: '/settings', icon: Settings, label: 'Settings' },

@@ -874,6 +874,7 @@
     "availableBalance": "الرصيد المتاح",
     "pendingBalance": "الرصيد المعلق",
     "transactionHistory": "سجل العمليات",
+    "history": "السجل",
     "noInvoices": "لا توجد فواتير",
     "noInvoicesDesc": "لا توجد فواتير تطابق الفلتر الخاص بك",
     "noPayments": "لا توجد مدفوعات",

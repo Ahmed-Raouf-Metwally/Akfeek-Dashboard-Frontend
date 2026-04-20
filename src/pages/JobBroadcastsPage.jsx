@@ -46,7 +46,7 @@ function UrgencyBadge({ urgency, t }) {
 }
 
 export default function JobBroadcastsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { fmt } = useDateFormat();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
@@ -134,7 +134,9 @@ export default function JobBroadcastsPage() {
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.status')}</th>
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('broadcasts.urgency.title')}</th>
                     <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.date')}</th>
-                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.offers')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">
+                      {t('common.offers', i18n.language === 'ar' ? 'العروض' : 'Offers')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>

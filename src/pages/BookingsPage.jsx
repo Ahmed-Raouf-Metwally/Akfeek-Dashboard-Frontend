@@ -136,7 +136,6 @@ export default function BookingsPage() {
                     {isAdmin && (
                       <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.customer')}</th>
                     )}
-                    <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('common.vehicle')}</th>
                     {isAdmin && (
                       <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-slate-500">{t('bookings.vendor', 'مقدم الخدمة / الفيندور')}</th>
                     )}
@@ -154,13 +153,6 @@ export default function BookingsPage() {
                       {isAdmin && (
                         <td className="px-4 py-3 text-sm text-slate-600">{customerLabel(b)}</td>
                       )}
-                      <td className="px-4 py-3 text-sm text-slate-600">
-                        {(b.vehicle?.plateLettersEn || b.vehicle?.plateDigits)
-                          ? [b.vehicle.plateLettersEn, b.vehicle.plateDigits].filter(Boolean).join(' ')
-                          : (b.vehicle?.vehicleModel?.brand?.name
-                            ? `${b.vehicle.vehicleModel.brand.name} ${b.vehicle.vehicleModel?.name ?? ''}`.trim()
-                            : '—')}
-                      </td>
                       {isAdmin && (
                         <td className="px-4 py-3 text-sm text-slate-600">{vendorLabel(b)}</td>
                       )}

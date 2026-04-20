@@ -52,6 +52,13 @@ const mobileWorkshopService = {
         customer: inv.customer,
         agreedPrice: inv.effectiveTotal ?? inv.totalAmount,
         currency: 'SAR',
+        pickupAddress: inv.booking?.pickupAddress ?? null,
+        pickupLat: inv.booking?.pickupLat ?? null,
+        pickupLng: inv.booking?.pickupLng ?? null,
+        destinationAddress: inv.booking?.destinationAddress ?? null,
+        scheduledDate: inv.booking?.scheduledDate ?? null,
+        scheduledTime: inv.booking?.scheduledTime ?? null,
+        notes: inv.booking?.notes ?? null,
       }))
       .filter((j) => j.id && ['TECHNICIAN_ASSIGNED', 'TECHNICIAN_EN_ROUTE', 'ARRIVED', 'IN_PROGRESS', 'COMPLETED'].includes(j.status));
     return { jobs };

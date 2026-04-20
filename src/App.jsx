@@ -83,8 +83,8 @@ const VendorWorkshopServicesPage = lazy(() => import('./pages/VendorWorkshopServ
 const VendorCouponsPage = lazy(() => import('./pages/VendorCouponsPage'));
 const VendorCarWashBookingsPage = lazy(() => import('./pages/VendorCarWashBookingsPage'));
 const VendorMobileWorkshopPage = lazy(() => import('./pages/VendorMobileWorkshopPage'));
-const VendorMobileWorkshopRequestsPage = lazy(() => import('./pages/VendorMobileWorkshopRequestsPage'));
 const VendorMobileWorkshopJobsPage = lazy(() => import('./pages/VendorMobileWorkshopJobsPage'));
+const VendorMobileWorkshopBookingsPage = lazy(() => import('./pages/VendorMobileWorkshopBookingsPage'));
 const VendorMobileWorkshopEditPage = lazy(() => import('./pages/VendorMobileWorkshopEditPage'));
 const VendorWinchPage = lazy(() => import('./pages/VendorWinchPage'));
 const VendorWinchEditPage = lazy(() => import('./pages/VendorWinchEditPage'));
@@ -99,6 +99,7 @@ const DashboardSubscriptions = lazy(() => import('./pages/DashboardSubscriptions
 const PackagesListPage = lazy(() => import('./pages/PackagesListPage'));
 const MyPackagesPage = lazy(() => import('./pages/MyPackagesPage'));
 const AppAboutPage = lazy(() => import('./pages/AppAboutPage'));
+const OffersPage = lazy(() => import('./pages/OffersPage'));
 
 /** Redirect non-admin (vendor, employee) away from admin-only pages (e.g. employees, ratings, points) */
 function AdminOnlyRoute({ children }) {
@@ -215,6 +216,7 @@ function App() {
               <Route path="points" element={<AdminOnlyRoute><PointsPage /></AdminOnlyRoute>} />
               <Route path="ratings" element={<AdminOnlyRoute><RatingsPage /></AdminOnlyRoute>} />
               <Route path="settings" element={<AdminOnlyRoute><SettingsPage /></AdminOnlyRoute>} />
+              <Route path="offers" element={<AdminOnlyRoute><OffersPage /></AdminOnlyRoute>} />
               <Route path="towing-pricing" element={<AdminOnlyRoute><TowingPricingPage /></AdminOnlyRoute>} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="feedback" element={<FeedbackPage />} />
@@ -263,8 +265,8 @@ function App() {
               {/* Vendor – Comprehensive Care (VENDOR only) */}
               <Route path="vendor/comprehensive-care/services" element={<VendorComprehensiveServicesPage />} />
               <Route path="vendor/comprehensive-care/bookings" element={<VendorComprehensiveBookingsPage />} />
-              {/* Vendor – Coupons (كل فيندور ماعدا TOWING_SERVICE) */}
-              <Route path="vendor/coupons" element={<BlockVendorTypes types={['TOWING_SERVICE']}><VendorCouponsPage /></BlockVendorTypes>} />
+              {/* Vendor – Coupons (كل فيندور ماعدا TOWING_SERVICE و MOBILE_WORKSHOP) */}
+              <Route path="vendor/coupons" element={<BlockVendorTypes types={['TOWING_SERVICE', 'MOBILE_WORKSHOP']}><VendorCouponsPage /></BlockVendorTypes>} />
               {/* Vendor – Certified Workshop (VENDOR only) */}
               <Route path="vendor/workshop" element={<VendorWorkshopPage />} />
               <Route path="vendor/workshop/bookings" element={<VendorWorkshopBookingsPage />} />
@@ -275,7 +277,7 @@ function App() {
               {/* Vendor – Mobile Workshop (MOBILE_WORKSHOP vendor) */}
               <Route path="vendor/mobile-workshop" element={<VendorMobileWorkshopPage />} />
               <Route path="vendor/mobile-workshop/edit" element={<VendorMobileWorkshopEditPage />} />
-              <Route path="vendor/mobile-workshop/requests" element={<VendorMobileWorkshopRequestsPage />} />
+              <Route path="vendor/mobile-workshop/bookings" element={<VendorMobileWorkshopBookingsPage />} />
               <Route path="vendor/mobile-workshop/jobs" element={<VendorMobileWorkshopJobsPage />} />
               {/* Vendor – Winch / Towing (TOWING_SERVICE vendor) */}
               <Route path="vendor/winch" element={<VendorWinchPage />} />
