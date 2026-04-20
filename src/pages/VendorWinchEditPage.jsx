@@ -227,9 +227,9 @@ export default function VendorWinchEditPage() {
           <h3 className="font-semibold text-slate-800 border-b pb-2 flex items-center gap-2">
             <MapPin className="size-5 text-indigo-600" /> الموقع
           </h3>
-          <div className="flex flex-wrap items-center justify-between gap-3 bg-amber-50 rounded-lg px-3 py-2">
-            <p className="text-xs text-amber-600">
-              ⚠️ تحديد الإحداثيات ضروري لاستقبال طلبات السحب القريبة منك.
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 rounded-lg px-3 py-2">
+            <p className="text-xs text-slate-500">
+              تحديد الموقع اختياري — ستستقبل جميع طلبات السحب بغض النظر عن موقعك.
             </p>
             <button
               type="button"

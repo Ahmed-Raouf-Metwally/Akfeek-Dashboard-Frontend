@@ -60,17 +60,17 @@ const EMPLOYEE_PERMISSION_TO_SIDEBAR_KEYS = {
 };
 
 /** ١ – فيندور قطع الغيار / المنتجات (بدون تقييمات أو Points Audit) */
-const VENDOR_AUTO_PARTS_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'auto-parts', 'marketplace-orders', 'wallets', 'invoices', 'payments', 'profile', 'settings', 'about']);
+const VENDOR_AUTO_PARTS_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'auto-parts', 'marketplace-orders', 'wallets', 'invoices', 'payments', 'profile', 'about']);
 /** ٢ – فيندور العناية الشاملة */
-const VENDOR_COMPREHENSIVE_CARE_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings', 'about']);
+const VENDOR_COMPREHENSIVE_CARE_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'about']);
 /** ٣ – فيندور الورش المعتمدة */
-const VENDOR_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyWorkshop', 'vendorWorkshopBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings', 'about']);
+const VENDOR_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyWorkshop', 'vendorWorkshopBookings', 'wallets', 'invoices', 'payments', 'profile', 'about']);
 /** ٤ – فيندور خدمة الغسيل */
-const VENDOR_CAR_WASH_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'settings', 'about']);
+const VENDOR_CAR_WASH_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyServices', 'vendorBookings', 'wallets', 'invoices', 'payments', 'profile', 'about']);
 /** ٥ – فيندور الورش المتنقلة */
-const VENDOR_MOBILE_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyMobileWorkshop', 'vendorMobileWorkshopRequests', 'vendorMobileWorkshopJobs', 'wallets', 'invoices', 'payments', 'profile', 'settings', 'about']);
+const VENDOR_MOBILE_WORKSHOP_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyMobileWorkshop', 'vendorMobileWorkshopRequests', 'vendorMobileWorkshopJobs', 'wallets', 'invoices', 'payments', 'profile', 'about']);
 /** ٦ – فيندور الونش (السطحه) */
-const VENDOR_WINCH_KEYS = new Set(['dashboard', 'analytics', 'myVendorDetail', 'vendorCoupons', 'vendorMyWinch', 'vendorWinchRequests', 'vendorWinchJobs', 'wallets', 'invoices', 'payments', 'profile', 'settings', 'about']);
+const VENDOR_WINCH_KEYS = new Set(['dashboard', 'myVendorDetail', 'vendorMyWinch', 'vendorWinchRequests', 'vendorWinchJobs', 'wallets', 'invoices', 'payments', 'profile', 'about']);
 
 const SECTION_LABEL_KEYS = {
   main: 'sectionMain',

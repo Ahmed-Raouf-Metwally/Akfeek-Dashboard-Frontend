@@ -107,6 +107,13 @@ function AdminOnlyRoute({ children }) {
   return children;
 }
 
+/** Block specific vendor types from a route */
+function BlockVendorTypes({ types = [], children }) {
+  const user = useAuthStore((s) => s.user);
+  if (user?.role === 'VENDOR' && types.includes(user?.vendorType)) return <Navigate to="/dashboard" replace />;
+  return children;
+}
+
 function RouteFallback() {
   return (
     <div className="flex min-h-[40vh] items-center justify-center bg-slate-50 dark:bg-slate-950">
@@ -170,7 +177,7 @@ function App() {
             >
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<DashboardHome />} />
-              <Route path="analytics" element={<AnalyticsPage />} />
+              <Route path="analytics" element={<BlockVendorTypes types={['TOWING_SERVICE']}><AnalyticsPage /></BlockVendorTypes>} />
               <Route path="users" element={<UsersPage />} />
               <Route path="users/new" element={<CreateUserPage />} />
               <Route path="roles" element={<RolesPermissionsPage />} />
@@ -207,7 +214,7 @@ function App() {
               <Route path="wallets" element={<WalletsPage />} />
               <Route path="points" element={<AdminOnlyRoute><PointsPage /></AdminOnlyRoute>} />
               <Route path="ratings" element={<AdminOnlyRoute><RatingsPage /></AdminOnlyRoute>} />
-              <Route path="settings" element={<SettingsPage />} />
+              <Route path="settings" element={<AdminOnlyRoute><SettingsPage /></AdminOnlyRoute>} />
               <Route path="towing-pricing" element={<AdminOnlyRoute><TowingPricingPage /></AdminOnlyRoute>} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="feedback" element={<FeedbackPage />} />
@@ -256,8 +263,8 @@ function App() {
               {/* Vendor – Comprehensive Care (VENDOR only) */}
               <Route path="vendor/comprehensive-care/services" element={<VendorComprehensiveServicesPage />} />
               <Route path="vendor/comprehensive-care/bookings" element={<VendorComprehensiveBookingsPage />} />
-              {/* Vendor – Coupons (كل فيندور) */}
-              <Route path="vendor/coupons" element={<VendorCouponsPage />} />
+              {/* Vendor – Coupons (كل فيندور ماعدا TOWING_SERVICE) */}
+              <Route path="vendor/coupons" element={<BlockVendorTypes types={['TOWING_SERVICE']}><VendorCouponsPage /></BlockVendorTypes>} />
               {/* Vendor – Certified Workshop (VENDOR only) */}
               <Route path="vendor/workshop" element={<VendorWorkshopPage />} />
               <Route path="vendor/workshop/bookings" element={<VendorWorkshopBookingsPage />} />

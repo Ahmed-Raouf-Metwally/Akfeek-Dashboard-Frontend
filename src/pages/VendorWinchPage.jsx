@@ -232,7 +232,7 @@ export default function VendorWinchPage() {
               </div>
               <div>
                 <h3 className="font-bold text-lg">تحديث الموقع المباشر</h3>
-                <p className="text-indigo-100 text-sm">حدّث موقعك الآن لتصلك الطلبات القريبة منك بدقة.</p>
+                <p className="text-indigo-100 text-sm">حدّث موقعك الآن لعرض المسافة للعملاء بدقة.</p>
               </div>
             </div>
             <button
