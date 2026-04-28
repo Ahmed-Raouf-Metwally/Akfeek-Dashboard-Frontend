@@ -180,7 +180,16 @@
     "mobile-workshops": "الورش المتنقلة",
     "mobile-workshop-vendors": "حجوزات الورش المتنقلة",
     "towingPricing": "تسعير السطحة",
-    "subscriptions": "الاشتراكات"
+    "subscriptions": "الاشتراكات",
+    "vendorMyMobileWorkshop": "ورشتي المتنقلة",
+    "vendorMobileWorkshopBookings": "حجوزات الورشة المتنقلة",
+    "vendorMobileWorkshopJobs": "مهام الإصلاح",
+    "vendorMyWinch": "صفحة الونش",
+    "vendorWinchRequests": "طلبات قريبة",
+    "vendorWinchJobs": "مهامي",
+    "myMobileWorkshopRequests": "طلباتي",
+    "offers": "العروض",
+    "appAbout": "من نحن (التطبيق)"
   },
   "towingPricing": {
     "subtitle": "إعدادات السعر والوقت التي تظهر للعميل قبل استلام عروض الوينش."
@@ -455,7 +464,9 @@
       "PENDING_VERIFICATION": "بانتظار التحقق",
       "SUSPENDED": "موقف",
       "INACTIVE": "غير نشط"
-    }
+    },
+    "changeStatus": "تغيير الحالة",
+    "confirmStatusChange": "هل أنت متأكد من تغيير الحالة إلى {{status}}؟"
   },
   "services": {
     "title": "الخدمات",
@@ -1053,6 +1064,7 @@
     "brand": "الماركة",
     "all": "الكل",
     "save": "حفظ",
+    "update": "تحديث",
     "cancel": "إلغاء",
     "delete": "حذف",
     "edit": "تعديل",

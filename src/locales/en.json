@@ -182,7 +182,16 @@
     "mobile-workshops": "Mobile Workshops",
     "mobile-workshop-vendors": "Mobile Workshop Bookings",
     "towingPricing": "Towing Pricing",
-    "subscriptions": "Subscriptions"
+    "subscriptions": "Subscriptions",
+    "vendorMyMobileWorkshop": "My Mobile Workshop",
+    "vendorMobileWorkshopBookings": "Mobile Workshop Bookings",
+    "vendorMobileWorkshopJobs": "Repair Jobs",
+    "vendorMyWinch": "My Winch",
+    "vendorWinchRequests": "Nearby Requests",
+    "vendorWinchJobs": "My Jobs",
+    "myMobileWorkshopRequests": "My Requests",
+    "offers": "Offers",
+    "appAbout": "App About Us"
   },
   "towingPricing": {
     "subtitle": "Pricing & time settings shown to the customer before winch offers."
@@ -457,7 +466,9 @@
       "PENDING_VERIFICATION": "Pending",
       "SUSPENDED": "Suspended",
       "INACTIVE": "Inactive"
-    }
+    },
+    "changeStatus": "Change status",
+    "confirmStatusChange": "Are you sure you want to change status to {{status}}?"
   },
   "services": {
     "title": "Services",
